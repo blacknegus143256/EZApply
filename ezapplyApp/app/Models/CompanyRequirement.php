@@ -13,7 +13,7 @@ class CompanyRequirement extends Model
         'company_id',
         'min_net_worth',
         'min_liquid_assets',
-        'prior_experience',
+        'prior_experience', 
         'experience_type',
         'other_qualifications',
     ];
