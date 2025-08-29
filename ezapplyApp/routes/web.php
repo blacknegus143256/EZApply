@@ -3,14 +3,32 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+
+use App\Http\Controllers\FranchiseInformationController;
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/franchise-information', [FranchiseInformationController::class, 'store'])->name('franchise.store');
+});
+
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
+
+Route::get('/applicant/franchise', function () {
+    return Inertia::render('Applicant/FranchiseForm');
+})->name('applicant.franchise');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+    
+    Route::get('applicant/franchise', function () {
+        return Inertia::render('Applicant/FranchiseForm');
+    })->name('applicant.franchise');
+
+    
 });
 
 require __DIR__.'/settings.php';

@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link,usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -30,6 +30,10 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+
+    const page = usePage();
+    const url = page.url;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -46,10 +50,31 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                {url.startsWith('/applicant/franchise') && (
+                <div className="mt-4">
+                    <div className="px-4 text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                    Franchise Application
+                    </div>
+
+                    <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                        {/* anchor to section in the page */}
+                        <a href="/applicant/franchise?tab=financial">Financial Information</a>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                        <a href="/applicant/franchise?tab=interest">Franchise Interest</a>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    </SidebarMenu>
+                </div>
+                )}
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+                <NavFooter items={footerNavItems} className="mt-auto" />    
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
