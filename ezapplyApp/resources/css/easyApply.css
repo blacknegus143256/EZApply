@@ -1,3 +1,117 @@
+/* Main content area */
+.ezapply-main-content {
+  display: flex;
+  flex-direction: column;
+  margin-top: 5rem;
+  padding: 0 2rem;
+  min-height: calc(100vh - 200px);
+}
+
+/* Filter row and card */
+.ezapply__filter-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  margin-right: -30px;
+}
+.ezapply__filter-card {
+  width: 550px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #eee;
+  padding: 1.5rem;
+}
+.ezapply__filter-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1b1b18;
+  margin-bottom: 1rem;
+}
+.ezapply__filter-search {
+  margin-bottom: 1rem;
+}
+.ezapply__filter-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.ezapply__filter-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+.ezapply__filter-select {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+.ezapply__type-select {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  font-weight: 500;
+}
+.ezapply__submit-row {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
+/* Company grid and card */
+.ezapply__company-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  flex: 1;
+  max-width: 100%;
+}
+.ezapply__no-companies {
+  grid-column: 1/3;
+  text-align: center;
+  color: #888;
+  padding: 2rem;
+}
+.ezapply__company-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #eee;
+  padding: 1.5rem;
+}
+.ezapply__company-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.ezapply__checkbox {
+  margin-right: 1rem;
+  accent-color: #074035;
+}
+.ezapply__company-logo {
+  height: 32px;
+  width: 32px;
+  margin-right: 0.5rem;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.ezapply__company-name {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #1b1b18;
+}
+.ezapply__company-details {
+  font-size: 0.9rem;
+  color: #000000ff;
+  line-height: 1.5;
+}
 
 .ezapply-login-btn {
   background: linear-gradient(90deg, #7f53ac 40%, #647dee 100%);
@@ -70,6 +184,11 @@
   background: #fff;
   box-shadow: 0 2px 8px #eee;
   gap: 2rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
 .ezapply-logo {
@@ -104,7 +223,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 5rem;
+  margin-top: 5.5rem; /* Prevent content from being hidden behind fixed nav */
 }
 
 .ezapply-searchbar {
