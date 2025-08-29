@@ -1,0 +1,185 @@
+
+.ezapply-login-btn {
+  background: linear-gradient(90deg, #7f53ac 40%, #647dee 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  font-size: 0.93rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px #b3b3e6;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  letter-spacing: 0.2px;
+}
+.ezapply-login-btn:hover {
+  background: linear-gradient(90deg, #5f2c82 40%, #49a09d 100%);
+  box-shadow: 0 2px 8px #7f53ac44;
+  transform: translateY(-1px) scale(1.02);
+}
+.ezapply-login-icon {
+  font-size: 1.05rem;
+  margin-right: 0.3rem;
+}
+.ezapply-login-text {
+  font-size: 0.97rem;
+  font-weight: 500;
+}
+.ezapply-login-arrow {
+  font-size: 0.93rem;
+  margin-left: 0.2rem;
+}
+
+.ezapply-submit-btn {
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background: linear-gradient(90deg, #074035 0%, #074035 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px #e0e7ff;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, opacity 0.2s;
+  opacity: 1;
+}
+.ezapply-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(90deg, #074035 0%, #074035 100%);
+}
+.ezapply-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(90deg, #074035 0%, #074035 100%);
+}
+.ezapply-landing {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: Inter, sans-serif;
+}
+
+.ezapply-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #fff;
+  box-shadow: 0 2px 8px #eee;
+  gap: 2rem;
+}
+
+.ezapply-logo {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #2563eb;
+}
+
+.ezapply-navlinks {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.ezapply-navlink {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1b1b18;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s;
+}
+.ezapply-navlink:hover {
+  color: #2563eb;
+}
+
+.ezapply-login-container {
+  position: relative;
+}
+
+.ezapply-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5rem;
+}
+
+.ezapply-searchbar {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.ezapply-search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.ezapply-filter-select,
+.ezapply-type-select {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #2563eb;
+  font-weight: 500;
+}
+
+.ezapply-company-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 640px;
+}
+
+.ezapply-no-companies {
+  grid-column: 1/3;
+  text-align: center;
+  color: #888;
+}
+
+.ezapply-company-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #eee;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ezapply-checkbox {
+  margin-right: 1rem;
+  accent-color: #074035;
+}
+
+.ezapply-company-name {
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.ezapply-submit-btn {
+  margin-top: 2rem;
+  padding: 0.75rem 2rem;
+  background: linear-gradient(90deg, #074035 0%, #074035 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #eee;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.ezapply-submit-btn:disabled {
+  background: #ddd;
+  color: #888;
+  cursor: not-allowed;
+}

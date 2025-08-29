@@ -27,6 +27,11 @@ const footerNavItems: NavItem[] = [
         href: 'https://laravel.com/docs/starter-kits#react',
         icon: BookOpen,
     },
+    {
+        title: 'Home Page',
+        href: `/easy-apply`,
+        icon: BookOpen,
+    }
 ];
 
 export function AppSidebar() {
