@@ -13,7 +13,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/', function () {
-    return Inertia::render('easyApply');
+    return Inertia::render('Landing/easyApply');
 })->name('home');
 
 Route::get('/applicant/franchise', function () {
