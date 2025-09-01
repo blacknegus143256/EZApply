@@ -302,3 +302,39 @@
   color: #888;
   cursor: not-allowed;
 }
+
+.ezapply-company-card-small-grid {
+  display: flex !important;
+  flex-direction: row;     /* horizontal layout */
+  gap: 1rem;              /* spacing between cards */
+  overflow-x: auto;       /* allows scrolling horizontally if too many */
+  padding: 1rem 0;
+}
+
+.ezapply-company-card-small {
+  flex: 0 0 250px;        /* fixed width for each card */
+  display: flex;
+  flex-direction: column; /* stack content vertically inside card */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+  min-height: 300px;      /* makes the card vertically long */
+}
+
+.ezapply-company-card-small-header{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ezapply-company-card-small-name{
+  font-weight: 600;
+  font-size: 16px;
+}
+.ezapply-company-card-small-details{
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+

@@ -1,95 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../../css/easyApply.css';
 import { Link } from '@inertiajs/react';
 
-const companies = [
-  {
-    id: 1,
-    name: 'Krispy King',
-    type: 'Food',
-    companyName: 'Krispy King',
-    brandName: 'Krispy King',
-    yearFounded: 2010,
-    headquarters: 'Quezon City, Philippines',
-    franchiseType: 'Food',
-    minimumInvestment: '₱1,200,000 (~$21,000 USD)',
-    numberOfBranches: 150,
-    description:
-      'Krispy King is a beloved fast-food chain specializing in crispy fried chicken and savory rice meals. Known for its affordable prices and bold flavors, Krispy King offers franchisees a proven business model with comprehensive training and marketing support to thrive in the competitive food industry.',
-  },
-  {
-    id: 2,
-    name: 'Jollibee',
-    type: 'Food',
-    companyName: 'Jollibee Foods',
-    brandName: 'Jollibee',
-    yearFounded: 1978,
-    headquarters: 'Pasig City, Philippines',
-    franchiseType: 'Food',
-    minimumInvestment: '₱35,000,000 (~$620,000 USD)',
-    numberOfBranches: 1500,
-    description:
-      'Jollibee is a global Filipino fast-food icon, famous for its Chickenjoy, Jolly Spaghetti, and unique burgers. With a strong international presence and a loyal customer base, Jollibee provides franchisees with extensive operational support and a globally recognized brand.',
-  },
-  {
-    id: 3,
-    name: 'Pickup Coffee',
-    type: 'Cafe',
-    companyName: 'Pickup Coffee Co.',
-    brandName: 'Pickup Coffee',
-    yearFounded: 2020,
-    headquarters: 'Makati City, Philippines',
-    franchiseType: 'Cafe',
-    minimumInvestment: '₱2,500,000 (~$44,000 USD)',
-    numberOfBranches: 50,
-    description:
-      'Pickup Coffee is a trendy cafe chain offering affordable, high-quality coffee and pastries in a modern setting. Targeting young professionals and students, Pickup Coffee provides franchisees with a scalable model and support for creating vibrant community spaces.',
-  },
-  {
-    id: 4,
-    name: 'Mr. Lemon',
-    type: 'Drinks',
-    companyName: 'Mr. Lemon Enterprises',
-    brandName: 'Mr. Lemon',
-    yearFounded: 2018,
-    headquarters: 'Cebu City, Philippines',
-    franchiseType: 'Drinks',
-    minimumInvestment: '₱800,000 (~$14,000 USD)',
-    numberOfBranches: 80,
-    description:
-      'Mr. Lemon specializes in refreshing lemon-based beverages and fruit drinks, perfect for tropical climates. With a focus on fresh ingredients and innovative flavors, Mr. Lemon offers franchisees a low-cost entry into the booming beverage market with robust training support.',
-  },
-  {
-    id: 5,
-    name: 'Angel`s Burger',
-    type: 'Food',
-    companyName: 'Angel’s Burger Inc.',
-    brandName: 'Angel’s Burger',
-    yearFounded: 1997,
-    headquarters: 'Manila, Philippines',
-    franchiseType: 'Food',
-    minimumInvestment: '₱500,000 (~$9,000 USD)',
-    numberOfBranches: 2000,
-    description:
-      'Angel’s Burger is a popular street-food chain known for its affordable buy-one-take-one burgers and quick service. Ideal for high-traffic locations, Angel’s Burger equips franchisees with a simple, high-demand business model and operational guidance.',
-  },
-  {
-    id: 6,
-    name: 'Mang Inasal',
-    type: 'Food',
-    companyName: 'Mang Inasal Philippines, Inc.',
-    brandName: 'Mang Inasal',
-    yearFounded: 2003,
-    headquarters: 'Iloilo City, Philippines',
-    franchiseType: 'Food',
-    minimumInvestment: '₱15,000,000 (~$265,000 USD)',
-    numberOfBranches: 700,
-    description:
-      'Mang Inasal is a leading Filipino fast-food chain specializing in grilled chicken (inasal) and unlimited rice. With a strong cultural appeal and nationwide presence, Mang Inasal offers franchisees a profitable opportunity backed by extensive marketing and operational support.',
-  },
-];
+
 
 export default function EasyApplyLanding({ user }: { user?: any }) {
+  const [companies, setCompanies] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [type, setType] = useState('all');
@@ -98,35 +14,37 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   const isVerified =
     !!user && typeof user === 'object' && Object.keys(user).length > 0;
 
-  
-  let filtered = companies;
+    useEffect(() => {
+    fetch('/companies')
+      .then((res) => res.json())
+      .then((data) => setCompanies(data))
+      .catch((err) => console.error('Error fetching companies:', err));
+  }, []);
 
-  
-  if (type !== 'all') {
-    filtered = filtered.filter((c) => c.type === type);
-  }
+  // Start with all companies
+let filtered = companies;
 
-  
-  if (amount !== 'all') {
-    filtered = filtered.filter((c) => {
-      const value = parseInt(c.minimumInvestment.replace(/[₱,~USD\s]/g, ''), 10);
-      if (amount === '10m') return value <= 10000000;
-      if (amount === '35m') return value <= 35000000;
-      if (amount === '1m') return value <= 1000000;
-      return true;
-    });
-  }
+// Filter by type
+if (type !== 'all') {
+  filtered = filtered.filter((c) => c.franchise_type === type);
+}
 
-  // Search filter
-  filtered = filtered.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+// Filter by investment amount
+if (amount !== 'all') {
+  filtered = filtered.filter((c) => {
+    const value = parseInt(c.minimumInvestment?.replace(/[₱,~USD\s]/g, '') || '0', 10);
+    if (amount === '10m') return value <= 10000000;
+    if (amount === '35m') return value <= 35000000;
+    if (amount === '1m') return value <= 1000000;
+    return true;
+  });
+}
 
-  const handleCheck = (id: number) => {
-    setChecked((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
+// Search filter
+filtered = filtered.filter((c) =>
+  (c.name ?? '').toLowerCase().includes(search.toLowerCase())
+);
+
 
   return (
     <div className="ezapply-landing">
@@ -254,35 +172,35 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
                     checked={checked.includes(company.id)}
                     onChange={() => handleCheck(company.id)}
                     className="ezapply__checkbox"
-                    aria-label={`Select ${company.companyName}`}
+                    aria-label={`Select ${company.company_name}`}
                   />
                   <img
                     src={'/favicon.svg'}
-                    alt={company.companyName + ' logo'}
+                    alt={company.company_name + ' logo'}
                     className="ezapply__company-logo"
                   />
                   <span className="ezapply__company-name">
-                    {company.companyName}
+                    {company.company_name}
                   </span>
                 </div>
                 <div className="ezapply__company-details">
                   <p>
-                    <strong>Brand:</strong> {company.brandName}
+                    <strong>Brand:</strong> {company.brand_name}
                   </p>
                   <p>
-                    <strong>Founded:</strong> {company.yearFounded}
+                    <strong>Founded:</strong> {company.year_founded}
                   </p>
                   <p>
-                    <strong>Headquarters:</strong> {company.headquarters}
+                    <strong>Headquarters:</strong> {company.hq_address}
                   </p>
                   <p>
-                    <strong>Type:</strong> {company.franchiseType}
+                    <strong>Type:</strong> {company.opportunity.franchise_type}
                   </p>
                   <p>
-                    <strong>Investment:</strong> {company.minimumInvestment}
+                    <strong>Investment:</strong> {company.opportunity.min_investment}
                   </p>
                   <p>
-                    <strong>Branches:</strong> {company.numberOfBranches}
+                    <strong>Branches:</strong> {company.num_franchise_locations}
                   </p>
                   <p>
                     <strong>Description:</strong> {company.description}

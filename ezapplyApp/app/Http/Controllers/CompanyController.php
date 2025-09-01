@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
+    
     public function store(Request $request)
     {
         // Validate ONLY the fields for the 5 tables we kept.
@@ -129,4 +130,29 @@ class CompanyController extends Controller
 
         return back()->with('success', 'Company saved.');
     }
+    public function show($id)
+    {
+        // Load company + all related data
+        $company = Company::with([
+            'opportunity',
+            'background',
+            'requirements',
+            'marketing',
+        ])->findOrFail($id);
+
+        return response()->json($company);
+    }
+    public function index()
+{
+    // Get all companies and eager load their related data
+    
+    $companies = Company::with([
+        'opportunity',
+        'background',
+        'requirements',
+        'marketing',
+    ])->get();
+
+    return response()->json($companies);
+}
 }
