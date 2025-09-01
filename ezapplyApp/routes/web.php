@@ -39,11 +39,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Company/FranchiseRegister');
     })->name('company.register');
     });
-    Route::get('/easy-apply', function () {
+
+});
+
+Route::get('/easy-apply', function () {
     return Inertia::render('Landing/easyApply', [
         'user' => Auth::user(),
     ]);
-    });
 });
 
 

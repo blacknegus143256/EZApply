@@ -21,6 +21,7 @@ return new class extends Migration {
             $table->string('location')->nullable();  // preferred location
             $table->string('franchise_type')->nullable();
             $table->date('timeline')->nullable();
+            $table->json('interested_companies')->nullable();
 
 
 
