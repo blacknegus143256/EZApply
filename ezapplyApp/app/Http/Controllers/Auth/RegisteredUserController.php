@@ -56,7 +56,9 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
-
+        if ($user->role === 'customer') {
+        return redirect()->intended('/easy-apply');
+    }
         return redirect()->intended(route('dashboard', absolute: false));
     }
-}
+    }

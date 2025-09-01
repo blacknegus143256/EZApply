@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 
@@ -12,7 +13,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return Inertia::render('Landing/easyApply');
 })->name('home');
 
 Route::get('/applicant/franchise', function () {
@@ -27,8 +28,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applicant/franchise', function () {
         return Inertia::render('Applicant/FranchiseForm');
     })->name('applicant.franchise');
+});
 
-    
+Route::get('/easy-apply', function () {
+    return Inertia::render('Landing/easyApply', [
+        'user' => Auth::user(),
+    ]);
 });
 
 require __DIR__.'/settings.php';
