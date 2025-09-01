@@ -18,7 +18,7 @@ class FranchiseInformation extends Model
         'location',
         'franchise_type',
         'timeline',
-        'interested_companies',
+        
     ];
 
     protected $casts = [

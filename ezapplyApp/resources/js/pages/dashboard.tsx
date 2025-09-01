@@ -4,6 +4,9 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 
+console.log(dashboard());
+
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
