@@ -5,34 +5,88 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon } from 'lucide-react';
 import AppLogo from './app-logo';
+import { Avatar } from './ui/avatar';
+
 
 const mainNavItems: NavItem[] = [
+    // Dashboard - Different for each role
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        permission: 'view_customer_dashboard',
     },
+    {
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        permission: 'view_company_dashboard',
+    },
+    {
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        permission: 'view_admin_dashboard',
+    },
+    
+    // Admin only - User Management
+    {
+        title: 'Users',
+        href: '/users',
+        icon: UserIcon,
+        permission: 'view_users',
+    },
+    {
+        title: 'Roles',
+        href: '/roles',
+        icon: LockKeyhole,
+        permission: 'view_roles',
+    },
+    {
+        title: 'Permissions',
+        href: '/permission',
+        icon: Lock,
+        permission: 'view_permissions',
+    },
+    
+    // Company specific
+    // {
+    //     title: 'My Companies',
+    //     href: '/companies',
+    //     icon: Folder,
+    //     permission: 'manage_own_companies',
+    // },
+    
+    // Customer specific
+    // {
+    //     title: 'Browse Franchises',
+    //     href: '/companies',
+    //     icon: Folder,
+    //     permission: 'view_companies',
+    // },
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Repository',
+    //     href: 'https://github.com/laravel/react-starter-kit',
+    //     icon: Folder,
+    // },
+    // {
+    //     title: 'Documentation',
+    //     href: 'https://laravel.com/docs/starter-kits#react',
+    //     icon: BookOpen,
+    // },
     {
         title: 'Home Page',
         href: `/easy-apply`,
         icon: BookOpen,
+        permission: 'view home page',
     }
 ];
+
 
 export function AppSidebar() {
 

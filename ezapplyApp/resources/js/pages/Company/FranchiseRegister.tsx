@@ -5,6 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import PermissionGate from '@/components/PermissionGate';
 
 // Steps definition
 const STEPS = [
@@ -196,10 +197,11 @@ export default function Dashboard() {
   }
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Dashboard" />
+    <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
+      <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Dashboard" />
 
-      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         <div className="grid auto-rows-min gap-4 md:grid-cols-3">
           {/* Card 1: click to expand to full width */}
           <div
@@ -449,7 +451,8 @@ export default function Dashboard() {
             </>
           )}
         </div>
-      </div>
-    </AppLayout>
+        </div>
+      </AppLayout>
+    </PermissionGate>
   );
 }

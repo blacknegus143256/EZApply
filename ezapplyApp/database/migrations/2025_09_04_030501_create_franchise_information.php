@@ -4,7 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('franchise_information', function (Blueprint $table) {
@@ -22,16 +26,15 @@ return new class extends Migration {
             $table->string('franchise_type')->nullable();
             $table->date('timeline')->nullable();
             $table->json('interested_companies')->nullable();
-
-
-
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('franchise_information');
     }
 };
-
