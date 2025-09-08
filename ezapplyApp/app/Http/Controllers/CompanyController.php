@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\{
     Company,
     CompanyOpportunity,
@@ -14,15 +14,14 @@ use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
-    
     public function store(Request $request)
     {
+        
         // Validate ONLY the fields for the 5 tables we kept.
         $v = $request->validate([
             // Step 1 — companies
             'company_name'             => 'required|string|max:255',
             'brand_name'               => 'nullable|string|max:255',
-            'hq_address'               => 'required|string|max:255',
             'city'                     => 'required|string|max:255',
             'state_province'           => 'required|string|max:255',
             'zip_code'                 => 'required|string|max:50',
@@ -76,7 +75,6 @@ class CompanyController extends Controller
             $company = Company::create([
                 'company_name'            => $v['company_name'],
                 'brand_name'              => $v['brand_name'] ?? null,
-                'hq_address'              => $v['hq_address'],
                 'city'                    => $v['city'],
                 'state_province'          => $v['state_province'],
                 'zip_code'                => $v['zip_code'],
@@ -85,6 +83,7 @@ class CompanyController extends Controller
                 'description'             => $v['description'],
                 'year_founded'            => $v['year_founded'],
                 'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
+                'user_id'      => Auth::id(), 
             ]);
 
             // 2) Opportunity
@@ -151,8 +150,9 @@ class CompanyController extends Controller
         'background',
         'requirements',
         'marketing',
+        'user',
     ])->get();
-
     return response()->json($companies);
+    
 }
 }

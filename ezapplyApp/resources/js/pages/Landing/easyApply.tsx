@@ -44,6 +44,11 @@ if (amount !== 'all') {
 filtered = filtered.filter((c) =>
   (c.name ?? '').toLowerCase().includes(search.toLowerCase())
 );
+const handleCheck = (id: number) => {
+  setChecked((prev) =>
+    prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+  );
+};
 
 
   return (

@@ -5,7 +5,6 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-
 // Steps definition
 const STEPS = [
   'Company Info',
@@ -26,7 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface CompanyForm {
   company_name: string;
   brand_name: string | null;
-  hq_address: string;
+
   city: string;
   state_province: string;
   zip_code: string;
@@ -94,11 +93,10 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   );
 }
 
-export default function Dashboard() {
+export default function FranchiseRegister() {
   const { data, setData, post, processing, errors, reset, transform } = useForm<CompanyForm>({
     company_name: '',
     brand_name: null,
-    hq_address: '',
     city: '',
     state_province: '',
     zip_code: '',
@@ -150,7 +148,7 @@ export default function Dashboard() {
 
   function validateStep(s: number) {
     const req: Record<number, (keyof CompanyForm)[]> = {
-      0: ['company_name', 'hq_address', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
+      0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
@@ -272,10 +270,8 @@ export default function Dashboard() {
                       <Field label="Brand Name (optional)">
                         <Input value={data.brand_name ?? ''} onChange={(e) => setData('brand_name', e.target.value)} />
                       </Field>
-                      <Field label="Headquarters Address *">
-                        <Input value={data.hq_address} onChange={(e) => setData('hq_address', e.target.value)} required />
-                      </Field>
-
+                      
+                      <h3 className="text-md font-semibold mt-4">Headquarters Address</h3>
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="City *"><Input value={data.city} onChange={(e) => setData('city', e.target.value)} required /></Field>
                         <Field label="State/Province *"><Input value={data.state_province} onChange={(e) => setData('state_province', e.target.value)} required /></Field>
@@ -311,7 +307,10 @@ export default function Dashboard() {
                           onChange={(e) => setData('num_franchise_locations', Number(e.target.value) || '')}
                         />
                       </Field>
+                      
+
                     </div>
+                    
                   )}
 
                   {/* Step 2: Opportunity */}

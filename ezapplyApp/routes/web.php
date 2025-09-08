@@ -4,32 +4,20 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Http\Controllers\CompanyController;
-
-
 use App\Http\Controllers\FranchiseInformationController;
+use App\Http\Controllers\PsgcController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use Illuminate\Http\Request;
 
-
-Route::middleware(['auth'])->group(function () {
-    Route::post('/franchise-information', [FranchiseInformationController::class, 'store'])->name('franchise.store');
-});
-
+Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::get('/', function () {
     return Inertia::render('Landing/easyApply');
 })->name('home');
 
-Route::get('/applicant/franchise', function () {
-    return Inertia::render('Applicant/FranchiseForm');
-})->name('applicant.franchise');
-
-Route::middleware(['auth','verified'])->group(function () {
-    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
-});
 
 
 
-Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
-Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
-Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -39,11 +27,48 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applicant/franchise', function () {
         return Inertia::render('Applicant/FranchiseForm');
     })->name('applicant.franchise');
+    Route::get('/applicant/franchise/appliedcompanies', function (Request $request) {
+    $ids = $request->input('companyIds', []);
+    
+    $companies = \App\Models\Company::with(['opportunity', 'user'])
+        ->whereIn('id', $ids)
+        ->get();
+
+    return Inertia::render('Applicant/AppliedCompanies', [
+        'selectedCompanies' => $companies,
+    ]);
+    })->name('franchise.applied.companies');
+
+
     Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('company/register', function () {
         return Inertia::render('Company/FranchiseRegister');
     })->name('company.register');
     });
+    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+    Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
+    Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/applicant/franchise', function () {
+        return Inertia::render('Applicant/FranchiseForm');
+    })->name('applicant.franchise');
+
+    Route::middleware(['auth','verified'])->group(function () {
+        Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    });
+
+    Route::get('/appliedCompanies', function (\Illuminate\Http\Request $request) {
+    return Inertia::render('AppliedCompanies', [
+        'companies' => $request->input('companies', []),
+    ]);
+});
+
+});
+Route::prefix('psgc')->group(function () {
+    Route::get('/regions', [PsgcController::class, 'regions']);
+    Route::get('/regions/{region}/provinces', [PsgcController::class, 'provinces']);
+    Route::get('/provinces/{province}/cities-municipalities', [PsgcController::class, 'cities']);
+    Route::get('/cities-municipalities/{city}/barangays', [PsgcController::class, 'barangays']);
+
 
 });
 

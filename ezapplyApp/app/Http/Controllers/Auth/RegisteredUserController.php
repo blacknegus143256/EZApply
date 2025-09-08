@@ -36,10 +36,17 @@ class RegisteredUserController extends Controller
             'last_name'        => ['required', 'string', 'max:255'],
             'email'            => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'phone_number'     => ['required', 'string', 'max:20'],
-            'address'          => ['required', 'string', 'max:255'],
             'password'         => ['required', 'confirmed', Rules\Password::defaults()],
             'role'             => ['required', 'in:customer,company'],
-
+            'users_address.region_code' => ['required', 'string'],
+            'users_address.region_name' => ['required', 'string'],
+            'users_address.province_code' => ['required', 'string'],
+            'users_address.province_name' => ['required', 'string'],
+            'users_address.citymun_code' => ['required', 'string'],
+            'users_address.citymun_name' => ['required', 'string'],
+            'users_address.barangay_code' => ['required', 'string'],
+            'users_address.barangay_name' => ['required', 'string'],
+            
         ]);
 
 
@@ -48,10 +55,13 @@ class RegisteredUserController extends Controller
             'last_name'  => $validated['last_name'],
             'email'      => $validated['email'],
             'phone_number' => $validated['phone_number'] ?? null,
-            'address' => $validated['address'] ?? null,
             'password'   => Hash::make($validated['password']),
             'role'       => $validated['role'],
         ]);
+
+        
+        $addressData = $request->input('users_address');
+        $user->address()->create($addressData);
 
         event(new Registered($user));
 

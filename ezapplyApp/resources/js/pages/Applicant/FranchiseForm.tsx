@@ -2,123 +2,89 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Franchise Application", href: "/applicant/franchise" },
 ];
+ type Company = {
 
-
-interface PageProps {
-  auth: {
-    user: {
-      id: number;
-      name: string;
-      email: string;
-      email_verified_at: string | null;
-    };
+  id: number;
+  company_name: string;
+  description?: string;
+  opportunity: {
+    franchise_type: string;
+    min_investment: number;
   };
-  [key: string]: unknown;
-}
+  minimumInvestment?: string;
+  user?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+};
 
 const FranchiseForm = () => {
-  const { auth } = usePage<PageProps>().props;
-  const url = usePage().url;
-
-  const user = auth.user;
-
-  const searchParams = new URLSearchParams(url.split("?")[1]);
-  const initialTab = (searchParams.get("tab") as "financial" | "interest") || "financial";
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [search] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
   const [type, setType] = useState('all');
-  const [amount, setAmount] = useState('all');
-  const [currentTab, setCurrentTab] = useState<"financial" | "interest">(initialTab);
   const [formVisible, setFormVisible] = useState(true); // toggle for collapse
 
-  const [formData, setFormData] = useState({
-    investment_budget: "",
-    location: "",
-    net_worth: "",
-    liquid_assets: "",
-    source_of_funds: "",
-    annual_income: "",
-    preferred_location: "",
-    timeline: "",
-    franchise_type: "",
-  });
-
-  const [selectedCompanies, setSelectedCompanies] = useState<number[]>([]);
-
   useEffect(() => {
-    const savedData = localStorage.getItem("franchiseForm");
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
-    }
+    axios.get("/companies")
+    .then((res) => {
+      setCompanies(res.data);
+    })
+    .catch((err) => {
+      console.error("Error fetching companies:", err);
+    });
   }, []);
 
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const newData = { ...formData, [e.target.name]: e.target.value };
-    setFormData(newData);
-    localStorage.setItem("franchiseForm", JSON.stringify(newData));
-  };
 
-  const toggleCompanySelection = (id: number) => {
-    setSelectedCompanies((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
-  };
 
-const isVerified =
-    !!user && typeof user === 'object' && Object.keys(user).length > 0;
 
-    useEffect(() => {
-    fetch('/companies')
-      .then((res) => res.json())
-      .then((data) => setCompanies(data))
-      .catch((err) => console.error('Error fetching companies:', err));
-  }, []);
 
   // Start with all companies
 let filtered = companies;
 
 // Filter by type
 if (type !== 'all') {
-  filtered = filtered.filter((c) => c.opportunity.franchise_type === type);
+  filtered = filtered.filter((c) => c.opportunity?.franchise_type === type);
 }
 if (budget !== '') {
   filtered = filtered.filter((c) => {
     // Assuming c.opportunity.min_investment is a number
-    return c.opportunity.min_investment <= budget;
+    return (c.opportunity?.min_investment?? Infinity) <= budget;
   });
 }
 
 // Filter by investment amount
-if (amount !== 'all') {
-  filtered = filtered.filter((c) => {
-    const value = parseInt(c.minimumInvestment?.replace(/[₱,~USD\s]/g, '') || '0', 10);
-    if (amount === '10m') return value <= 10000000;
-    if (amount === '35m') return value <= 35000000;
-    if (amount === '1m') return value <= 1000000;
-    return true;
-  });
-}
 
 // Search filter
 filtered = filtered.filter((c) =>
-  (c.name ?? '').toLowerCase().includes(search.toLowerCase())
+  (c.company_name ?? '').toLowerCase().includes(search.toLowerCase())
 );
 const franchiseTypes = Array.from(
-  new Set(companies.map(c => c.opportunity.franchise_type).filter(Boolean))
+  new Set(companies.map(c => c.opportunity?.franchise_type).filter((t): t is string => Boolean(t)))
 );
 
+const handleCheck = (id: number) => {
+  setChecked((prev) =>
+    prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+  );
+};
+const handleApply = () => { 
+    router.visit("/applicant/franchise/appliedcompanies", {
+      method: "get",
+      data: { companyIds: checked},
+      });
+     };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -136,12 +102,14 @@ const franchiseTypes = Array.from(
           {formVisible ? "Hide Form" : "Show Form"}
         </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div  className={`grid gap-8 ${
+    formVisible ? "grid-cols-1 lg:grid-cols-[auto_1fr]" : "grid-cols-1"
+  }`}>
           {/* Left Column: Form */}
           {formVisible && (
             <div>
               {/* Tabs */}
-              <div className="flex gap-4 mb-4 border-b">
+              <div className="w-full max-w-md mb-6">
                 <h3
                   className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
                   Interest Info
@@ -151,22 +119,14 @@ const franchiseTypes = Array.from(
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium">Preferred Location</label>
-                    <input
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      type="text"
-                      className="mt-1 block w-full rounded-lg border px-3 py-2"
-                    />
-                  </div>
-                  <div>
                 <label className="block text-sm font-medium">Budget</label>
                 <input
                   name="budget"
                   type="number"
                   value={budget}
-                  onChange={(e) => setBudget(e.target.value ? parseInt(e.target.value) : '')}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setBudget(value === '' ? '' :Number(value))}}
                   className="mt-1 block w-full rounded-lg border px-3 py-2"
                   placeholder="Enter your budget"
                 />
@@ -187,62 +147,75 @@ const franchiseTypes = Array.from(
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium">Timeline for Starting Franchise</label>
-                    <input
-                      name="timeline"
-                      value={formData.timeline}
-                      onChange={handleChange}
-                      type="date"  
-                      className="mt-1 block w-full rounded-lg border px-3 py-2"
-                    />
-                  </div>
                 </div>
                       
             </div>
           )}
-     <main className="ezapply-main-content">
-  <div className="ezapply-company-card-small-grid">
-    {filtered.length === 0 ? (
-      <div className="ezapply__no-companies">No companies found.</div>
-    ) : (
-      filtered.map((company) => (
-        <div key={company.id} className="ezapply-company-card-small">
-          <div className="ezapply-company-card-small-header">
-            <input
-              type="checkbox"
-              checked={checked.includes(company.id)}
-              onChange={() => handleCheck(company.id)}
-              className="ezapply__checkbox"
-              aria-label={`Select ${company.company_name}`}
-            />
-            <img
-              src={"/favicon.svg"}
-              alt={company.company_name + " logo"}
-              className="ezapply__company-logo"
-            />
-            <span className="ezapply-company-card-small-name">
-              {company.company_name}
-            </span>
+            <main className="ezapply-main-content">
+          <div className="ezapply-company-card-small-grid">
+            {filtered.length === 0 ? (
+              <div className="ezapply__no-companies">No companies found.</div>
+            ) : (
+              filtered.map((company) => (
+                <div
+                  key={company.id}
+                  className={`ezapply-company-card-small cursor-pointer ${
+                    checked.includes(company.id) ? "ring-3 ring-blue-500" : ""
+                  }`}
+                  onClick={() =>
+                    setChecked((prev) =>
+                      prev.includes(company.id)
+                        ? prev.filter((id) => id !== company.id)
+                        : [...prev, company.id]
+                    )
+                  }
+                >
+                  <div className="ezapply-company-card-small-header">
+                    <input
+                      type="checkbox"
+                      checked={checked.includes(company.id)}
+                      onChange={(e) => {
+                        e.stopPropagation(); // prevent card click from firing twice
+                        handleCheck(company.id);
+                      }}
+                      className="ezapply__checkbox"
+                      aria-label={`Select ${company.company_name}`}
+                    />
+                    <img
+                      src={"/favicon.svg"}
+                      alt={company.company_name + " logo"}
+                      className="ezapply__company-logo"
+                    />
+                    <span className="ezapply-company-card-small-name">
+                      {company.company_name}
+                    </span>
+                  </div>
+                  <div className="ezapply-company-card-small-details">
+                    <p>
+                      <strong>Type:</strong> {company.opportunity?.franchise_type ??  'N/A'}
+                    </p>
+                    <p>
+                      <strong>Investment:</strong> {company.opportunity?.min_investment ??  'N/A'}
+                    </p>
+                    <p>
+                      <strong>Description:</strong> {company.description}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-          <div className="ezapply-company-card-small-details">
-            <p>
-              <strong>Type:</strong> {company.opportunity.franchise_type}
-            </p>
-            <p>
-              <strong>Investment:</strong> {company.opportunity.min_investment}
-            </p>
-            <p>
-              <strong>Description:</strong> {company.description}
-            </p>
-          </div>
-        </div>
-      ))
-    )}
-  </div>
-</main>
+            </main>
 
 
+            <button
+              onClick={() => {
+              handleApply();
+              }}
+              className="fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-700 transition"
+            >
+              Apply
+            </button>
           </div>
         </div>
 

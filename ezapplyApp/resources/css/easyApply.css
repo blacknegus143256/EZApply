@@ -305,6 +305,7 @@
 
 .ezapply-company-card-small-grid {
   display: flex !important;
+  flex-wrap: wrap;
   flex-direction: row;     /* horizontal layout */
   gap: 1rem;              /* spacing between cards */
   overflow-x: auto;       /* allows scrolling horizontally if too many */
@@ -320,6 +321,7 @@
   padding: 1rem;
   background: #fff;
   min-height: 300px;      /* makes the card vertically long */
+  margin: 5px;
 }
 
 .ezapply-company-card-small-header{
@@ -337,4 +339,12 @@
   font-size: 14px;
 }
 
+.ezapply-company-card-small.selected {
+  border: 2px solid #007bff;
+  background-color: #f0f8ff;
+}
 
+.ezapply-company-card-small:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}

@@ -22,7 +22,6 @@ class User extends Authenticatable
         'last_name',
         'email',
         'phone_number',
-        'address',
         'password',
         'role',
     ];
@@ -52,7 +51,17 @@ class User extends Authenticatable
         public function getNameAttribute()
 {
     return "{$this->first_name} {$this->last_name}";
-}
-}
     
+}
+
+    public function address()
+{
+    return $this->hasOne(UserAddress::class ,'user_id');
+}
+    public function company()
+{
+    return $this->hasOne(Company::class, 'user_id');
+}
+}
+
 

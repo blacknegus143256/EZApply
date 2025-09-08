@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Building2, MessageCircle } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -60,20 +60,25 @@ export function AppSidebar() {
                     <div className="px-4 text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                     Franchise Application
                     </div>
+                           <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link href="/applicant/franchise">
+              <Building2 className="h-4 w-4" />
+              <span>Browse Companies</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
 
-                    <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                        {/* anchor to section in the page */}
-                        <a href="/applicant/franchise?tab=financial">Financial Information</a>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                        <a href="/applicant/franchise?tab=interest">Franchise Interest</a>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    </SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link href="/applicant/franchise/chats">
+              <MessageCircle className="h-4 w-4" />
+              <span>Applied Companies</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
                 </div>
                 )}
             </SidebarContent>
