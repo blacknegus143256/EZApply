@@ -18,18 +18,18 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
         permission: 'view_customer_dashboard',
     },
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-        permission: 'view_company_dashboard',
-    },
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-        permission: 'view_admin_dashboard',
-    },
+    // {
+    //     title: 'Dashboard',
+    //     href: dashboard(),
+    //     icon: LayoutGrid,
+    //     permission: 'view_company_dashboard',
+    // },
+    // {
+    //     title: 'Dashboard',
+    //     href: dashboard(),
+    //     icon: LayoutGrid,
+    //     permission: 'view_admin_dashboard',
+    // },
     
     // Admin only - User Management
     {

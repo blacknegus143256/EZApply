@@ -15,6 +15,7 @@ import InputError from '@/components/input-error';
 import {toast} from 'sonner';
 import { Permission, SinglePermission } from '@/types/role_permission';
 import TablePagination from '@/components/ui/table-pagination';
+import { Can } from '@/components/PermissionGate';
 
 
 
@@ -71,6 +72,7 @@ function deletePermission(id: number){
   const { auth } = usePage().props as any;
   const role = auth.user.role;
     return (
+        <Can permission="view_permissions" role={role}>
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Permission" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -78,11 +80,13 @@ function deletePermission(id: number){
                     <CardHeader className='flex justify-between items-center'>
                         <CardTitle>Permissions Management</CardTitle>
                         <CardAction>
+                            <Can permission="create_permissions">
                             <Button
                             onClick={() => {
                                 setOpenAddPermissionDialog(true);
                             }}
                             >Add new</Button>
+                            </Can>
                         </CardAction>
                     </CardHeader>
                     <hr />
@@ -103,8 +107,12 @@ function deletePermission(id: number){
                                         <TableCell>{permission.name}</TableCell>
                                         <TableCell>{permission.created_at}</TableCell>
                                         <TableCell>
+                                            <Can permission="edit_permissions">
                                             <Button variant={'outline'} onClick={() => edit(permission)}>Edit</Button>
+                                            </Can>
+                                            <Can permission="delete_permissions">
                                             <Button variant={'destructive'} className='ml-2' onClick={()=> deletePermission(permission.id)}>Delete</Button>
+                                            </Can>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -186,5 +194,6 @@ function deletePermission(id: number){
 
             </div>
         </AppLayout>
+        </Can>
     );
 }

@@ -16,6 +16,7 @@ import {toast} from 'sonner';
 import { Permission, Role, SinglePermission, SingleRole} from '@/types/role_permission';
 import TablePagination from '@/components/ui/table-pagination';
 import { Badge } from '@/components/ui/badge';
+import { Can } from '@/components/PermissionGate';
 
 
 
@@ -49,6 +50,7 @@ function deleteRoles(id: number){
   const { auth } = usePage().props as any;
   const role = auth.user.role;
     return (
+        <Can permission="view_roles" fallback={<div className="p-4">You don't have permission to view roles.</div>}>
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Permission" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -56,9 +58,11 @@ function deleteRoles(id: number){
                     <CardHeader className='flex justify-between items-center'>
                         <CardTitle>Roles Management</CardTitle>
                         <CardAction>
+                            <Can permission="create_roles">
                             <Link href={'roles/create'}>
                                 <Button>Add new</Button>
                             </Link>
+                            </Can>
                         </CardAction>
                     </CardHeader>
                     <hr />
@@ -85,11 +89,15 @@ function deleteRoles(id: number){
                                         ))}</TableCell>
                                         <TableCell>{role.created_at}</TableCell>
                                         <TableCell>
+                                            <Can permission="edit_roles">
                                             <Link href={`/roles/${role.id}/edit`}>
                                             
                                                 <Button variant={'outline'}>Edit</Button>
                                             </Link>
+                                            </Can>
+                                                <Can permission="delete_roles">
                                             <Button variant={'destructive'} className='ml-2' onClick={()=> deleteRoles(role.id)}>Delete</Button>
+                                                </Can>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -102,5 +110,6 @@ function deleteRoles(id: number){
 
             </div>
         </AppLayout>
+        </Can>
     );
 }
