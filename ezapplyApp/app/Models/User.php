@@ -1,16 +1,17 @@
-<?php
+<?php 
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +24,6 @@ class User extends Authenticatable
         'email',
         'phone_number',
         'password',
-        'role',
     ];
 
     /**
@@ -37,7 +37,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -47,12 +47,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-        }
-        public function getNameAttribute()
-{
-    return "{$this->first_name} {$this->last_name}";
-    
-}
+    }
+
+    /**
+     * Full name accessor
+     */
+    public function getNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
 
     public function address()
 {
@@ -62,6 +65,14 @@ class User extends Authenticatable
 {
     return $this->hasOne(Company::class, 'user_id');
 }
+
+
+    /**
+     * Get the user's primary role (using Spatie's role system)
+     */
+    public function getPrimaryRoleAttribute()
+    {
+        return $this->roles()->first();
+    }
+
 }
-
-

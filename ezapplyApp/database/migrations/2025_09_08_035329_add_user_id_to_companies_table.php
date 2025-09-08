@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::table('companies', function (Blueprint $table) {
         $table->foreignId('user_id')
               ->nullable() // allow null if some companies don’t have an owner yet
-              ->constrained() // link to users table
+              ->constrained('users') // link to users table
               ->onDelete('cascade'); // delete company if user is deleted
     });
 }

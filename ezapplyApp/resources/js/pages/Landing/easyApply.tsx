@@ -11,6 +11,14 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   const [type, setType] = useState('all');
   const [amount, setAmount] = useState('all');
 
+  const handleCheck = (companyId: number) => {
+    setChecked(prev => 
+      prev.includes(companyId) 
+        ? prev.filter(id => id !== companyId)
+        : [...prev, companyId]
+    );
+  };
+
   const isVerified =
     !!user && typeof user === 'object' && Object.keys(user).length > 0;
 
@@ -44,11 +52,11 @@ if (amount !== 'all') {
 filtered = filtered.filter((c) =>
   (c.name ?? '').toLowerCase().includes(search.toLowerCase())
 );
-const handleCheck = (id: number) => {
-  setChecked((prev) =>
-    prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-  );
-};
+// const handleCheck = (id: number) => {
+//   setChecked((prev) =>
+//     prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+//   );
+// };
 
 
   return (

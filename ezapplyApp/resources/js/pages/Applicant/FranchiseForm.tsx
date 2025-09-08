@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
-import { Head, router } from "@inertiajs/react";
+import { Head, router,  } from "@inertiajs/react";
+import PermissionGate from '@/components/PermissionGate';
 import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -48,8 +49,6 @@ const FranchiseForm = () => {
 
 
 
-
-
   // Start with all companies
 let filtered = companies;
 
@@ -87,9 +86,10 @@ const handleApply = () => {
      };
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Franchise Application" />
-      <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
+    <PermissionGate permission="apply_for_franchises" fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
+      <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Franchise Application" />
+        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
           Franchise Information Form
         </h1>
@@ -219,7 +219,8 @@ const handleApply = () => {
           </div>
         </div>
 
-    </AppLayout>
+      </AppLayout>
+    </PermissionGate>
   );
 };
 

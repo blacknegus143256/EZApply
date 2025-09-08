@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('users_address', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')
-                  ->constrained('users') // assumes your table is named 'companies'
+                  ->constrained('users')
                   ->cascadeOnDelete();
 
             $table->string('region_code')->nullable();
