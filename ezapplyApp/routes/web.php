@@ -15,9 +15,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/franchise-information', [FranchiseInformationController::class, 'store'])->name('franchise.store');
 });
 
-Route::get('/', function () {
-    return Inertia::render('Landing/easyApply');
-})->name('home');
 
 Route::get('/applicant/franchise', function () {
     return Inertia::render('Applicant/FranchiseForm');
@@ -26,6 +23,14 @@ Route::get('/applicant/franchise', function () {
 Route::middleware(['auth','verified'])->group(function () {
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
 });
+
+ //Landing Page Routes
+ Route::get('/', function () {
+    return Inertia::render('Landing/easyApply');
+})->name('home');
+ Route::get('/easy-apply-companies', function (){
+    return Inertia::render('Landing/all-companies');
+})->name('easy-apply-companies');
 
 
 

@@ -2,9 +2,7 @@
 .ezapply-main-content {
   display: flex;
   flex-direction: column;
-  margin-top: 5rem;
   padding: 0 2rem;
-  min-height: calc(100vh - 200px);
 }
 
 /* Filter row and card */
@@ -13,13 +11,12 @@
   justify-content: flex-end;
   margin-bottom: 2rem;
   padding: 2rem;
-  margin-right: -30px;
+  
 }
 .ezapply__filter-card {
   width: 550px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
   padding: 1.5rem;
 }
 .ezapply__filter-title {
@@ -33,7 +30,7 @@
 }
 .ezapply__filter-label {
   font-size: 0.9rem;
-  color: #666;
+  color: #252525;
   margin-bottom: 0.5rem;
   display: block;
 }
@@ -43,20 +40,22 @@
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 1rem;
+  color: #1b1b18;
 }
 .ezapply__filter-select {
   width: 100%;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  border: 1px solid #2563eb;
+  border: 1px solid #ddd;
   font-weight: 500;
   margin-bottom: 0.5rem;
+  color: #1b1b18;
 }
 .ezapply__type-select {
   width: 100%;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  border: 1px solid #2563eb;
+  border: 1px solid #ddd;
   font-weight: 500;
 }
 .ezapply__submit-row {
@@ -67,25 +66,29 @@
 
 /* Company grid and card */
 .ezapply__company-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  flex: 1;
-  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;   /* allows wrapping to next row */
+  gap: 1rem;
+  justify-content: center;
 }
+
 .ezapply__no-companies {
-  grid-column: 1/3;
+  flex: 1 1 100%;
   text-align: center;
   color: #888;
   padding: 2rem;
 }
+
 .ezapply__company-card {
-  width: 100%;
+  flex: 0 0 calc(20% - 1rem); /* 5 cards per row */
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px #eee;
   padding: 1.5rem;
+  text-align: left;
+  
 }
+
 .ezapply__company-header {
   display: flex;
   align-items: center;
@@ -104,7 +107,7 @@
 }
 .ezapply__company-name {
   font-weight: 600;
-  font-size: 1.2rem;
+  font-size: 1.0rem;
   color: #1b1b18;
 }
 .ezapply__company-details {
@@ -113,8 +116,25 @@
   line-height: 1.5;
 }
 
+.ezapply-show-more {
+  margin: 2rem auto 0;
+  padding: 0.6rem 1.5rem;   /* smaller width */
+  border: none;
+  border-radius: 6px;
+  background: #074035;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: center;
+  display: inline-block;    /* shrink to fit content */
+}
+.ezapply-show-more:hover {
+  background: #05632e;
+}
+
 .ezapply-login-btn {
-  background: linear-gradient(90deg, #7f53ac 40%, #647dee 100%);
+  background: linear-gradient(90deg, #7f53ac 40%, #647dee 50%);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -148,19 +168,19 @@
 }
 
 .ezapply-submit-btn {
-  margin-top: 2rem;
-  padding: 0.75rem 2rem;
+  padding: 0.75rem 1rem;
   background: linear-gradient(90deg, #074035 0%, #074035 100%);
   color: #fff;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: .8rem;
   box-shadow: 0 2px 8px #e0e7ff;
   cursor: pointer;
   letter-spacing: 0.5px;
   transition: background 0.2s, opacity 0.2s;
   opacity: 1;
+  margin-bottom: 30px;
 }
 .ezapply-submit-btn:disabled {
   opacity: 0.6;
@@ -182,7 +202,6 @@
   align-items: center;
   padding: 1rem 2rem;
   background: #fff;
-  box-shadow: 0 2px 8px #eee;
   gap: 2rem;
   position: fixed;
   top: 0;
@@ -213,6 +232,11 @@
 }
 .ezapply-navlink:hover {
   color: #2563eb;
+}
+.ezapply-link:hover {
+  text-decoration: underline;
+    color: #2563eb;
+
 }
 
 .ezapply-login-container {
@@ -251,90 +275,181 @@
   font-weight: 500;
 }
 
-.ezapply-company-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+.services-container {
   width: 100%;
-  max-width: 640px;
-}
+  margin: 0 auto;         
+  padding: 2rem;
+  background: linear-gradient(180deg, #074035, #074035);
 
-.ezapply-no-companies {
-  grid-column: 1/3;
+}
+.about-container {
+  width: 100%;
+  margin: 0 auto;         
+  padding: 2rem;
+  background: #f3f4f6;
+
+}
+.about-header {
   text-align: center;
-  color: #888;
-}
-
-.ezapply-company-card {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
-  padding: 1rem;
+  font-size: 2rem;
+  font-weight: 700;
   margin-bottom: 1rem;
+    color: #1b1b18;
+
 }
 
-.ezapply-checkbox {
-  margin-right: 1rem;
-  accent-color: #074035;
+.services-header {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+    color: #ffffff;
+
 }
 
-.ezapply-company-name {
+.services-subheader {
+  text-align: center;
+  font-size: 1rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* responsive grid */
+  gap: 1.5rem; /* spacing between cards */
+}
+
+.service-card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.service-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.service-description {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+  background: linear-gradient(15deg, #074035, #2563eb);
+  color: #fff;
+}
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+.hero-title span {
+  color: #ffd700;
+}
+.hero-subtitle {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  color: #e0e0e0;
+}
+.hero-buttons {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+.hero-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s, background 0.3s;
+}
+.hero-btn.primary {
+  background: #ffd700;
+  color: #000;
+}
+.hero-btn.primary:hover {
+  background: #f7c600;
+}
+.hero-btn.secondary {
+  border: 2px solid #fff;
+  color: #fff;
+}
+.hero-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Company card hover */
+.ezapply__company-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ezapply__company-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+.learn-more-link {
+  color: #2563eb;
   font-weight: 500;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+/* CTA Section */
+.cta-section {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #074035;
+  color: #fff;
+}
+.cta-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+.cta-section p {
+  margin: 1rem 0 2rem;
   font-size: 1.1rem;
 }
-
-.ezapply-submit-btn {
-  margin-top: 2rem;
+.cta-btn {
+  background: #ffd700;
+  color: #000;
   padding: 0.75rem 2rem;
-  background: linear-gradient(90deg, #074035 0%, #074035 100%);
-  color: #fff;
+  border-radius: 6px;
   font-weight: 600;
-  border: none;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.cta-btn:hover {
+  background: #f7c600;
+}
+
+/* Buttons */
+.btn-outline {
+  border: 1px solid #ccc;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  color: #1b1b18;
+  margin-left: 0.5rem;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+.ezapply-company-card-small{
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px #eee;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
+  padding: 1.5rem;
+  text-align: left;
+  margin: 2px;
 }
-.ezapply-submit-btn:disabled {
-  background: #ddd;
-  color: #888;
-  cursor: not-allowed;
-}
-
-.ezapply-company-card-small-grid {
-  display: flex !important;
-  flex-direction: row;     /* horizontal layout */
-  gap: 1rem;              /* spacing between cards */
-  overflow-x: auto;       /* allows scrolling horizontally if too many */
-  padding: 1rem 0;
-}
-
-.ezapply-company-card-small {
-  flex: 0 0 250px;        /* fixed width for each card */
-  display: flex;
-  flex-direction: column; /* stack content vertically inside card */
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
-  background: #fff;
-  min-height: 300px;      /* makes the card vertically long */
-}
-
-.ezapply-company-card-small-header{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.ezapply-company-card-small-name{
-  font-weight: 600;
-  font-size: 16px;
-}
-.ezapply-company-card-small-details{
-  margin: 4px 0;
-  font-size: 14px;
-}
-
-

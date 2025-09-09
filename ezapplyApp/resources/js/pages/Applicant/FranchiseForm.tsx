@@ -124,6 +124,7 @@ if (amount !== 'all') {
 filtered = filtered.filter((c) =>
   (c.name ?? '').toLowerCase().includes(search.toLowerCase())
 );
+
 const franchiseTypes = Array.from(
   new Set(companies.map(c => c.opportunity.franchise_type).filter(Boolean))
 );

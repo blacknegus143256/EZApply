@@ -1,111 +1,98 @@
-import React, { useState, useEffect } from 'react';
-import '../../../css/easyApply.css';
-import { Link } from '@inertiajs/react';
-
-
+import React, { useState, useEffect } from "react";
+import "../../../css/easyApply.css";
+import { Link } from "@inertiajs/react";
+import Services from "./services";
+import About from "./about";
 
 export default function EasyApplyLanding({ user }: { user?: any }) {
   const [companies, setCompanies] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<number[]>([]);
-  const [type, setType] = useState('all');
-  const [amount, setAmount] = useState('all');
+  const [type, setType] = useState("all");
+  const [amount, setAmount] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const handleCheck = (companyId: number) => {
-    setChecked(prev => 
-      prev.includes(companyId) 
-        ? prev.filter(id => id !== companyId)
+    setChecked((prev) =>
+      prev.includes(companyId)
+        ? prev.filter((id) => id !== companyId)
         : [...prev, companyId]
     );
   };
 
   const isVerified =
-    !!user && typeof user === 'object' && Object.keys(user).length > 0;
+    !!user && typeof user === "object" && Object.keys(user).length > 0;
 
-    useEffect(() => {
-    fetch('/companies')
+  useEffect(() => {
+    fetch("/companies")
       .then((res) => res.json())
       .then((data) => setCompanies(data))
-      .catch((err) => console.error('Error fetching companies:', err));
+      .catch((err) => console.error("Error fetching companies:", err));
   }, []);
 
-  // Start with all companies
-let filtered = companies;
+  // Extract franchise types dynamically
+  const franchiseTypes = Array.from(
+    new Set(companies.map((c) => c.opportunity?.franchise_type).filter(Boolean))
+  );
 
-// Filter by type
-if (type !== 'all') {
-  filtered = filtered.filter((c) => c.franchise_type === type);
-}
+  // Filtering logic
+  let filtered = companies;
 
-// Filter by investment amount
-if (amount !== 'all') {
-  filtered = filtered.filter((c) => {
-    const value = parseInt(c.minimumInvestment?.replace(/[₱,~USD\s]/g, '') || '0', 10);
-    if (amount === '10m') return value <= 10000000;
-    if (amount === '35m') return value <= 35000000;
-    if (amount === '1m') return value <= 1000000;
-    return true;
-  });
-}
+  // Filter by type
+  if (type !== "all") {
+    filtered = filtered.filter(
+      (c) => c.opportunity?.franchise_type === type
+    );
+  }
 
-// Search filter
-filtered = filtered.filter((c) =>
-  (c.name ?? '').toLowerCase().includes(search.toLowerCase())
-);
+  // Filter by investment amount
+  if (amount !== "all") {
+    filtered = filtered.filter((c) => {
+      const value = parseInt(
+        c.opportunity?.minimum_investment
+          ?.replace(/[₱,~USD\s]/g, "") || "0",
+        10
+      );
+      if (amount === "10m") return value <= 10000000;
+      if (amount === "35m") return value <= 35000000;
+      if (amount === "1m") return value <= 1000000;
+      return true;
+    });
+  }
 
+  // Search filter (use company_name)
+  filtered = filtered.filter((c) =>
+    (c.company_name ?? "").toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="ezapply-landing">
-      <nav className="ezapply-nav">
-        <div className="ezapply-logo">EZApply</div>
-        <div className="ezapply-navlinks">
-          <div className="ezapply-navlink">Home</div>
-          <div className="ezapply-navlink">Services</div>
-          <div className="ezapply-navlink">About</div>
-          <div className="ezapply-navlink">Contact</div>
+      {/* Hero Section */}
+      <section className="hero">
+        <h1 className="hero-title">
+          Find Your Perfect <span>Franchise</span> Today with EZApply
+        </h1>
+        <p className="hero-subtitle">
+          Browse trusted opportunities and grow your business with confidence.
+        </p>
+        <div className="hero-buttons">
+          <a href="#companies" className="hero-btn primary">
+            All companies list
+          </a>
+          <a href="#services" className="hero-btn secondary">
+            Our Services
+          </a>
         </div>
-        <div className="ezapply-login-container">
-          {!isVerified ? (
-            <div>
-              <Link
-                href="/login"
-                className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-              >
-                Login
-              </Link>{' '}
-              <Link
-                href="/register"
-                className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-              >
-                Register
-              </Link>
-            </div>
-          ) : (
-            <Link
-              href="/dashboard"
-              className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-            >
-              Dashboard
-            </Link>
-          )}
-        </div>
-      </nav>
 
-      
-      <main className="ezapply-main-content">
-        
+        {/* Filter Section */}
         <div className="ezapply__filter-row">
           <div className="ezapply__filter-card">
             <h3 className="ezapply__filter-title">
               Looking for the right company to franchise?
             </h3>
 
-            
             <div className="ezapply__filter-search">
-              <label
-                htmlFor="ezapply-search"
-                className="ezapply__filter-label"
-              >
+              <label htmlFor="ezapply-search" className="ezapply__filter-label">
                 Search
               </label>
               <input
@@ -118,14 +105,9 @@ filtered = filtered.filter((c) =>
               />
             </div>
 
-            
             <div className="ezapply__filters">
-              
               <div>
-                <label
-                  htmlFor="ezapply-type"
-                  className="ezapply__filter-label"
-                >
+                <label htmlFor="ezapply-type" className="ezapply__filter-label">
                   Filter by Type
                 </label>
                 <select
@@ -133,16 +115,16 @@ filtered = filtered.filter((c) =>
                   value={type}
                   onChange={(e) => setType(e.target.value)}
                   className="ezapply__filter-select"
-                  title="Select company type"
                 >
                   <option value="all">All Types</option>
-                  <option value="Food">Food</option>
-                  <option value="Cafe">Cafe</option>
-                  <option value="Drinks">Drinks</option>
+                  {franchiseTypes.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              
               <div>
                 <label
                   htmlFor="ezapply-amount"
@@ -155,7 +137,6 @@ filtered = filtered.filter((c) =>
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="ezapply__filter-select"
-                  title="Filter by minimum investment"
                 >
                   <option value="all">All Amounts</option>
                   <option value="10m">₱10,000,000+</option>
@@ -166,72 +147,123 @@ filtered = filtered.filter((c) =>
             </div>
           </div>
         </div>
+      </section>
 
-        
+      {/* Navigation */}
+      <nav className="ezapply-nav">
+        <div className="ezapply-logo">EZApply</div>
+        <div className="ezapply-navlinks">
+          <div className="ezapply-navlink">
+            <a href="/">Home</a>
+          </div>
+          <div className="ezapply-navlink">
+            <a href="#services">Services</a>
+          </div>
+          <div className="ezapply-navlink">
+            <a href="#about">About</a>
+          </div>
+          <div className="ezapply-navlink">Contact</div>
+        </div>
+        <div className="ezapply-login-container">
+          {!isVerified ? (
+            <div>
+              <Link href="/login" className="btn-outline">
+                Login
+              </Link>{" "}
+              <Link href="/register" className="btn-outline">
+                Register
+              </Link>
+            </div>
+          ) : (
+            <Link href="/dashboard" className="btn-outline">
+              Dashboard
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      {/* Main Section */}
+      <main className="ezapply-main-content" id="companies">
+        <div className="ezapply__company-grid-header mb-2">
+          <h1 className="ezapply__section-title text-2xl font-bold mb-2 mt-5">
+            Top Companies
+          </h1>
+        </div>
+
         <div className="ezapply__company-grid">
           {filtered.length === 0 ? (
             <div className="ezapply__no-companies">No companies found.</div>
           ) : (
-            filtered.map((company) => (
-              <div key={company.id} className="ezapply__company-card">
-                <div className="ezapply__company-header">
-                  <input
-                    type="checkbox"
-                    checked={checked.includes(company.id)}
-                    onChange={() => handleCheck(company.id)}
-                    className="ezapply__checkbox"
-                    aria-label={`Select ${company.company_name}`}
-                  />
-                  <img
-                    src={'/favicon.svg'}
-                    alt={company.company_name + ' logo'}
-                    className="ezapply__company-logo"
-                  />
-                  <span className="ezapply__company-name">
-                    {company.company_name}
-                  </span>
+            <>
+              {filtered.slice(0, visibleCount).map((company) => (
+                <div key={company.id} className="ezapply__company-card">
+                  <div className="ezapply__company-header">
+                    <input
+                      type="checkbox"
+                      checked={checked.includes(company.id)}
+                      onChange={() => handleCheck(company.id)}
+                      className="ezapply__checkbox"
+                    />
+                    <img
+                      src={"/favicon.svg"}
+                      alt={company.company_name + " logo"}
+                      className="ezapply__company-logo"
+                    />
+                    <span className="ezapply__company-name">
+                      {company.company_name}
+                    </span>
+                  </div>
+                  <div className="ezapply__company-details">
+                    <p>
+                      <strong>Brand:</strong> {company.brand_name}
+                    </p>
+                    <p>
+                      <strong>Founded:</strong> {company.year_founded}
+                    </p>
+                    <p>
+                      <strong>Type:</strong>{" "}
+                      {company.opportunity?.franchise_type}
+                    </p>
+                    <p>
+                      <strong>Description:</strong> {company.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="ezapply__company-details">
-                  <p>
-                    <strong>Brand:</strong> {company.brand_name}
-                  </p>
-                  <p>
-                    <strong>Founded:</strong> {company.year_founded}
-                  </p>
-                  <p>
-                    <strong>Headquarters:</strong> {company.hq_address}
-                  </p>
-                  <p>
-                    <strong>Type:</strong> {company.opportunity.franchise_type}
-                  </p>
-                  <p>
-                    <strong>Investment:</strong> {company.opportunity.min_investment}
-                  </p>
-                  <p>
-                    <strong>Branches:</strong> {company.num_franchise_locations}
-                  </p>
-                  <p>
-                    <strong>Description:</strong> {company.description}
-                  </p>
-                </div>
-              </div>
-            ))
+              ))}
+
+              <Link className="ezapply-link" href={'/easy-apply-companies'}>
+                Show more
+              </Link>
+            </>
           )}
         </div>
       </main>
 
+      {/* Submit */}
       <div className="ezapply__submit-row">
         <button
           type="button"
-          className="ezapply-submit-btn mb-5"
+          className="ezapply-submit-btn"
           disabled={checked.length === 0}
-          onClick={() =>
-            alert(`Selected company IDs: ${checked.join(', ')}`)
-          }
+          onClick={() => alert(`Selected company IDs: ${checked.join(", ")}`)}
         >
           Submit Selected
         </button>
       </div>
+
+      {/* Services */}
+      <Services />
+      {/* About */}
+      <About />
+
+      {/* CTA */}
+      <section className="cta-section">
+        <h2>Ready to Start Your Franchise Journey?</h2>
+        <p>Join hundreds of entrepreneurs finding success with EZApply.</p>
+        <Link href="/register" className="cta-btn">
+          Get Started
+        </Link>
+      </section>
     </div>
   );
 }

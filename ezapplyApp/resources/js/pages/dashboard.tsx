@@ -16,6 +16,8 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: dashboard().u
 
 export default function Dashboard() {
   const { can } = usePermissions();
+    const { auth } = usePage().props as any;
+  const role = auth.user.role;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
