@@ -28,7 +28,7 @@ Route::middleware(['auth','verified'])->group(function () {
  Route::get('/', function () {
     return Inertia::render('Landing/easyApply');
 })->name('home');
- Route::get('/easy-apply-companies', function (){
+ Route::get('/list-companies', function (){
     return Inertia::render('Landing/all-companies');
 })->name('easy-apply-companies');
 

@@ -1,200 +1,16 @@
-/* Main content area */
+.ezapply-landing {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: Inter, sans-serif;
+  color: #1b1b18;
+}
+
 .ezapply-main-content {
   display: flex;
   flex-direction: column;
   padding: 0 2rem;
 }
 
-/* Filter row and card */
-.ezapply__filter-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 2rem;
-  padding: 2rem;
-  
-}
-.ezapply__filter-card {
-  width: 550px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-.ezapply__filter-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1b1b18;
-  margin-bottom: 1rem;
-}
-.ezapply__filter-search {
-  margin-bottom: 1rem;
-}
-.ezapply__filter-label {
-  font-size: 0.9rem;
-  color: #252525;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-.ezapply__filter-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 1rem;
-  color: #1b1b18;
-}
-.ezapply__filter-select {
-  width: 100%;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: #1b1b18;
-}
-.ezapply__type-select {
-  width: 100%;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-weight: 500;
-}
-.ezapply__submit-row {
-  display: flex;
-  justify-content: center;
-  padding: 1rem 0;
-}
-
-/* Company grid and card */
-.ezapply__company-grid {
-  display: flex;
-  flex-wrap: wrap;   /* allows wrapping to next row */
-  gap: 1rem;
-  justify-content: center;
-}
-
-.ezapply__no-companies {
-  flex: 1 1 100%;
-  text-align: center;
-  color: #888;
-  padding: 2rem;
-}
-
-.ezapply__company-card {
-  flex: 0 0 calc(20% - 1rem); /* 5 cards per row */
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
-  padding: 1.5rem;
-  text-align: left;
-  
-}
-
-.ezapply__company-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-.ezapply__checkbox {
-  margin-right: 1rem;
-  accent-color: #074035;
-}
-.ezapply__company-logo {
-  height: 32px;
-  width: 32px;
-  margin-right: 0.5rem;
-  border-radius: 6px;
-  object-fit: cover;
-}
-.ezapply__company-name {
-  font-weight: 600;
-  font-size: 1.0rem;
-  color: #1b1b18;
-}
-.ezapply__company-details {
-  font-size: 0.9rem;
-  color: #000000ff;
-  line-height: 1.5;
-}
-
-.ezapply-show-more {
-  margin: 2rem auto 0;
-  padding: 0.6rem 1.5rem;   /* smaller width */
-  border: none;
-  border-radius: 6px;
-  background: #074035;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  text-align: center;
-  display: inline-block;    /* shrink to fit content */
-}
-.ezapply-show-more:hover {
-  background: #05632e;
-}
-
-.ezapply-login-btn {
-  background: linear-gradient(90deg, #7f53ac 40%, #647dee 50%);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.45rem 0.95rem;
-  cursor: pointer;
-  font-size: 0.93rem;
-  font-weight: 500;
-  box-shadow: 0 1px 4px #b3b3e6;
-  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  letter-spacing: 0.2px;
-}
-.ezapply-login-btn:hover {
-  background: linear-gradient(90deg, #5f2c82 40%, #49a09d 100%);
-  box-shadow: 0 2px 8px #7f53ac44;
-  transform: translateY(-1px) scale(1.02);
-}
-.ezapply-login-icon {
-  font-size: 1.05rem;
-  margin-right: 0.3rem;
-}
-.ezapply-login-text {
-  font-size: 0.97rem;
-  font-weight: 500;
-}
-.ezapply-login-arrow {
-  font-size: 0.93rem;
-  margin-left: 0.2rem;
-}
-
-.ezapply-submit-btn {
-  padding: 0.75rem 1rem;
-  background: linear-gradient(90deg, #074035 0%, #074035 100%);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: .8rem;
-  box-shadow: 0 2px 8px #e0e7ff;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: background 0.2s, opacity 0.2s;
-  opacity: 1;
-  margin-bottom: 30px;
-}
-.ezapply-submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: linear-gradient(90deg, #074035 0%, #074035 100%);
-}
-.ezapply-submit-btn:hover:not(:disabled) {
-  background: linear-gradient(90deg, #074035 0%, #074035 100%);
-}
-.ezapply-landing {
-  min-height: 100vh;
-  background: #f8fafc;
-  font-family: Inter, sans-serif;
-}
 
 .ezapply-nav {
   display: flex;
@@ -208,6 +24,7 @@
   left: 0;
   width: 100%;
   z-index: 1000;
+  border-bottom: 1px solid #eee;
 }
 
 .ezapply-logo {
@@ -233,99 +50,260 @@
 .ezapply-navlink:hover {
   color: #2563eb;
 }
-.ezapply-link:hover {
-  text-decoration: underline;
-    color: #2563eb;
 
+
+.hero {
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+  background: linear-gradient(135deg, #074035, #2563eb);
+  color: #fff;
 }
 
-.ezapply-login-container {
-  position: relative;
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
-
-.ezapply-main {
+.hero-title span {
+  color: #ffd700;
+}
+.hero-subtitle {
+  margin-top: 1rem;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: #e0e0e0;
+}
+.hero-buttons {
+  margin-top: 2rem;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 5.5rem; /* Prevent content from being hidden behind fixed nav */
-}
-
-.ezapply-searchbar {
-  width: 100%;
-  max-width: 480px;
-  margin-bottom: 2rem;
-  display: flex;
+  justify-content: center;
   gap: 1rem;
-  align-items: center;
+  flex-wrap: wrap;
+}
+.hero-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+}
+.hero-btn.primary {
+  background: #ffd700;
+  color: #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.hero-btn.primary:hover {
+  background: #f7c600;
+  transform: translateY(-2px);
+}
+.hero-btn.secondary {
+  border: 2px solid #fff;
+  color: #fff;
+}
+.hero-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
-.ezapply-search-input {
-  flex: 1;
+
+.ezapply__filter-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+  padding: 2rem;
+}
+
+.ezapply__filter-card {
+  width: 550px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.ezapply__filter-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1b1b18;
+  margin-bottom: 1rem;
+}
+
+.ezapply__filter-label {
+  font-size: 0.9rem;
+  color: #252525;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.ezapply__filter-input,
+.ezapply__filter-select,
+.ezapply__type-select {
+  width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #1b1b18;
 }
 
-.ezapply-filter-select,
-.ezapply-type-select {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #2563eb;
-  font-weight: 500;
+.ezapply__submit-row {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
 }
+
+
+.ezapply__company-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+.ezapply__no-companies {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #888;
+  padding: 2rem;
+}
+
+.ezapply__company-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ezapply__company-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.ezapply__company-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.ezapply__checkbox {
+  margin-right: 1rem;
+  accent-color: #074035;
+}
+.ezapply__company-logo {
+  height: 32px;
+  width: 32px;
+  margin-right: 0.5rem;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.ezapply__company-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.ezapply__company-details {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+
+.ezapply-show-more {
+  margin: 2rem auto 0;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: #074035;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  display: inline-block;
+}
+.ezapply-show-more:hover {
+  background: #05632e;
+  transform: translateY(-2px);
+}
+
+.ezapply-login-btn {
+  background: linear-gradient(90deg, #7f53ac 40%, #647dee 50%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  font-size: 0.93rem;
+  font-weight: 500;
+  box-shadow: 0 1px 4px #b3b3e6;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ezapply-login-btn:hover {
+  background: linear-gradient(90deg, #5f2c82 40%, #49a09d 100%);
+  box-shadow: 0 2px 8px #7f53ac44;
+  transform: translateY(-1px) scale(1.02);
+}
+
+
+.ezapply-submit-btn {
+  padding: 0.75rem 1rem;
+  background: #074035;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px #e0e7ff;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.2s;
+  margin-bottom: 30px;
+}
+.ezapply-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ezapply-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
 
 .services-container {
   width: 100%;
-  margin: 0 auto;         
-  padding: 2rem;
+  padding: 4rem 2rem;
   background: linear-gradient(180deg, #074035, #074035);
-
-}
-.about-container {
-  width: 100%;
-  margin: 0 auto;         
-  padding: 2rem;
-  background: #f3f4f6;
-
-}
-.about-header {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-    color: #1b1b18;
-
+  color: #fff;
 }
 
 .services-header {
   text-align: center;
-  font-size: 2rem;
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 700;
   margin-bottom: 1rem;
-    color: #ffffff;
-
 }
 
 .services-subheader {
   text-align: center;
   font-size: 1rem;
-  color: #ffffff;
+  color: #e5e7eb;
   margin-bottom: 2rem;
 }
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* responsive grid */
-  gap: 1.5rem; /* spacing between cards */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .service-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.9);
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
 }
 
 .service-title {
@@ -337,71 +315,25 @@
 .service-description {
   font-size: 0.95rem;
   color: #555;
-  line-height: 1.5;
+  line-height: 1.6;
 }
-/* Hero */
-.hero {
+
+
+.about-container {
+  width: 100%;
+  padding: 4rem 2rem;
+  background: #f3f4f6;
+}
+
+.about-header {
   text-align: center;
-  padding: 6rem 2rem 4rem;
-  background: linear-gradient(15deg, #074035, #2563eb);
-  color: #fff;
-}
-.hero-title {
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 700;
-}
-.hero-title span {
-  color: #ffd700;
-}
-.hero-subtitle {
-  margin-top: 1rem;
-  font-size: 1.2rem;
-  color: #e0e0e0;
-}
-.hero-buttons {
-  margin-top: 2rem;
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-.hero-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.2s, background 0.3s;
-}
-.hero-btn.primary {
-  background: #ffd700;
-  color: #000;
-}
-.hero-btn.primary:hover {
-  background: #f7c600;
-}
-.hero-btn.secondary {
-  border: 2px solid #fff;
-  color: #fff;
-}
-.hero-btn.secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
+  margin-bottom: 1rem;
+  color: #1b1b18;
 }
 
-/* Company card hover */
-.ezapply__company-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.ezapply__company-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-}
-.learn-more-link {
-  color: #2563eb;
-  font-weight: 500;
-  display: inline-block;
-  margin-top: 0.5rem;
-}
 
-/* CTA Section */
 .cta-section {
   text-align: center;
   padding: 4rem 2rem;
@@ -409,7 +341,7 @@
   color: #fff;
 }
 .cta-section h2 {
-  font-size: 2rem;
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 700;
 }
 .cta-section p {
@@ -420,20 +352,28 @@
   background: #ffd700;
   color: #000;
   padding: 0.75rem 2rem;
-  border-radius: 6px;
+  border-radius: 999px;
   font-weight: 600;
   text-decoration: none;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 .cta-btn:hover {
   background: #f7c600;
+  transform: translateY(-2px);
 }
 
-/* Buttons */
+
+.learn-more-link {
+  color: #2563eb;
+  font-weight: 500;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
 .btn-outline {
   border: 1px solid #ccc;
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 999px;
   font-weight: 500;
   text-decoration: none;
   color: #1b1b18;
@@ -445,11 +385,55 @@
   color: #fff;
 }
 
-.ezapply-company-card-small{
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #eee;
-  padding: 1.5rem;
-  text-align: left;
-  margin: 2px;
+
+@media (max-width: 992px) {
+  .ezapply__filter-row {
+    justify-content: center;
+  }
+  .ezapply__filter-card {
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 5rem 1.5rem 3rem;
+  }
+  .hero-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .services-container,
+  .about-container,
+  .cta-section {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ezapply-nav {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .ezapply__company-card {
+    padding: 1rem;
+  }
+}
+
+.ezapply-link-show-more{
+  display: inline-block;
+  margin: 2rem auto 0;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  color: #010000;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.ezapply-link-show-more:hover {
+  color: #0022ffc3;
+  transform: translateY(-2px);
 }

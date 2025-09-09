@@ -3,6 +3,7 @@ import "../../../css/easyApply.css";
 import { Link } from "@inertiajs/react";
 import Services from "./services";
 import About from "./about";
+import EzNav from "./ezapply-nav";
 
 export default function EasyApplyLanding({ user }: { user?: any }) {
   const [companies, setCompanies] = useState<any[]>([]);
@@ -76,7 +77,7 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
           Browse trusted opportunities and grow your business with confidence.
         </p>
         <div className="hero-buttons">
-          <a href="#companies" className="hero-btn primary">
+          <a href="/list-companies" className="hero-btn primary">
             All companies list
           </a>
           <a href="#services" className="hero-btn secondary">
@@ -150,7 +151,7 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
       </section>
 
       {/* Navigation */}
-      <nav className="ezapply-nav">
+      {/* <nav className="ezapply-nav">
         <div className="ezapply-logo">EZApply</div>
         <div className="ezapply-navlinks">
           <div className="ezapply-navlink">
@@ -180,7 +181,8 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
             </Link>
           )}
         </div>
-      </nav>
+      </nav> */}
+      <EzNav user={user} />
 
       {/* Main Section */}
       <main className="ezapply-main-content" id="companies">
@@ -231,12 +233,12 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
                 </div>
               ))}
 
-              <Link className="ezapply-link" href={'/easy-apply-companies'}>
-                Show more
-              </Link>
             </>
           )}
         </div>
+        <Link className="ezapply-link-show-more" href={'/list-companies'}>
+                Show more
+              </Link>
       </main>
 
       {/* Submit */}
