@@ -10,6 +10,7 @@ use App\Http\Controllers\FranchiseInformationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CompanyRequestController;
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/franchise-information', [FranchiseInformationController::class, 'store'])->name('franchise.store');
@@ -39,6 +40,7 @@ Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('compani
 Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
@@ -77,7 +79,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('user.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('user.destroy');
     
-
+    //Company Requests
+    Route::get('/company-requests', [CompanyRequestController::class, 'index'])->name('company.requests');
+    Route::post('/company-requests/{id}/approve', [CompanyRequestController::class, 'approveCompany'])->name('company.approve');
+    Route::post('/company-requests/{id}/reject', [CompanyRequestController::class, 'rejectCompany'])->name('company.reject');
+    
+    
 
 });
 

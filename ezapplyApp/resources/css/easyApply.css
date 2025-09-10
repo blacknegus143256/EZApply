@@ -11,7 +11,6 @@
   padding: 0 2rem;
 }
 
-
 .ezapply-nav {
   display: flex;
   justify-content: space-between;
@@ -50,7 +49,6 @@
 .ezapply-navlink:hover {
   color: #2563eb;
 }
-
 
 .hero {
   text-align: center;
@@ -103,7 +101,6 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-
 .ezapply__filter-row {
   display: flex;
   justify-content: flex-end;
@@ -151,11 +148,11 @@
   padding: 1rem 0;
 }
 
-
+/* Updated company grid and cards */
 .ezapply__company-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
   justify-content: center;
 }
 
@@ -167,21 +164,28 @@
 }
 
 .ezapply__company-card {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 200px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .ezapply__company-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .ezapply__company-header {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 5px;
 }
 .ezapply__checkbox {
   margin-right: 1rem;
@@ -196,29 +200,40 @@
 }
 .ezapply__company-name {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  color: #2563eb;
 }
 .ezapply__company-details {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #444;
-  line-height: 1.6;
 }
 
+.ezapply__view-details {
+  margin-top: 10px;
+  text-align: center;
+}
 
-.ezapply-show-more {
+.view-details-link {
+  display: inline-block;
+  font-weight: 600;
+  color: #2563eb;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+.view-details-link:hover {
+  color: #1e4ed8;
+}
+
+.ezapply-link-show-more {
   margin: 2rem auto 0;
-  padding: 0.6rem 1.5rem;
-  border: none;
-  border-radius: 999px;
-  background: #074035;
-  color: #fff;
+  color: #000000;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
   display: inline-block;
 }
-.ezapply-show-more:hover {
-  background: #05632e;
+.ezapply-link-show-more:hover {
+  color: #0400f9;
   transform: translateY(-2px);
 }
 
@@ -243,7 +258,6 @@
   transform: translateY(-1px) scale(1.02);
 }
 
-
 .ezapply-submit-btn {
   padding: 0.75rem 1rem;
   background: #074035;
@@ -264,7 +278,6 @@
 .ezapply-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
 }
-
 
 .services-container {
   width: 100%;
@@ -318,7 +331,6 @@
   line-height: 1.6;
 }
 
-
 .about-container {
   width: 100%;
   padding: 4rem 2rem;
@@ -332,7 +344,6 @@
   margin-bottom: 1rem;
   color: #1b1b18;
 }
-
 
 .cta-section {
   text-align: center;
@@ -362,7 +373,6 @@
   transform: translateY(-2px);
 }
 
-
 .learn-more-link {
   color: #2563eb;
   font-weight: 500;
@@ -384,7 +394,6 @@
   background: #2563eb;
   color: #fff;
 }
-
 
 @media (max-width: 992px) {
   .ezapply__filter-row {
@@ -420,20 +429,4 @@
   .ezapply__company-card {
     padding: 1rem;
   }
-}
-
-.ezapply-link-show-more{
-  display: inline-block;
-  margin: 2rem auto 0;
-  padding: 0.6rem 1.5rem;
-  border: none;
-  color: #010000;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.ezapply-link-show-more:hover {
-  color: #0022ffc3;
-  transform: translateY(-2px);
 }

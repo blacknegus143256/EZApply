@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, List, Lock, LockKeyhole, Save, UserIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar';
 
@@ -50,6 +50,13 @@ const mainNavItems: NavItem[] = [
         icon: Lock,
         permission: 'view_permissions',
     },
+    {
+        title: 'Company Requests',
+        href: '/company-requests',
+        icon: List,
+        permission: 'view_companies',
+    },
+    
     
     // Company specific
     // {

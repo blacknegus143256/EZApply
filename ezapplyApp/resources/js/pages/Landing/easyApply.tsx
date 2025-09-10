@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../../../css/easyApply.css";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import Services from "./services";
 import About from "./about";
 import EzNav from "./ezapply-nav";
@@ -65,7 +65,8 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   filtered = filtered.filter((c) =>
     (c.company_name ?? "").toLowerCase().includes(search.toLowerCase())
   );
-
+  const { auth } = usePage().props as any;
+    const users = auth?.user;
   return (
     <div className="ezapply-landing">
       {/* Hero Section */}
@@ -77,7 +78,7 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
           Browse trusted opportunities and grow your business with confidence.
         </p>
         <div className="hero-buttons">
-          <a href="/list-companies" className="hero-btn primary">
+          <a href="/list-companies" className="hero-btn primary" target="_blank">
             All companies list
           </a>
           <a href="#services" className="hero-btn secondary">
@@ -182,7 +183,7 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
           )}
         </div>
       </nav> */}
-      <EzNav user={user} />
+      <EzNav user={users} />
 
       {/* Main Section */}
       <main className="ezapply-main-content" id="companies">
@@ -229,6 +230,18 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
                     <p>
                       <strong>Description:</strong> {company.description}
                     </p>
+
+                    <div className="ezapply__view-details">
+                  <a href={`/companies/${company.id}`} className="view-details-link" onClick={(e) => {
+                      if (!users) {
+                        e.preventDefault();
+                        alert("Please log in to view company details.");
+                        return ('/login');
+                      }
+                    }}>
+                    View Details
+                  </a>
+                  </div>
                   </div>
                 </div>
               ))}
