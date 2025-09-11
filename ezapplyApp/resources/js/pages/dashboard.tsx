@@ -11,7 +11,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 
 console.log(dashboard());
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: dashboard().url }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: dashboard() }];
 
 
 export default function Dashboard() {

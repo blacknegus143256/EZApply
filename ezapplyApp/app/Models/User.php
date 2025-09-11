@@ -66,6 +66,42 @@ class User extends Authenticatable
     return $this->hasOne(Company::class, 'user_id');
 }
 
+// applications as customer
+public function applications()
+{
+    return $this->hasMany(Application::class);
+}
+
+// companies this user owns (if role=company)
+public function companies()
+{
+    return $this->hasMany(Company::class);
+}
+
+// affiliations
+public function affiliations()
+{
+    return $this->hasMany(Affiliation::class);
+}
+
+// basic info
+public function basicInfo()
+{
+    return $this->hasOne(BasicInfo::class);
+}
+
+// financial info
+public function financial()
+{
+    return $this->hasOne(Financial::class);
+}
+
+// customer attachments
+public function attachments()
+{
+    return $this->hasMany(CustomerAttachment::class);
+}
+
 
     /**
      * Get the user's primary role (using Spatie's role system)

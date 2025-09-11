@@ -59,7 +59,7 @@ class CompanyController extends Controller
             // Step 6 — company_marketings
             'listing_title'            => 'nullable|string|max:255',
             'listing_description'      => 'nullable|string',
-            'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'target_profile'           => 'nullable|string|max:255',
             'preferred_contact_method' => 'nullable|string|max:50',
         ]);

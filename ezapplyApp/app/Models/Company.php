@@ -30,4 +30,13 @@ class Company extends Model
     public function marketing()   { return $this->hasOne(CompanyMarketing::class); }
     public function user()        { return $this->belongsTo(User::class); }
 
+    public function applications()
+{
+    return $this->hasMany(Application::class);
+}
+
+public function applicants()
+{
+    return $this->belongsToMany(User::class, 'applications');
+}
 }

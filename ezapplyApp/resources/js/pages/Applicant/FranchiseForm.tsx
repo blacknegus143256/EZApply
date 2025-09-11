@@ -35,6 +35,23 @@ const FranchiseForm = () => {
   const [budget, setBudget] = useState<number | ''>('');
   const [type, setType] = useState('all');
   const [formVisible, setFormVisible] = useState(true); // toggle for collapse
+  const [applied, setApplied] = useState<number[]>([]);
+  const [applying, setApplying] = useState<number | null>(null);
+  const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null; desired_location: string; deadline_date: string}>({ open: false, companyId: null, desired_location: '', deadline_date: '' });
+  // Bulk apply modal
+  const [bulkModal, setBulkModal] = useState<{open: boolean; desired_location: string; deadline_date: string}>({ open: false, desired_location: '', deadline_date: '' });
+  // PSGC for per-card modal
+  const [applyRegions, setApplyRegions] = useState<any[]>([]);
+  const [applyProvinces, setApplyProvinces] = useState<any[]>([]);
+  const [applyCities, setApplyCities] = useState<any[]>([]);
+  const [applyBarangays, setApplyBarangays] = useState<any[]>([]);
+  const [applyAddressCodes, setApplyAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
+  // PSGC for bulk modal
+  const [bulkRegions, setBulkRegions] = useState<any[]>([]);
+  const [bulkProvinces, setBulkProvinces] = useState<any[]>([]);
+  const [bulkCities, setBulkCities] = useState<any[]>([]);
+  const [bulkBarangays, setBulkBarangays] = useState<any[]>([]);
+  const [bulkAddressCodes, setBulkAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
 
   useEffect(() => {
     axios.get("/companies")
@@ -46,10 +63,72 @@ const FranchiseForm = () => {
     });
   }, []);
 
+  // Load regions when modal opens
+  useEffect(() => {
+    if (applyModal.open && applyRegions.length === 0) {
+      fetch('/psgc/regions')
+        .then((res) => res.json())
+        .then((data) => setApplyRegions(data))
+        .catch(() => {});
+    }
+  }, [applyModal.open]);
+  // Load regions for bulk modal
+  useEffect(() => {
+    if (bulkModal.open && bulkRegions.length === 0) {
+      fetch('/psgc/regions')
+        .then((res) => res.json())
+        .then((data) => setBulkRegions(data))
+        .catch(() => {});
+    }
+  }, [bulkModal.open]);
+
+  const onApplyRegionChange = (regionCode: string) => {
+    setApplyAddressCodes({ region_code: regionCode, province_code: '', citymun_code: '', barangay_code: '' });
+    setApplyProvinces([]); setApplyCities([]); setApplyBarangays([]);
+    if (regionCode) {
+      fetch(`/psgc/regions/${regionCode}/provinces`).then(r => r.json()).then(setApplyProvinces).catch(() => {});
+    }
+  };
+  const onApplyProvinceChange = (provinceCode: string) => {
+    setApplyAddressCodes((prev) => ({ ...prev, province_code: provinceCode, citymun_code: '', barangay_code: '' }));
+    setApplyCities([]); setApplyBarangays([]);
+    if (provinceCode) {
+      fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`).then(r => r.json()).then(setApplyCities).catch(() => {});
+    }
+  };
+  const onApplyCityChange = (cityCode: string) => {
+    setApplyAddressCodes((prev) => ({ ...prev, citymun_code: cityCode, barangay_code: '' }));
+    setApplyBarangays([]);
+    if (cityCode) {
+      fetch(`/psgc/cities-municipalities/${cityCode}/barangays`).then(r => r.json()).then(setApplyBarangays).catch(() => {});
+    }
+  };
+  const onApplyBarangayChange = (barangayCode: string) => {
+    setApplyAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
+  };
+
+  // Bulk PSGC handlers
+  const onBulkRegionChange = (regionCode: string) => {
+    setBulkAddressCodes({ region_code: regionCode, province_code: '', citymun_code: '', barangay_code: '' });
+    setBulkProvinces([]); setBulkCities([]); setBulkBarangays([]);
+    if (regionCode) fetch(`/psgc/regions/${regionCode}/provinces`).then(r=>r.json()).then(setBulkProvinces).catch(()=>{});
+  };
+  const onBulkProvinceChange = (provinceCode: string) => {
+    setBulkAddressCodes((prev) => ({ ...prev, province_code: provinceCode, citymun_code: '', barangay_code: '' }));
+    setBulkCities([]); setBulkBarangays([]);
+    if (provinceCode) fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`).then(r=>r.json()).then(setBulkCities).catch(()=>{});
+  };
+  const onBulkCityChange = (cityCode: string) => {
+    setBulkAddressCodes((prev) => ({ ...prev, citymun_code: cityCode, barangay_code: '' }));
+    setBulkBarangays([]);
+    if (cityCode) fetch(`/psgc/cities-municipalities/${cityCode}/barangays`).then(r=>r.json()).then(setBulkBarangays).catch(()=>{});
+  };
+  const onBulkBarangayChange = (barangayCode: string) => {
+    setBulkAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
+  };
 
 
-
-  // Start with all companies
+// Start with all companies
 let filtered = companies;
 
 // Filter by type
@@ -79,11 +158,36 @@ const handleCheck = (id: number) => {
   );
 };
 const handleApply = () => { 
-    router.visit("/applicant/franchise/appliedcompanies", {
-      method: "get",
-      data: { companyIds: checked},
-      });
+    if (checked.length === 0) {
+    // maybe show a UI alert
+    return;
+  }
+    router.post("applications",
+      { companyIds: checked},{
+      onSuccess: () => {
+        alert('Application submitted successfully!');
+    },
+    onError: (errors) => {
+      console.error('Apply failed', errors);
+    }
+  });
      };
+
+const handleApplySingle = (companyId: number, desired_location?: string, deadline_date?: string) => {
+  if (applying !== null) return;
+  setApplying(companyId);
+  axios.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date })
+    .then(() => {
+      setApplied((prev) => prev.includes(companyId) ? prev : [...prev, companyId]);
+      setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' });
+    })
+    .catch((err) => {
+      console.error('Apply failed', err);
+    })
+    .finally(() => {
+      setApplying(null);
+    });
+};
 
   return (
     <PermissionGate permission="apply_for_franchises" fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
@@ -91,66 +195,52 @@ const handleApply = () => {
         <Head title="Franchise Application" />
         <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
-          Franchise Information Form
+          Looking for a Company to Franchise?
         </h1>
 
-        {/* Toggle Button for Form */}
-        <button
-          onClick={() => setFormVisible((prev) => !prev)}
-          className="mb-4 rounded-lg bg-gray-200 dark:bg-neutral-700 px-4 py-2 text-sm font-medium hover:bg-gray-300 dark:hover:bg-neutral-600 transition"
-        >
-          {formVisible ? "Hide Form" : "Show Form"}
-        </button>
+        {/* Filters moved to top */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium">Budget</label>
+            <input
+              name="budget"
+              type="number"
+              value={budget}
+              onChange={(e) => {
+                const value = e.target.value;
+                setBudget(value === '' ? '' : Number(value))}}
+              className="mt-1 block w-full rounded-lg border px-3 py-2"
+              placeholder="Enter your budget"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Franchise Type / Category</label>
+            <select
+              id="ezapply-type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="ezapply__filter-select w-full"
+              title="Select company type"
+            >
+              <option value="all">All Types</option>
+              {franchiseTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div className="self-end flex gap-2 justify-end">
+            <button
+              type="button"
+              disabled={checked.length === 0}
+              onClick={() => setBulkModal({ open: true, desired_location: '', deadline_date: '' })}
+              className={`rounded-lg px-4 py-2 text-white ${checked.length === 0 ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              Apply Selected ({checked.length})
+            </button>
+          </div>
+        </div>
 
-        <div  className={`grid gap-8 ${
-    formVisible ? "grid-cols-1 lg:grid-cols-[auto_1fr]" : "grid-cols-1"
-  }`}>
-          {/* Left Column: Form */}
-          {formVisible && (
-            <div>
-              {/* Tabs */}
-              <div className="w-full max-w-md mb-6">
-                <h3
-                  className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
-                  Interest Info
-                </h3>
-              </div>
-
-
-                <div className="space-y-4">
-                  <div>
-                <label className="block text-sm font-medium">Budget</label>
-                <input
-                  name="budget"
-                  type="number"
-                  value={budget}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setBudget(value === '' ? '' :Number(value))}}
-                  className="mt-1 block w-full rounded-lg border px-3 py-2"
-                  placeholder="Enter your budget"
-                />
-              </div>
-
-                  <div>
-                    <label className="block text-sm font-medium">Franchise Type / Category</label>
-                    <select
-                      id="ezapply-type"
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                      className="ezapply__filter-select"
-                      title="Select company type"
-                    >
-                      <option value="all">All Types</option>
-                      {franchiseTypes.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                      
-            </div>
-          )}
+        <div className="grid gap-8">
             <main className="ezapply-main-content">
           <div className="ezapply-company-card-small-grid">
             {filtered.length === 0 ? (
@@ -161,7 +251,7 @@ const handleApply = () => {
                   key={company.id}
                   className={`ezapply-company-card-small cursor-pointer ${
                     checked.includes(company.id) ? "ring-3 ring-blue-500" : ""
-                  }`}
+                  } h-full flex flex-col`}
                   onClick={() =>
                     setChecked((prev) =>
                       prev.includes(company.id)
@@ -201,21 +291,197 @@ const handleApply = () => {
                       <strong>Description:</strong> {company.description}
                     </p>
                   </div>
+                  <div className="mt-auto pt-3 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.get(`/companies/${company.id}`);
+                      }}
+                      className="flex-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 px-4 py-2 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-600 transition"
+                    >
+                      More Details
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!applied.includes(company.id)) {
+                          setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
+                        }
+                      }}
+                      disabled={applied.includes(company.id) || applying === company.id}
+                      className={`flex-1 px-4 py-2 rounded-md transition ${applied.includes(company.id) ? 'bg-green-600/70 text-white cursor-not-allowed' : (applying === company.id ? 'bg-blue-400 text-white cursor-wait' : 'bg-blue-600 text-white hover:bg-blue-700')}`}
+                    >
+                      {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
+                    </button>
+                  </div>
                 </div>
               ))
             )}
           </div>
             </main>
 
+            {/* Apply modal */}
+            {applyModal.open && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' })}>
+                <div className="w-full max-w-md rounded-lg bg-white dark:bg-neutral-900 p-6" onClick={(e) => e.stopPropagation()}>
+                  <h3 className="text-lg font-semibold mb-4">Additional Details</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Desired Location</label>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">Region</label>
+                          <select
+                            className="w-full rounded-lg border px-3 py-2"
+                            value={applyAddressCodes.region_code}
+                            onChange={(e) => onApplyRegionChange(e.target.value)}
+                          >
+                            <option value="">Select Region</option>
+                            {applyRegions.map((r: any) => (
+                              <option key={r.code} value={r.code}>{r.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">Province</label>
+                          <select
+                            className="w-full rounded-lg border px-3 py-2"
+                            value={applyAddressCodes.province_code}
+                            onChange={(e) => onApplyProvinceChange(e.target.value)}
+                            disabled={!applyAddressCodes.region_code}
+                          >
+                            <option value="">Select Province</option>
+                            {applyProvinces.map((p: any) => (
+                              <option key={p.code} value={p.code}>{p.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">City / Municipality</label>
+                          <select
+                            className="w-full rounded-lg border px-3 py-2"
+                            value={applyAddressCodes.citymun_code}
+                            onChange={(e) => onApplyCityChange(e.target.value)}
+                            disabled={!applyAddressCodes.province_code}
+                          >
+                            <option value="">Select City/Municipality</option>
+                            {applyCities.map((c: any) => (
+                              <option key={c.code} value={c.code}>{c.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">Barangay</label>
+                          <select
+                            className="w-full rounded-lg border px-3 py-2"
+                            value={applyAddressCodes.barangay_code}
+                            onChange={(e) => onApplyBarangayChange(e.target.value)}
+                            disabled={!applyAddressCodes.citymun_code}
+                          >
+                            <option value="">Select Barangay</option>
+                            {applyBarangays.map((b: any) => (
+                              <option key={b.code} value={b.code}>{b.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium">Deadline Date</label>
+                      <input
+                        type="date"
+                        className="mt-1 block w-full rounded-lg border px-3 py-2"
+                        value={applyModal.deadline_date}
+                        onChange={(e) => setApplyModal((s) => ({ ...s, deadline_date: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-2">
+                    <button
+                      className="px-4 py-2 rounded-md bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                      onClick={() => setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' })}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                      onClick={() => {
+                        if (applyModal.companyId) {
+                          const { region_code, province_code, citymun_code, barangay_code } = applyAddressCodes;
+                          const locationStr = [region_code, province_code, citymun_code, barangay_code].filter(Boolean).join('-');
+                          handleApplySingle(applyModal.companyId, locationStr, applyModal.deadline_date);
+                        }
+                      }}
+                    >
+                      Confirm Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            <button
-              onClick={() => {
-              handleApply();
-              }}
-              className="fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-700 transition"
-            >
-              Apply
-            </button>
+            {/* Bulk Apply modal */}
+            {bulkModal.open && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setBulkModal({ open: false, desired_location: '', deadline_date: '' })}>
+                <div className="w-full max-w-md rounded-lg bg-white dark:bg-neutral-900 p-6" onClick={(e) => e.stopPropagation()}>
+                  <h3 className="text-lg font-semibold mb-4">Apply to {checked.length} selected companies</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Desired Location</label>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">Region</label>
+                          <select className="w-full rounded-lg border px-3 py-2" value={bulkAddressCodes.region_code} onChange={(e)=>onBulkRegionChange(e.target.value)}>
+                            <option value="">Select Region</option>
+                            {bulkRegions.map((r: any) => (<option key={r.code} value={r.code}>{r.name}</option>))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">Province</label>
+                          <select className="w-full rounded-lg border px-3 py-2" value={bulkAddressCodes.province_code} onChange={(e)=>onBulkProvinceChange(e.target.value)} disabled={!bulkAddressCodes.region_code}>
+                            <option value="">Select Province</option>
+                            {bulkProvinces.map((p: any) => (<option key={p.code} value={p.code}>{p.name}</option>))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">City / Municipality</label>
+                          <select className="w-full rounded-lg border px-3 py-2" value={bulkAddressCodes.citymun_code} onChange={(e)=>onBulkCityChange(e.target.value)} disabled={!bulkAddressCodes.province_code}>
+                            <option value="">Select City/Municipality</option>
+                            {bulkCities.map((c: any) => (<option key={c.code} value={c.code}>{c.name}</option>))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-neutral-500 mb-1">Barangay</label>
+                          <select className="w-full rounded-lg border px-3 py-2" value={bulkAddressCodes.barangay_code} onChange={(e)=>onBulkBarangayChange(e.target.value)} disabled={!bulkAddressCodes.citymun_code}>
+                            <option value="">Select Barangay</option>
+                            {bulkBarangays.map((b: any) => (<option key={b.code} value={b.code}>{b.name}</option>))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium">Deadline Date</label>
+                      <input type="date" className="mt-1 block w-full rounded-lg border px-3 py-2" value={bulkModal.deadline_date} onChange={(e)=>setBulkModal((s)=>({...s, deadline_date: e.target.value}))} />
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-2">
+                    <button className="px-4 py-2 rounded-md bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600" onClick={()=>setBulkModal({ open: false, desired_location: '', deadline_date: '' })}>Cancel</button>
+                    <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={()=>{
+                      if (checked.length > 0) {
+                        const { region_code, province_code, citymun_code, barangay_code } = bulkAddressCodes;
+                        const locationStr = [region_code, province_code, citymun_code, barangay_code].filter(Boolean).join('-');
+                        axios.post('/applicant/applications', { companyIds: checked, desired_location: locationStr, deadline_date: bulkModal.deadline_date })
+                          .then(()=>{
+                            setApplied((prev)=> Array.from(new Set([...prev, ...checked])));
+                            setBulkModal({ open: false, desired_location: '', deadline_date: '' });
+                          })
+                          .catch((err)=>console.error('Bulk apply failed', err));
+                      }
+                    }}>Confirm Apply</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

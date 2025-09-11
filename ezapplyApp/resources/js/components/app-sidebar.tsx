@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle  } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote } from 'lucide-react';
 
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar';
@@ -19,6 +19,31 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
         permission: 'view_customer_dashboard',
     },
+     {
+        title: 'Basic Info',
+        href: '/applicant/basicinfo',
+        icon: UserIcon,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Affiliations',
+        href: '/applicant/affiliations',
+        icon: Building2,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Financial Info',
+        href: '/applicant/financial',
+        icon: Banknote,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Attachments',
+        href: '/applicant/attachments',
+        icon: Folder,
+        permission: 'view_customer_dashboard',
+    },
+
     // {
     //     title: 'Dashboard',
     //     href: dashboard(),
@@ -127,7 +152,7 @@ export function AppSidebar() {
 
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
-            <Link href="/applicant/franchise/chats">
+            <Link href="/applicant/franchise/appliedcompanies">
               <MessageCircle className="h-4 w-4" />
               <span>Applied Companies</span>
             </Link>

@@ -308,7 +308,7 @@
   flex-wrap: wrap;
   flex-direction: row;     /* horizontal layout */
   gap: 1rem;              /* spacing between cards */
-  overflow-x: auto;       /* allows scrolling horizontally if too many */
+  overflow: visible;
   padding: 1rem 0;
 }
 
