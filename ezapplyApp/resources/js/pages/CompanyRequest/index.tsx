@@ -17,10 +17,29 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import CompanyDetails from '../Company/CompanyDetails';
+
 
 interface Company {
   id: number;
   company_name: string;
+  brand_name: string;
+  hq_address: string;
+  city: string;
+  state_province: string;
+  zip_code: string;
+  country: string;
+  company_website: string;
+  description: string;
   created_at: string;
   status?: 'pending' | 'approved' | 'rejected'; 
 }
@@ -123,6 +142,7 @@ export default function Roles({ roles }: { roles: any }) {
                                     <TableHead>Date Created</TableHead>
                                     <TableHead>Action</TableHead>
                                     <TableHead>Status</TableHead>
+                                    <TableHead>Session</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -151,7 +171,28 @@ export default function Roles({ roles }: { roles: any }) {
                                         <TableCell>{company.company_name}</TableCell>
                                         <TableCell>{new Date(company.created_at).toLocaleDateString()}</TableCell>
 
-                                        <TableCell>
+                                        <TableCell className="flex gap-2">
+                                            <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="default">View</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                            <DialogTitle className='flex justify-between items-center mt-5'>Company Details
+                                                <p>
+                                                <strong>Status:</strong>{" "}
+                                                {company.status === "pending" && <Badge variant="secondary">Pending</Badge>}
+                                                {company.status === "approved" && <Badge variant="success">Approved</Badge>}
+                                                {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
+                                            </p>
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                Below are the details for this company.
+                                            </DialogDescription>
+                                            </DialogHeader>
+                                           <CompanyDetails company={company} />
+                                        </DialogContent>
+                                        </Dialog>                    
                                         <Select
                                             value={company.status}
                                             onValueChange={(value: 'pending' | 'approved' | 'rejected') => {
@@ -178,7 +219,7 @@ export default function Roles({ roles }: { roles: any }) {
                                             </SelectTrigger>
                                             <SelectContent>
                                             <SelectGroup>
-                                                <SelectLabel>Status</SelectLabel>
+                                                <SelectLabel className='text-center'>Status</SelectLabel>
                                                 <SelectItem value="pending">Pending</SelectItem>
                                                 <SelectItem value="approved">Approved</SelectItem>
                                                 <SelectItem value="rejected">Rejected</SelectItem>
@@ -192,7 +233,19 @@ export default function Roles({ roles }: { roles: any }) {
                                         {company.status === "approved" && <Badge variant="success">Approved</Badge>}
                                         {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
                                         </TableCell>
+                                        <TableCell>
+                                        {company.status === "approved" && (
+                                            <span className="text-green-500 text-lg">🟢</span>
+                                        )}
+                                        {company.status === "pending" && (
+                                            <span className="text-yellow-500 text-lg">🟡</span>
+                                        )}
+                                        {company.status === "rejected" && (
+                                            <span className="text-red-500 text-lg">🔴</span>
+                                        )}
+                                        </TableCell>
                                     </TableRow>
+                                    
                                     ))
                                 )}
                             </TableBody>

@@ -13,6 +13,8 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   const [amount, setAmount] = useState("all");
   const [visibleCount, setVisibleCount] = useState(5);
 
+  
+
   const handleCheck = (companyId: number) => {
     setChecked((prev) =>
       prev.includes(companyId)
@@ -21,8 +23,6 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
     );
   };
 
-  const isVerified =
-    !!user && typeof user === "object" && Object.keys(user).length > 0;
 
   useEffect(() => {
     fetch("/companies")
@@ -38,6 +38,8 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
 
   // Filtering logic
   let filtered = companies;
+
+    filtered = filtered.filter((c) => c.status === "approved");
 
   // Filter by type
   if (type !== "all") {
@@ -152,37 +154,7 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
       </section>
 
       {/* Navigation */}
-      {/* <nav className="ezapply-nav">
-        <div className="ezapply-logo">EZApply</div>
-        <div className="ezapply-navlinks">
-          <div className="ezapply-navlink">
-            <a href="/">Home</a>
-          </div>
-          <div className="ezapply-navlink">
-            <a href="#services">Services</a>
-          </div>
-          <div className="ezapply-navlink">
-            <a href="#about">About</a>
-          </div>
-          <div className="ezapply-navlink">Contact</div>
-        </div>
-        <div className="ezapply-login-container">
-          {!isVerified ? (
-            <div>
-              <Link href="/login" className="btn-outline">
-                Login
-              </Link>{" "}
-              <Link href="/register" className="btn-outline">
-                Register
-              </Link>
-            </div>
-          ) : (
-            <Link href="/dashboard" className="btn-outline">
-              Dashboard
-            </Link>
-          )}
-        </div>
-      </nav> */}
+      
       <EzNav user={users} />
 
       {/* Main Section */}

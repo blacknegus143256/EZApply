@@ -5,8 +5,7 @@ import { usePage } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const AllCompanies = ({ user }: { user?: any }) => {
-  const isVerified =
-    !!user && typeof user === "object" && Object.keys(user).length > 0;
+
   const [companies, setCompanies] = useState<any[]>([]);
   const [checked, setChecked] = useState<number[]>([]);
 
