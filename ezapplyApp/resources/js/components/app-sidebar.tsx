@@ -54,7 +54,7 @@ const mainNavItems: NavItem[] = [
         title: 'Company Requests',
         href: '/company-requests',
         icon: List,
-        permission: 'view_companies',
+        permission: 'view_request_companies',
     },
     
     

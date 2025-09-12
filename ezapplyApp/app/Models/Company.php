@@ -21,6 +21,7 @@ class Company extends Model
         'description',
         'year_founded',
         'num_franchise_locations',
+        'status',
     ];
 
     // Relationships (1–1)

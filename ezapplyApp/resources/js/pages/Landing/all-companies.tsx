@@ -56,6 +56,8 @@ const AllCompanies = ({ user }: { user?: any }) => {
   // Filtering logic
   let filtered = companies;
 
+  filtered = filtered.filter((c) => c.status === "approved");
+
   if (filterType !== "All") {
     filtered = filtered.filter(
       (c) => c.opportunity?.franchise_type === filterType

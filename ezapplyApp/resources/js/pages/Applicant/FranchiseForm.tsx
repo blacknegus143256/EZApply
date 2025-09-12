@@ -85,8 +85,6 @@ const FranchiseForm = () => {
     );
   };
 
-const isVerified =
-    !!user && typeof user === 'object' && Object.keys(user).length > 0;
 
     useEffect(() => {
     fetch('/companies')

@@ -39,8 +39,10 @@ Route::get('/companies', [CompanyController::class, 'index'])->name('companies.i
 Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
 Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    
+    Route::put('/companies/{company}/status', [CompanyController::class, 'updateStatus'])
+    ->name('companies.update-status');
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');

@@ -85,6 +85,7 @@ class CompanyController extends Controller
                 'description'             => $v['description'],
                 'year_founded'            => $v['year_founded'],
                 'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
+                
             ]);
 
             // 2) Opportunity
@@ -155,4 +156,15 @@ class CompanyController extends Controller
 
     return response()->json($companies);
 }
+public function updateStatus(Request $request, Company $company)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,approved,rejected',
+        ]);
+
+        $company->status = $validated['status'];
+        $company->save();
+
+        return back()->with('success', 'Company status updated successfully.');
+    }
 }
