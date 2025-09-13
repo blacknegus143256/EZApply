@@ -7,6 +7,8 @@ import { type BreadcrumbItem } from "@/types";
 import { useForm, Head } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import PermissionGate from '@/components/PermissionGate';
+import '../../../css/easyApply.css';
 import { Plus, Trash2 } from "lucide-react";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -79,16 +81,18 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
   };
 
   return (
+    <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Affiliations" />
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <section className="hero">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Affiliations</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <h1 className="text-2xl font-bold text-white dark:text-white">Affiliations</h1>
+          <p className="text-white dark:text-gray-400 mt-2">
             Add your professional affiliations, memberships, and organizational positions.
           </p>
-        </div>
-
+        </div> 
+        </section>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             {data.affiliations.map((affiliation, index) => (
@@ -178,5 +182,6 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
         </div>
       </div>
     </AppLayout>
+    </PermissionGate>
   );
 }

@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List } from 'lucide-react';
 
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar';
@@ -43,7 +43,6 @@ const mainNavItems: NavItem[] = [
         icon: Folder,
         permission: 'view_customer_dashboard',
     },
-
     // {
     //     title: 'Dashboard',
     //     href: dashboard(),
@@ -76,6 +75,14 @@ const mainNavItems: NavItem[] = [
         icon: Lock,
         permission: 'view_permissions',
     },
+
+    {
+        title: 'Company Requests',
+        href: '/company-requests',
+        icon: List,
+        permission: 'view_company_dashboard',
+    },
+    
     
     // Company specific
     // {

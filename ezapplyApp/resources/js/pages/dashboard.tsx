@@ -8,6 +8,7 @@ import { usePermissions } from '@/hooks/use-permissions';
 import PermissionGate from '@/components/PermissionGate';
 
 import { Head, Link, usePage } from '@inertiajs/react';
+import '../../css/easyApply.css';
 
 console.log(dashboard());
 
@@ -16,12 +17,13 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: dashboard() }
 
 export default function Dashboard() {
   const { can } = usePermissions();
+  const { auth } = usePage().props as any;
+  const role = auth?.user?.role;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-
                     {/* Company Dashboard - Register Company/Franchise */}
                     <PermissionGate permission="view_company_dashboard">
                         <Link

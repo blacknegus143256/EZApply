@@ -2,6 +2,8 @@ import { Head, usePage, Link } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { Building2, User } from "lucide-react";
+import PermissionGate from '@/components/PermissionGate';
+import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -41,39 +43,41 @@ export default function AppliedCompanies() {
   const applications = props.applications ?? [];
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Applied Companies" />
+    <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
+      <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Applied Companies" />
 
-      <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
-          Applied Companies
-        </h1>
+        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
+          <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
+            Applied Companies
+          </h1>
 
-        {applications.length === 0 ? (
-          <p className="text-neutral-600 dark:text-neutral-400">
-            No applications yet. Go back and apply to companies to see them here.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {applications.map((a) => (
-              <div
-                key={a.id}
-                className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
-              >
-                <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
-                  <Building2 className="w-4 h-4 mr-1 text-blue-500" />{a.company.company_name}
-                </span>
-                <span className="mx-2 text-neutral-400">•</span>
-                <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <User className="w-4 h-4 mr-1 text-gray-400" />
-                  {a.company.user ? `${a.company.user.first_name} ${a.company.user.last_name}` : 'Unknown User'}
-                </span>
-                <StatusBadge status={a.status || 'pending'} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </AppLayout>
+          {applications.length === 0 ? (
+            <p className="text-neutral-600 dark:text-neutral-400">
+              No applications yet. Go back and apply to companies to see them here.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {applications.map((a) => (
+                <div
+                  key={a.id}
+                  className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
+                >
+                  <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
+                    <Building2 className="w-4 h-4 mr-1 text-blue-500" />{a.company.company_name}
+                  </span>
+                  <span className="mx-2 text-neutral-400">•</span>
+                  <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                    <User className="w-4 h-4 mr-1 text-gray-400" />
+                    {a.company.user ? `${a.company.user.first_name} ${a.company.user.last_name}` : 'Unknown User'}
+                  </span>
+                  <StatusBadge status={a.status || 'pending'} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </AppLayout>
+    </PermissionGate>
   );
 }

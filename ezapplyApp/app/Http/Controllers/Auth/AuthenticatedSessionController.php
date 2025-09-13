@@ -21,6 +21,9 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('auth/login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
+            // Optionally, pass the 'redirect' parameter to the Inertia page
+            // so your login component could also display it or use it for client-side redirects if needed.
+            'redirect' => $request->query('redirect'),
         ]);
     }
 
@@ -32,11 +35,22 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        // 1. Check for the 'redirect' query parameter first
+        $redirectUrl = $request->query('redirect');
+
+        if ($redirectUrl) {
+            // Decode the URL in case it contains special characters
+            return redirect(urldecode($redirectUrl));
+        }
+
+        // 2. If no 'redirect' parameter, then use your role-based logic
         $user = Auth::user();
         if ($user->role === 'customer') {
-        return redirect()->intended('/easy-apply');
+            return redirect()->intended('/easy-apply'); // Fallback for customers
         }
-        return redirect()->intended(route('dashboard', absolute: false));
+
+        return redirect()->intended(route('dashboard', absolute: false)); // Fallback for others
     }
 
     /**

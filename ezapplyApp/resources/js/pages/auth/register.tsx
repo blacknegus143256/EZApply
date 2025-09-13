@@ -2,6 +2,7 @@
 import { login } from '@/routes';
 import { LoaderCircle } from 'lucide-react';
 import { useForm, Head } from '@inertiajs/react';
+import '../../../css/easyApply.css';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -12,7 +13,6 @@ import AuthLayout from '@/layouts/auth-layout';
 import axios from 'axios';
 import { useState } from 'react';
 import { useEffect } from 'react'; 
-
 
 type UserAddress = {
   region_code: string;
@@ -36,11 +36,11 @@ password_confirmation: string;
 users_address: UserAddress;
 }
 
-export default function Register({ roles }: RegisterProps) {
-const { data, setData, post, processing, errors } = useForm<RegisterProps>({
+export default function Register({ roles }: { roles: string[] }) {
+const { data, setData, post, processing, errors } = useForm({
     first_name: '',
     last_name: '',
-    role: roles[1] || '', 
+    role: roles?.[1] || '', 
     email: '',
     phone_number: '',
     password: '',
@@ -142,7 +142,7 @@ const handleBarangayChange = (code: string) => {
         post('/register', {
             onSuccess: () => {
                 console.log('Name:', data.first_name + ' ' + data.last_name);
-                console.log('Role:', data.roles);
+                console.log('Role:', data.role);
             },
             onError: (errors) => {
                 console.log(errors);
@@ -156,40 +156,7 @@ const handleBarangayChange = (code: string) => {
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="grid gap-6">
-                    {/* First Name */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="first_name">First Name</Label>
-                        <Input
-                            id="first_name"
-                            type="text"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="given-name"
-                            name="first_name"
-                            value={data.first_name}
-                            onChange={(e) => setData('first_name', e.target.value)}
-                            placeholder="First name"
-                        />
-                        <InputError message={errors.first_name} className="mt-2" />
-                    </div>
 
-                    {/* Last Name */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="last_name">Last Name</Label>
-                        <Input
-                            id="last_name"
-                            type="text"
-                            required
-                            tabIndex={2}
-                            autoComplete="family-name"
-                            name="last_name"
-                            value={data.last_name}
-                            onChange={(e) => setData('last_name', e.target.value)}
-                            placeholder="Last name"
-                        />
-                        <InputError message={errors.last_name} className="mt-2" />
-                    </div>
 
                     {/* Role */}
                     <div className="grid gap-2">
@@ -199,8 +166,8 @@ const handleBarangayChange = (code: string) => {
                             name="role"
                             required
                             className="border rounded-md px-3 py-2"
-                            value={data.role}
-                            onChange={(e) => setData('role', e.target.value)}
+                            value={(data as any).role}
+                            onChange={(e) => setData('role' as any, e.target.value)}
                             tabIndex={3}
                         >
                             {/* {roles.map((role) => (
@@ -208,14 +175,14 @@ const handleBarangayChange = (code: string) => {
                                     {role.charAt(0).toUpperCase() + role.slice(1)}
                                 </option>
                             ))} */}
-                            <option value="">Select Role</option>
-                            {roles && roles.length > 0 && roles.map((role) => (
-                                <option key={role} value={role}>
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </option>
-                            ))}
+                            <option key={roles[1]} value={roles[1]}>
+                                {roles[1]}
+                            </option>
+                            <option key={roles[0]} value={roles[0]}>
+                                {roles[0]}
+                            </option>
                         </select>
-                        <InputError message={errors.roles} className="mt-2" />
+                        <InputError message={(errors as any).role} className="mt-2" />
                     </div>
 
                     {/* Email */}
@@ -235,101 +202,6 @@ const handleBarangayChange = (code: string) => {
                         <InputError message={errors.email} />
                     </div>
 
-                    {/* Phone */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                            id="phone"
-                            type="text"
-                            required
-                            tabIndex={5}
-                            autoComplete="tel"
-                            name="phone"
-                            value={data.phone_number}
-                            onChange={(e) => setData('phone_number', e.target.value)}
-                            placeholder="e.g. +63 912 345 6789"
-                        />
-                        <InputError message={errors.phone_number} className="mt-2" />
-                    </div>
-
-                            <h3 className="text-md font-semibold mt-4">Current Address</h3>
-                        <div className="border p-4 rounded space-y-4">
-                        <div>
-                            <label htmlFor="region" className="block text-sm font-medium mb-1">
-                            Region
-                            </label>
-                            <select
-                            id="region"
-                            value={data.users_address.region_code}
-                            onChange={(e) => handleRegionChange(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                            >
-                            <option value="">Select Region</option>
-                            {regions.map((r) => (
-                                <option key={r.code} value={r.code}>
-                                {r.name}
-                                </option>
-                            ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="province" className="block text-sm font-medium mb-1">
-                            Province
-                            </label>
-                            <select
-                            id="province"
-                            value={data.users_address.province_code}
-                            onChange={(e) => handleProvinceChange(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                            >
-                            <option value="">Select Province</option>
-                            {provinces.map((p) => (
-                                <option key={p.code} value={p.code}>
-                                {p.name}
-                                </option>
-                            ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="city" className="block text-sm font-medium mb-1">
-                            City / Municipality
-                            </label>
-                            <select
-                            id="city"
-                            value={data.users_address.citymun_code}
-                            onChange={(e) => handleCityChange(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                            >
-                            <option value="">Select City/Municipality</option>
-                            {cities.map((c) => (
-                                <option key={c.code} value={c.code}>
-                                {c.name}
-                                </option>
-                            ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="barangay" className="block text-sm font-medium mb-1">
-                            Barangay
-                            </label>
-                            <select
-                            id="barangay"
-                            value={data.users_address.barangay_code}
-                            onChange={(e) => handleBarangayChange(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                            >
-                            <option value="">Select Barangay</option>
-                            {barangays.map((b) => (
-                                <option key={b.code} value={b.code}>
-                                {b.name}
-                                </option>
-                            ))}
-                            </select>
-                        </div>
-                        </div>
 
 
 

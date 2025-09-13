@@ -7,6 +7,8 @@ import { type BreadcrumbItem } from "@/types";
 import { useForm, Head, router } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import PermissionGate from '@/components/PermissionGate';
+import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: "Dashboard", href: dashboard() },
@@ -44,12 +46,14 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 	};
 
 	return (
+		<PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
 		<AppLayout breadcrumbs={breadcrumbs}>
 			<Head title="Attachments" />
 			<div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-				<div className="mb-6">
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Attachments</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-2">Upload supporting documents (PDF, DOC, images).</p>
+
+				<div className="mb-6 hero">
+					<h1 className="text-2xl font-bold text-white dark:text-white">Attachments</h1>
+					<p className="text-white dark:text-gray-400 mt-2">Upload supporting documents (PDF, DOC, images).</p>
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
@@ -101,6 +105,7 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 				</div>
 			</div>
 		</AppLayout>
+		</PermissionGate>
 	);
 }
 

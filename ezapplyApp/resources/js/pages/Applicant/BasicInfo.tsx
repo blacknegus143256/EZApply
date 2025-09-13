@@ -1,4 +1,4 @@
-// resources/js/Pages/Applicant/BasicInfo.tsx
+
 import React, { useEffect, useState } from "react";
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern";
 import AppLayout from "@/layouts/app-layout";
@@ -6,6 +6,8 @@ import { dashboard } from "@/routes";
 import { type BreadcrumbItem } from "@/types";
 import { useForm, Head } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
+import PermissionGate from '@/components/PermissionGate';
+import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: "Dashboard", href: dashboard() }];
 
@@ -20,7 +22,7 @@ function ErrorText({ message }: { message?: string }) {
 }
 
 export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset } = useForm<any>({
     first_name: basicInfo?.first_name || "",
     last_name: basicInfo?.last_name || "",
     birth_date: basicInfo?.birth_date || "",
@@ -45,9 +47,10 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   const [isEditing, setIsEditing] = useState(!basicInfo);
 
   useEffect(() => {
+
     fetch("/psgc/regions")
       .then((res) => res.json())
-      .then((data) => setRegions(data));
+      .then((data) => setRegions(data as any[]))
   }, []);
 
   // Preload dependent lists if codes already exist (to resolve names)
@@ -57,16 +60,16 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
       fetch(`/psgc/regions/${region_code}/provinces`)
         .then((res) => res.json())
         .then((prov) => {
-          setProvinces(prov);
+          setProvinces(prov as any[]);
           if (province_code) {
             fetch(`/psgc/provinces/${province_code}/cities-municipalities`)
               .then((res) => res.json())
               .then((ct) => {
-                setCities(ct);
+                setCities(ct as any[]);
                 if (citymun_code) {
                   fetch(`/psgc/cities-municipalities/${citymun_code}/barangays`)
                     .then((res) => res.json())
-                    .then(setBarangays)
+                    .then((b) => setBarangays(b as any[]))
                     .catch(() => {});
                 }
               })
@@ -86,7 +89,7 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     if (regionCode) {
       fetch(`/psgc/regions/${regionCode}/provinces`)
         .then((res) => res.json())
-        .then((data) => setProvinces(data));
+        .then((data) => setProvinces(data as any[]));
     }
   };
 
@@ -97,7 +100,7 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     if (provinceCode) {
       fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`)
         .then((res) => res.json())
-        .then((data) => setCities(data));
+        .then((data) => setCities(data as any[]));
     }
   };
 
@@ -107,7 +110,7 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     if (cityCode) {
       fetch(`/psgc/cities-municipalities/${cityCode}/barangays`)
         .then((res) => res.json())
-        .then((data) => setBarangays(data));
+        .then((data) => setBarangays(data as any[]));
     }
   };
 
@@ -148,8 +151,8 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value || '-'}</span>
     </div>
   );
-
   return (
+    <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Basic Info" />
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -351,6 +354,6 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
         </div>
       </div>
     </AppLayout>
+    </PermissionGate>
   );
 }
-

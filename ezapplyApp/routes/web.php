@@ -13,7 +13,8 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 
-use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\ApplicationController;;
+use App\Http\Controllers\CompanyRequestController;
 
 // use App\Http\Controllers\MessageController; // temporarily disabled
 use App\Http\Controllers\AffiliationController;
@@ -21,18 +22,26 @@ use App\Http\Controllers\BasicInfoController;
 use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\CustomerAttachmentController;
 
-Route::get('/', function () {
-    return Inertia::render('Landing/easyApply');
-})->name('home');
 
 
 
 Route::post('/register', [RegisteredUserController::class, 'store']);
 
+ //Landing Page Routes
+ Route::get('/', function () {
+    return Inertia::render('Landing/easyApply');
+})->name('home');
+ Route::get('/list-companies', function (){
+    return Inertia::render('Landing/all-companies');
+})->name('easy-apply-companies');
+
+    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+    Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
 
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
@@ -61,8 +70,6 @@ Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::clas
         return Inertia::render('Company/FranchiseRegister');
     })->name('company.register');
 
-    Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
-    Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
 
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
@@ -110,6 +117,38 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
 
+
+
+    //Permissions
+    Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
+    Route::post('/permission', [PermissionController::class, 'store'])->name('permission.store');
+    Route::put('/permission/{permission}', [PermissionController::class, 'update'])->name('permission.update');
+    Route::delete('/permission/{permission}', [PermissionController::class, 'destroy'])->name('permission.destroy');
+
+
+    //Roles
+    Route::get('/roles', [RoleController::class, 'index'])->name('role.index');
+    Route::get('/roles/create', [RoleController::class, 'create'])->name('role.create');
+    Route::post('/roles', [RoleController::class, 'store'])->name('role.store');
+    Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('role.edit');
+    Route::put('/roles/{role}', [RoleController::class, 'update'])->name('role.update');
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('role.destroy');
+
+
+    //Users
+    Route::get('/users', [UserController::class, 'index'])->name('user.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('user.create');
+    Route::post('/users', [UserController::class, 'store'])->name('user.store');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('user.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('user.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    
+    //Company Requests
+    Route::get('/company-requests', [CompanyRequestController::class, 'index'])->name('company.requests');
+    Route::post('/company-requests/{id}/approve', [CompanyRequestController::class, 'approveCompany'])->name('company.approve');
+    Route::post('/company-requests/{id}/reject', [CompanyRequestController::class, 'rejectCompany'])->name('company.reject');
+    
+    
 
 });
 

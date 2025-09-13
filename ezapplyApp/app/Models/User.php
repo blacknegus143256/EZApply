@@ -19,10 +19,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'first_name',
-        'last_name',
         'email',
-        'phone_number',
         'password',
     ];
 
@@ -110,5 +107,4 @@ public function attachments()
     {
         return $this->roles()->first();
     }
-
 }

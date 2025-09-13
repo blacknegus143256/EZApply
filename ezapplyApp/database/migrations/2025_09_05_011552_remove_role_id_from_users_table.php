@@ -12,10 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Drop the foreign key constraint first
-            $table->dropForeign(['role_id']);
-            // Then drop the column
-            $table->dropColumn('role_id');
+            // Guard: only drop if column exists
+            if (Schema::hasColumn('users', 'role_id')) {
+                try {
+                    $table->dropForeign(['role_id']);
+                } catch (\Throwable $e) {
+                    // ignore if FK not present
+                }
+                $table->dropColumn('role_id');
+            }
         });
     }
 
@@ -25,13 +30,17 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Add the column back
-            $table->unsignedBigInteger('role_id')->nullable();
-            // Add the foreign key constraint back
-            $table->foreign('role_id')
-                  ->references('id')
-                  ->on('roles')
-                  ->onDelete('set null');
+            if (!Schema::hasColumn('users', 'role_id')) {
+                $table->unsignedBigInteger('role_id')->nullable();
+                try {
+                    $table->foreign('role_id')
+                          ->references('id')
+                          ->on('roles')
+                          ->onDelete('set null');
+                } catch (\Throwable $e) {
+                    // ignore if roles table not present in down migration order
+                }
+            }
         });
     }
 };

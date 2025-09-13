@@ -37,19 +37,8 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'first_name'       => ['required', 'string', 'max:255'],
-            'last_name'        => ['required', 'string', 'max:255'],
             'email'            => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'phone_number'     => ['required', 'string', 'max:20'],
             'password'         => ['required', 'confirmed', Rules\Password::defaults()],
-            'users_address.region_code' => ['required', 'string'],
-            'users_address.region_name' => ['required', 'string'],
-            'users_address.province_code' => ['required', 'string'],
-            'users_address.province_name' => ['required', 'string'],
-            'users_address.citymun_code' => ['required', 'string'],
-            'users_address.citymun_name' => ['required', 'string'],
-            'users_address.barangay_code' => ['required', 'string'],
-            'users_address.barangay_name' => ['required', 'string'],
             'role'             => ['required', 'string', 'exists:roles,name'],
         ]);
 
@@ -58,10 +47,7 @@ class RegisteredUserController extends Controller
 
         // Create user
         $user = User::create([
-            'first_name'   => $validated['first_name'],
-            'last_name'    => $validated['last_name'],
             'email'        => $validated['email'],
-            'phone_number' => $validated['phone_number'] ?? null,
             'password'   => Hash::make($validated['password']),
             'role_id'    => $role ? $role->id : null, // Store role_id in users table
         ]);

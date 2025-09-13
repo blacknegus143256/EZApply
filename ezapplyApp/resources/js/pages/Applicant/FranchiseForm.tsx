@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
-import { Head, router,  } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import PermissionGate from '@/components/PermissionGate';
 import '../../../css/easyApply.css';
 
@@ -14,7 +14,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
   id: number;
   company_name: string;
+  year_founded: number;
   description?: string;
+  brand_name: string;
   opportunity: {
     franchise_type: string;
     min_investment: number;
@@ -34,7 +36,6 @@ const FranchiseForm = () => {
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
   const [type, setType] = useState('all');
-  const [formVisible, setFormVisible] = useState(true); // toggle for collapse
   const [applied, setApplied] = useState<number[]>([]);
   const [applying, setApplying] = useState<number | null>(null);
   const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null; desired_location: string; deadline_date: string}>({ open: false, companyId: null, desired_location: '', deadline_date: '' });
@@ -52,6 +53,10 @@ const FranchiseForm = () => {
   const [bulkCities, setBulkCities] = useState<any[]>([]);
   const [bulkBarangays, setBulkBarangays] = useState<any[]>([]);
   const [bulkAddressCodes, setBulkAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
+
+  const [open, setOpen] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+
 
   useEffect(() => {
     axios.get("/companies")
@@ -127,6 +132,13 @@ const FranchiseForm = () => {
     setBulkAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
   };
 
+  const handleCheck = (companyId: number) => {
+    setChecked(prev => 
+      prev.includes(companyId) 
+        ? prev.filter(id => id !== companyId)
+        : [...prev, companyId]
+    );
+  };
 
 // Start with all companies
 let filtered = companies;
@@ -148,37 +160,17 @@ if (budget !== '') {
 filtered = filtered.filter((c) =>
   (c.company_name ?? '').toLowerCase().includes(search.toLowerCase())
 );
+
 const franchiseTypes = Array.from(
   new Set(companies.map(c => c.opportunity?.franchise_type).filter((t): t is string => Boolean(t)))
 );
-
-const handleCheck = (id: number) => {
-  setChecked((prev) =>
-    prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-  );
-};
-const handleApply = () => { 
-    if (checked.length === 0) {
-    // maybe show a UI alert
-    return;
-  }
-    router.post("applications",
-      { companyIds: checked},{
-      onSuccess: () => {
-        alert('Application submitted successfully!');
-    },
-    onError: (errors) => {
-      console.error('Apply failed', errors);
-    }
-  });
-     };
 
 const handleApplySingle = (companyId: number, desired_location?: string, deadline_date?: string) => {
   if (applying !== null) return;
   setApplying(companyId);
   axios.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date })
     .then(() => {
-      setApplied((prev) => prev.includes(companyId) ? prev : [...prev, companyId]);
+      setApplied((prev) => (prev.includes(companyId) ? prev : [...prev, companyId]));
       setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' });
     })
     .catch((err) => {
@@ -188,17 +180,27 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
       setApplying(null);
     });
 };
+  const { auth } = usePage().props as any;
+  const users = auth?.user;
 
+  const handleViewDetails = (e: React.MouseEvent, companyId: number) => {
+    if (!users) {
+      e.preventDefault();
+      setRedirectUrl(`/companies/${companyId}`);
+      setOpen(true);
+    }
+  };
   return (
     <PermissionGate permission="apply_for_franchises" fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Franchise Application" />
-        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
+
+        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md list-page">
+          <section className="hero">
+        <h1 className="text-2xl font-bold text-white dark:text-neutral-100 mb-4">
           Looking for a Company to Franchise?
         </h1>
-
-        {/* Filters moved to top */}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium">Budget</label>
@@ -209,7 +211,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               onChange={(e) => {
                 const value = e.target.value;
                 setBudget(value === '' ? '' : Number(value))}}
-              className="mt-1 block w-full rounded-lg border px-3 py-2"
+              className="mt-1 block w-full rounded-lg border px-3 py-2 bg-white text-black"
               placeholder="Enter your budget"
             />
           </div>
@@ -219,7 +221,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               id="ezapply-type"
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="ezapply__filter-select w-full"
+              className="ezapply__filter-select w-full bg-white"
               title="Select company type"
             >
               <option value="all">All Types</option>
@@ -233,92 +235,73 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               type="button"
               disabled={checked.length === 0}
               onClick={() => setBulkModal({ open: true, desired_location: '', deadline_date: '' })}
-              className={`rounded-lg px-4 py-2 text-white ${checked.length === 0 ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+              className={`rounded-lg px-4 py-2 text-white ${checked.length === 0 ? 'bg-gray-600 cursor-not-allowed' : ' hover:bg-gray-600 bg-black'}`}
             >
               Apply Selected ({checked.length})
             </button>
           </div>
         </div>
-
-        <div className="grid gap-8">
-            <main className="ezapply-main-content">
-          <div className="ezapply-company-card-small-grid">
+</section>
+        
+            
+          <div className="all-companies-page">
+            <div className="company-list-container">
             {filtered.length === 0 ? (
               <div className="ezapply__no-companies">No companies found.</div>
-            ) : (
-              filtered.map((company) => (
-                <div
-                  key={company.id}
-                  className={`ezapply-company-card-small cursor-pointer ${
-                    checked.includes(company.id) ? "ring-3 ring-blue-500" : ""
-                  } h-full flex flex-col`}
-                  onClick={() =>
-                    setChecked((prev) =>
-                      prev.includes(company.id)
-                        ? prev.filter((id) => id !== company.id)
-                        : [...prev, company.id]
-                    )
-                  }
-                >
-                  <div className="ezapply-company-card-small-header">
-                    <input
-                      type="checkbox"
-                      checked={checked.includes(company.id)}
-                      onChange={(e) => {
-                        e.stopPropagation(); // prevent card click from firing twice
-                        handleCheck(company.id);
-                      }}
-                      className="ezapply__checkbox"
-                      aria-label={`Select ${company.company_name}`}
-                    />
-                    <img
-                      src={"/favicon.svg"}
-                      alt={company.company_name + " logo"}
-                      className="ezapply__company-logo"
-                    />
-                    <span className="ezapply-company-card-small-name">
-                      {company.company_name}
-                    </span>
+            ) : (    
+            <div className="company-grid">            
+              {filtered.map((company) => (
+              
+                  <div className="company-card" key={company.id} >
+                    <div className="company-header">
+                      <input
+                        type="checkbox"
+                        checked={checked.includes(company.id)}
+                        onChange={() => handleCheck(company.id)}
+                      />
+                      <img
+                        src={"/favicon.svg"}
+                        alt={company.company_name + " logo"}
+                        className="ezapply__company-logo"
+                      />
+                      <span className="company-name">{company.company_name}</span>
+                    </div>
+
+                    <div className="company-details">
+                      <p><strong>Brand:</strong> {company.brand_name}</p>
+                      <p><strong>Founded:</strong> {company.year_founded}</p>
+                      <p><strong>Type:</strong> {company.opportunity?.franchise_type}</p>
+                      <p className="company-description"><strong>Description:</strong> {company.description}</p>
+                    </div>
+
+                    <div className="company-actions">
+                      <a
+                        href={`/companies/${company.id}`}
+                        className="view-details-link"
+                        onClick={(e) => handleViewDetails(e, company.id)}
+                      >
+                        View Details
+                      </a>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!applied.includes(company.id)) {
+                            setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
+                          }
+                        }}
+                        disabled={applied.includes(company.id) || applying === company.id}
+                        className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
+                      >
+                        {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
+                      </button>
+                    </div>
                   </div>
-                  <div className="ezapply-company-card-small-details">
-                    <p>
-                      <strong>Type:</strong> {company.opportunity?.franchise_type ??  'N/A'}
-                    </p>
-                    <p>
-                      <strong>Investment:</strong> {company.opportunity?.min_investment ??  'N/A'}
-                    </p>
-                    <p>
-                      <strong>Description:</strong> {company.description}
-                    </p>
+                   ))}
                   </div>
-                  <div className="mt-auto pt-3 flex gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.get(`/companies/${company.id}`);
-                      }}
-                      className="flex-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 px-4 py-2 rounded-md hover:bg-neutral-300 dark:hover:bg-neutral-600 transition"
-                    >
-                      More Details
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!applied.includes(company.id)) {
-                          setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
-                        }
-                      }}
-                      disabled={applied.includes(company.id) || applying === company.id}
-                      className={`flex-1 px-4 py-2 rounded-md transition ${applied.includes(company.id) ? 'bg-green-600/70 text-white cursor-not-allowed' : (applying === company.id ? 'bg-blue-400 text-white cursor-wait' : 'bg-blue-600 text-white hover:bg-blue-700')}`}
-                    >
-                      {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+               )}
           </div>
-            </main>
+          
+            
 
             {/* Apply modal */}
             {applyModal.open && (
