@@ -57,12 +57,4 @@ Route::middleware('auth')->group(function () {
         ->name('logout');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
-
-    Route::get('/applicant/franchise', function () {
-        return Inertia::render('Applicant/FranchiseForm');
-    })->name('applicant.franchise');
-});
+// These routes are now defined in web.php

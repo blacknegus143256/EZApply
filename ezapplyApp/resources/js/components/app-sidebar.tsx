@@ -5,7 +5,8 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, List, Lock, LockKeyhole, Save, UserIcon } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List } from 'lucide-react';
+
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar';
 
@@ -16,6 +17,30 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Basic Info',
+        href: '/applicant/basicinfo',
+        icon: UserIcon,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Affiliations',
+        href: '/applicant/affiliations',
+        icon: Building2,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Financial Info',
+        href: '/applicant/financial',
+        icon: Banknote,
+        permission: 'view_customer_dashboard',
+    },
+     {
+        title: 'Attachments',
+        href: '/applicant/attachments',
+        icon: Folder,
         permission: 'view_customer_dashboard',
     },
     // {
@@ -50,6 +75,7 @@ const mainNavItems: NavItem[] = [
         icon: Lock,
         permission: 'view_permissions',
     },
+
     {
         title: 'Company Requests',
         href: '/company-requests',
@@ -121,20 +147,25 @@ export function AppSidebar() {
                     <div className="px-4 text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                     Franchise Application
                     </div>
+                           <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link href="/applicant/franchise">
+              <Building2 className="h-4 w-4" />
+              <span>Browse Companies</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
 
-                    <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                        {/* anchor to section in the page */}
-                        <a href="/applicant/franchise?tab=financial">Financial Information</a>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                        <a href="/applicant/franchise?tab=interest">Franchise Interest</a>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    </SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link href="/applicant/franchise/appliedcompanies">
+              <MessageCircle className="h-4 w-4" />
+              <span>Applied Companies</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
                 </div>
                 )}
             </SidebarContent>

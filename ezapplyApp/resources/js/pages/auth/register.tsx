@@ -2,6 +2,7 @@
 import { login } from '@/routes';
 import { LoaderCircle } from 'lucide-react';
 import { useForm, Head } from '@inertiajs/react';
+import '../../../css/easyApply.css';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -9,22 +10,132 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import axios from 'axios';
+import { useState } from 'react';
+import { useEffect } from 'react'; 
 
+type UserAddress = {
+  region_code: string;
+  region_name: string;
+  province_code: string;
+  province_name: string;
+  citymun_code: string;
+  citymun_name: string;
+  barangay_code: string;
+  barangay_name: string;
+};
+type PSGCItem = { code: string; name: string };
 interface RegisterProps {
-    roles: string[];
+first_name: string;
+last_name: string;
+roles: string[];
+email: string;
+phone_number: string;
+password: string;
+password_confirmation: string;
+users_address: UserAddress;
 }
 
-export default function Register({ roles }: RegisterProps) {
-    const { data, setData, post, processing, errors } = useForm({
-        first_name: '',
-        last_name: '',
-        role: roles[1] || '', 
-        email: '',
-        phone_number: '',
-        password: '',
-        password_confirmation: '',
-        address: '',
-    });
+export default function Register({ roles }: { roles: string[] }) {
+const { data, setData, post, processing, errors } = useForm({
+    first_name: '',
+    last_name: '',
+    role: roles?.[1] || '', 
+    email: '',
+    phone_number: '',
+    password: '',
+    password_confirmation: '',
+    users_address:{
+         region_code: "",
+        region_name: "",
+        province_code: "",
+        province_name: "",  
+        citymun_code: "",
+        citymun_name: "",
+        barangay_code: "",
+        barangay_name: ""
+    },
+});
+
+    const [regions, setRegions] = useState<PSGCItem[]>([]);
+    const [provinces, setProvinces] = useState<PSGCItem[]>([]);
+    const [cities, setCities] = useState<PSGCItem[]>([]);
+    const [barangays, setbarangays] = useState<PSGCItem[]>([]);
+
+
+const handleRegionChange = async (code: string) => {
+  const region = regions.find(r => r.code === code);
+  if (!region) return;
+
+  setData("users_address", {
+    ...data.users_address,
+    region_code: region.code,
+    region_name: region.name,
+    province_code: "",
+    province_name: "",
+    citymun_code: "",
+    citymun_name: "",
+    barangay_code: "",
+    barangay_name: ""
+  });
+
+  const res = await axios.get(`/psgc/regions/${region.code}/provinces`);
+  setProvinces(res.data);
+  setCities([]);
+  setbarangays([]);
+};
+
+const handleProvinceChange = async (code: string) => {
+  const province = provinces.find(p => p.code === code);
+  if (!province) return;
+
+  setData("users_address", {
+    ...data.users_address,
+    province_code: province.code,
+    province_name: province.name,
+    citymun_code: "",
+    citymun_name: "",
+    barangay_code: "",
+    barangay_name: ""
+  });
+
+  const res = await axios.get(`/psgc/provinces/${province.code}/cities-municipalities`);
+  setCities(res.data);
+  setbarangays([]);
+};
+
+const handleCityChange = async (code: string) => {
+  const city = cities.find(c => c.code === code);
+  if (!city) return;
+
+  setData("users_address", {
+    ...data.users_address,
+    citymun_code: city.code,
+    citymun_name: city.name,
+    barangay_code: "",
+    barangay_name: ""
+  });
+
+  const res = await axios.get(`/psgc/cities-municipalities/${city.code}/barangays`);
+  setbarangays(res.data);
+};
+
+const handleBarangayChange = (code: string) => {
+  const barangay = barangays.find(b => b.code === code);
+  if (!barangay) return;
+
+  setData("users_address", {
+    ...data.users_address,
+    barangay_code: barangay.code,
+    barangay_name: barangay.name,
+  });
+};
+
+
+ useEffect(() => {
+    
+    axios.get("/psgc/regions").then(res => setRegions(res.data));
+ }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,40 +156,7 @@ export default function Register({ roles }: RegisterProps) {
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="grid gap-6">
-                    {/* First Name */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="first_name">First Name</Label>
-                        <Input
-                            id="first_name"
-                            type="text"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="given-name"
-                            name="first_name"
-                            value={data.first_name}
-                            onChange={(e) => setData('first_name', e.target.value)}
-                            placeholder="First name"
-                        />
-                        <InputError message={errors.first_name} className="mt-2" />
-                    </div>
 
-                    {/* Last Name */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="last_name">Last Name</Label>
-                        <Input
-                            id="last_name"
-                            type="text"
-                            required
-                            tabIndex={2}
-                            autoComplete="family-name"
-                            name="last_name"
-                            value={data.last_name}
-                            onChange={(e) => setData('last_name', e.target.value)}
-                            placeholder="Last name"
-                        />
-                        <InputError message={errors.last_name} className="mt-2" />
-                    </div>
 
                     {/* Role */}
                     <div className="grid gap-2">
@@ -88,8 +166,8 @@ export default function Register({ roles }: RegisterProps) {
                             name="role"
                             required
                             className="border rounded-md px-3 py-2"
-                            value={data.role}
-                            onChange={(e) => setData('role', e.target.value)}
+                            value={(data as any).role}
+                            onChange={(e) => setData('role' as any, e.target.value)}
                             tabIndex={3}
                         >
                             {/* {roles.map((role) => (
@@ -104,7 +182,7 @@ export default function Register({ roles }: RegisterProps) {
                                 {roles[0]}
                             </option>
                         </select>
-                        <InputError message={errors.role} className="mt-2" />
+                        <InputError message={(errors as any).role} className="mt-2" />
                     </div>
 
                     {/* Email */}
@@ -124,39 +202,8 @@ export default function Register({ roles }: RegisterProps) {
                         <InputError message={errors.email} />
                     </div>
 
-                    {/* Phone */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                            id="phone"
-                            type="text"
-                            required
-                            tabIndex={5}
-                            autoComplete="tel"
-                            name="phone"
-                            value={data.phone_number}
-                            onChange={(e) => setData('phone_number', e.target.value)}
-                            placeholder="e.g. +63 912 345 6789"
-                        />
-                        <InputError message={errors.phone_number} className="mt-2" />
-                    </div>
 
-                    {/* Address */}
-                    <div className="grid gap-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input
-                            id="address"
-                            type="text"
-                            required
-                            tabIndex={6}
-                            autoComplete="street-address"
-                            name="address"
-                            value={data.address}
-                            onChange={(e) => setData('address', e.target.value)}
-                            placeholder="Address"
-                        />
-                        <InputError message={errors.address} className="mt-2" />
-                    </div>
+
 
                     {/* Password */}
                     <div className="grid gap-2">
@@ -191,7 +238,6 @@ export default function Register({ roles }: RegisterProps) {
                         />
                         <InputError message={errors.password_confirmation} />
                     </div>
-
                     {/* Submit Button */}
                     <Button type="submit" className="mt-2 w-full" tabIndex={9}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}

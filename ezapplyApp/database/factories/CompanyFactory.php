@@ -14,7 +14,6 @@ class CompanyFactory extends Factory
         return [
             'company_name'            => $this->faker->company,
             'brand_name'              => $this->faker->companySuffix,
-            'hq_address'              => $this->faker->streetAddress,
             'city'                    => $this->faker->city,
             'state_province'          => $this->faker->state,
             'zip_code'                => $this->faker->postcode,

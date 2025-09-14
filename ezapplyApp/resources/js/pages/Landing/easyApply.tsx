@@ -39,8 +39,26 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   // Filtering logic
   let filtered = companies;
 
-    filtered = filtered.filter((c) => c.status === "approved");
+// Filter by investment amount
+if (amount !== 'all') {
+  filtered = filtered.filter((c) => {
+    const value = parseInt(c.minimumInvestment?.replace(/[₱,~USD\s]/g, '') || '0', 10);
+    if (amount === '10m') return value <= 10000000;
+    if (amount === '35m') return value <= 35000000;
+    if (amount === '1m') return value <= 1000000;
+    return true;
+  });
+}
 
+// Search filter
+filtered = filtered.filter((c) =>
+  (c.name ?? '').toLowerCase().includes(search.toLowerCase())
+);
+// const handleCheck = (id: number) => {
+//   setChecked((prev) =>
+//     prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+//   );
+// };
   // Filter by type
   if (type !== "all") {
     filtered = filtered.filter(
@@ -153,8 +171,6 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
         </div>
       </section>
 
-      {/* Navigation */}
-      
       <EzNav user={users} />
 
       {/* Main Section */}

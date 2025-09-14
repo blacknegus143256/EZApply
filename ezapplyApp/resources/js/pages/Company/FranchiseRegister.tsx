@@ -20,14 +20,14 @@ const STEPS = [
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Dashboard',
-    href: dashboard().url,
+    href: dashboard(),
   },
 ];
 
 interface CompanyForm {
   company_name: string;
   brand_name: string | null;
-  hq_address: string;
+
   city: string;
   state_province: string;
   zip_code: string;
@@ -95,11 +95,15 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   );
 }
 
-export default function Dashboard() {
+function ErrorText({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-400">{message}</p>;
+}
+
+export default function FranchiseRegister() {
   const { data, setData, post, processing, errors, reset, transform } = useForm<CompanyForm>({
     company_name: '',
     brand_name: null,
-    hq_address: '',
     city: '',
     state_province: '',
     zip_code: '',
@@ -151,7 +155,7 @@ export default function Dashboard() {
 
   function validateStep(s: number) {
     const req: Record<number, (keyof CompanyForm)[]> = {
-      0: ['company_name', 'hq_address', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
+      0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
@@ -193,6 +197,14 @@ export default function Dashboard() {
         setStep(0);
         setOpen(false);
       },
+      onError: () => {
+        // Scroll to first error field
+        const firstKey = Object.keys(errors)[0];
+        if (firstKey) {
+          const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
     });
   }
 
@@ -269,28 +281,30 @@ export default function Dashboard() {
                   {step === 0 && (
                     <div className="grid gap-3">
                       <Field label="Company Name *">
-                        <Input id="company_name" value={data.company_name} onChange={(e) => setData('company_name', e.target.value)} required />
+                        <Input id="company_name" name="company_name" value={data.company_name} onChange={(e) => setData('company_name', e.target.value)} required />
+                        <ErrorText message={(errors as any).company_name} />
                       </Field>
                       <Field label="Brand Name (optional)">
-                        <Input value={data.brand_name ?? ''} onChange={(e) => setData('brand_name', e.target.value)} />
+                        <Input name="brand_name" value={data.brand_name ?? ''} onChange={(e) => setData('brand_name', e.target.value)} />
+                        <ErrorText message={(errors as any).brand_name} />
                       </Field>
-                      <Field label="Headquarters Address *">
-                        <Input value={data.hq_address} onChange={(e) => setData('hq_address', e.target.value)} required />
-                      </Field>
-
+                      
+                      <h3 className="text-md font-semibold mt-4">Headquarters Address</h3>
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="City *"><Input value={data.city} onChange={(e) => setData('city', e.target.value)} required /></Field>
-                        <Field label="State/Province *"><Input value={data.state_province} onChange={(e) => setData('state_province', e.target.value)} required /></Field>
-                        <Field label="ZIP/Postal Code *"><Input value={data.zip_code} onChange={(e) => setData('zip_code', e.target.value)} required /></Field>
-                        <Field label="Country *"><Input value={data.country} onChange={(e) => setData('country', e.target.value)} required /></Field>
+                        <Field label="City *"><Input name="city" value={data.city} onChange={(e) => setData('city', e.target.value)} required /> <ErrorText message={(errors as any).city} /></Field>
+                        <Field label="State/Province *"><Input name="state_province" value={data.state_province} onChange={(e) => setData('state_province', e.target.value)} required /> <ErrorText message={(errors as any).state_province} /></Field>
+                        <Field label="ZIP/Postal Code *"><Input name="zip_code" value={data.zip_code} onChange={(e) => setData('zip_code', e.target.value)} required /> <ErrorText message={(errors as any).zip_code} /></Field>
+                        <Field label="Country *"><Input name="country" value={data.country} onChange={(e) => setData('country', e.target.value)} required /> <ErrorText message={(errors as any).country} /></Field>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Company Website (optional)">
-                          <Input value={data.company_website ?? ''} onChange={(e) => setData('company_website', e.target.value)} />
+                          <Input name="company_website" value={data.company_website ?? ''} onChange={(e) => setData('company_website', e.target.value)} />
+                          <ErrorText message={(errors as any).company_website} />
                         </Field>
                         <Field label="Year Founded *">
                           <Input
+                            name="year_founded"
                             type="number"
                             min={1800}
                             max={new Date().getFullYear()}
@@ -298,38 +312,46 @@ export default function Dashboard() {
                             onChange={(e) => setData('year_founded', Number(e.target.value) || '')}
                             required
                           />
+                          <ErrorText message={(errors as any).year_founded} />
                         </Field>
                       </div>
 
                       <Field label="Description *">
-                        <Textarea rows={2} value={data.description} onChange={(e) => setData('description', e.target.value)} required />
+                        <Textarea name="description" rows={2} value={data.description} onChange={(e) => setData('description', e.target.value)} required />
+                        <ErrorText message={(errors as any).description} />
                       </Field>
 
                       <Field label="Number of Existing Franchise Locations (optional)">
                         <Input
+                          name="num_franchise_locations"
                           type="number"
                           min={0}
                           value={data.num_franchise_locations}
                           onChange={(e) => setData('num_franchise_locations', Number(e.target.value) || '')}
                         />
+                        <ErrorText message={(errors as any).num_franchise_locations} />
                       </Field>
+                      
+
                     </div>
+                    
                   )}
 
                   {/* Step 2: Opportunity */}
                   {step === 1 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Franchise Type *"><Input value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
-                        <Field label="Franchise Term *"><Input value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
-                        <Field label="Minimum Investment Required *"><Input type="number" step="0.01" value={data.min_investment} onChange={(e) => setData('min_investment', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Franchise Fee *"><Input type="number" step="0.01" value={data.franchise_fee} onChange={(e) => setData('franchise_fee', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Royalty Fee Structure *"><Input value={data.royalty_fee_structure} onChange={(e) => setData('royalty_fee_structure', e.target.value)} required /></Field>
-                        <Field label="Average Annual Revenue per Location (optional)"><Input type="number" step="0.01" value={data.avg_annual_revenue} onChange={(e) => setData('avg_annual_revenue', Number(e.target.value) || '')} /></Field>
+                        <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
+                        <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
+                        <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment} onChange={(e) => setData('min_investment', Number(e.target.value) || '')} required /></Field>
+                        <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee} onChange={(e) => setData('franchise_fee', Number(e.target.value) || '')} required /></Field>
+                        <Field label="Royalty Fee Structure *"><Input name="royalty_fee_structure" value={data.royalty_fee_structure} onChange={(e) => setData('royalty_fee_structure', e.target.value)} required /></Field>
+                        <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue} onChange={(e) => setData('avg_annual_revenue', Number(e.target.value) || '')} /></Field>
+                        <ErrorText message={(errors as any).avg_annual_revenue} />
                       </div>
-                      <Field label="Target Markets/Regions for Expansion *"><Input value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
-                      <Field label="Training and Support Offered (optional)"><Textarea rows={2} value={data.training_support ?? ''} onChange={(e) => setData('training_support', e.target.value)} /></Field>
-                      <Field label="Unique Selling Points (optional)"><Textarea rows={2} value={data.unique_selling_points ?? ''} onChange={(e) => setData('unique_selling_points', e.target.value)} /></Field>
+                      <Field label="Target Markets/Regions for Expansion *"><Input name="target_markets" value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
+                      <Field label="Training and Support Offered (optional)"><Textarea name="training_support" rows={2} value={data.training_support ?? ''} onChange={(e) => setData('training_support', e.target.value)} /></Field>
+                      <Field label="Unique Selling Points (optional)"><Textarea name="unique_selling_points" rows={2} value={data.unique_selling_points ?? ''} onChange={(e) => setData('unique_selling_points', e.target.value)} /></Field>
                     </div>
                   )}
 
@@ -337,15 +359,18 @@ export default function Dashboard() {
                   {step === 2 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Industry Sector *"><Input value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required /></Field>
-                        <Field label="Years in Operation *"><Input type="number" min={0} value={data.years_in_operation} onChange={(e) => setData('years_in_operation', Number(e.target.value) || '')} required /></Field>
+                        <Field label="Industry Sector *"><Input name="industry_sector" value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required /></Field>
+                        <Field label="Years in Operation *"><Input name="years_in_operation" type="number" min={0} value={data.years_in_operation} onChange={(e) => setData('years_in_operation', Number(e.target.value) || '')} required /></Field>
+                        <ErrorText message={(errors as any).years_in_operation} />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Total Company Revenue (optional)"><Input type="number" step="0.01" value={data.total_revenue} onChange={(e) => setData('total_revenue', Number(e.target.value) || '')} /></Field>
-                        <Field label="Awards or Recognitions (optional)"><Input value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
+                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue} onChange={(e) => setData('total_revenue', Number(e.target.value) || '')} /></Field>
+                        <Field label="Awards or Recognitions (optional)"><Input name="awards" value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
+                        <ErrorText message={(errors as any).total_revenue} />
                       </div>
                       <Field label="Brief Company History/Description (optional)">
-                        <Textarea rows={3} value={data.company_history ?? ''} onChange={(e) => setData('company_history', e.target.value)} />
+                        <Textarea name="company_history" rows={3} value={data.company_history ?? ''} onChange={(e) => setData('company_history', e.target.value)} />
+                        <ErrorText message={(errors as any).company_history} />
                       </Field>
                     </div>
                   )}
@@ -354,8 +379,10 @@ export default function Dashboard() {
                   {step === 3 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Minimum Net Worth Required *"><Input type="number" step="0.01" value={data.min_net_worth} onChange={(e) => setData('min_net_worth', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Minimum Liquid Assets Required *"><Input type="number" step="0.01" value={data.min_liquid_assets} onChange={(e) => setData('min_liquid_assets', Number(e.target.value) || '')} required /></Field>
+                        <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth} onChange={(e) => setData('min_net_worth', Number(e.target.value) || '')} required /></Field>
+                        <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets} onChange={(e) => setData('min_liquid_assets', Number(e.target.value) || '')} required /></Field>
+                        <ErrorText message={(errors as any).min_net_worth} />
+                        <ErrorText message={(errors as any).min_liquid_assets} />
                       </div>
 
                       <div className="flex items-center gap-2 text-gray-200">
@@ -364,10 +391,12 @@ export default function Dashboard() {
                       </div>
 
                       <Field label="If Yes, specify Experience Type (optional)">
-                        <Input value={data.experience_type ?? ''} onChange={(e) => setData('experience_type', e.target.value)} />
+                        <Input name="experience_type" value={data.experience_type ?? ''} onChange={(e) => setData('experience_type', e.target.value)} />
+                        <ErrorText message={(errors as any).experience_type} />
                       </Field>
                       <Field label="Other Qualifications (optional)">
-                        <Textarea rows={2} value={data.other_qualifications ?? ''} onChange={(e) => setData('other_qualifications', e.target.value)} />
+                        <Textarea name="other_qualifications" rows={2} value={data.other_qualifications ?? ''} onChange={(e) => setData('other_qualifications', e.target.value)} />
+                        <ErrorText message={(errors as any).other_qualifications} />
                       </Field>
                     </div>
                   )}
@@ -376,11 +405,12 @@ export default function Dashboard() {
                   {step === 4 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Preferred Listing Title (optional)"><Input value={data.listing_title ?? ''} onChange={(e) => setData('listing_title', e.target.value)} /></Field>
-                        <Field label="Target Franchisee Profile (optional)"><Input value={data.target_profile ?? ''} onChange={(e) => setData('target_profile', e.target.value)} /></Field>
+                        <Field label="Preferred Listing Title (optional)"><Input name="listing_title" value={data.listing_title ?? ''} onChange={(e) => setData('listing_title', e.target.value)} /></Field>
+                        <Field label="Target Franchisee Profile (optional)"><Input name="target_profile" value={data.target_profile ?? ''} onChange={(e) => setData('target_profile', e.target.value)} /></Field>
                       </div>
                       <Field label="Short Description for Listing (optional)">
-                        <Textarea rows={3} value={data.listing_description ?? ''} onChange={(e) => setData('listing_description', e.target.value)} />
+                        <Textarea name="listing_description" rows={3} value={data.listing_description ?? ''} onChange={(e) => setData('listing_description', e.target.value)} />
+                        <ErrorText message={(errors as any).listing_description} />
                       </Field>
                       <div>
                         <label className="block text-xs text-black">Upload Logo or Brand Images (optional)</label>
@@ -390,9 +420,11 @@ export default function Dashboard() {
                           className="mt-1 block w-full text-gray-200"
                           onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
                         />
+                        <ErrorText message={(errors as any).logo} />
                       </div>
                       <Field label="Preferred Contact Method for Inquiries (optional)">
-                        <Input value={data.preferred_contact_method ?? ''} onChange={(e) => setData('preferred_contact_method', e.target.value)} />
+                        <Input name="preferred_contact_method" value={data.preferred_contact_method ?? ''} onChange={(e) => setData('preferred_contact_method', e.target.value)} />
+                        <ErrorText message={(errors as any).preferred_contact_method} />
                       </Field>
                     </div>
                   )}

@@ -12,7 +12,6 @@ return new class extends Migration {
             // Step 1 — Company Information
             $table->string('company_name');
             $table->string('brand_name')->nullable();
-            $table->string('hq_address');
             $table->string('city');
             $table->string('state_province');
             $table->string('zip_code');

@@ -12,7 +12,6 @@ class Company extends Model
     protected $fillable = [
         'company_name',
         'brand_name',
-        'hq_address',
         'city',
         'state_province',
         'zip_code',
@@ -22,6 +21,7 @@ class Company extends Model
         'year_founded',
         'num_franchise_locations',
         'status',
+        'user_id', 
     ];
 
     // Relationships (1–1)
@@ -29,4 +29,15 @@ class Company extends Model
     public function background()  { return $this->hasOne(CompanyBackground::class); }
     public function requirements(){ return $this->hasOne(CompanyRequirement::class); }
     public function marketing()   { return $this->hasOne(CompanyMarketing::class); }
+    public function user()        { return $this->belongsTo(User::class); }
+
+    public function applications()
+{
+    return $this->hasMany(Application::class);
+}
+
+public function applicants()
+{
+    return $this->belongsToMany(User::class, 'applications');
+}
 }
