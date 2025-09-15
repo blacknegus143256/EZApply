@@ -40,8 +40,10 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
 
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    
+    Route::put('/companies/{company}/status', [CompanyController::class, 'updateStatus'])
+    ->name('companies.update-status');
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');

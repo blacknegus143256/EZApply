@@ -1,24 +1,12 @@
 import { useEffect, useState } from 'react';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-
-import { Head, Link, usePage, useForm, router } from '@inertiajs/react';
+import { Head, usePage, router as route } from '@inertiajs/react';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Car, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogClose, DialogFooter, DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/input-error';
-import { toast } from 'sonner';
-import { Permission, Role, SinglePermission, SingleRole } from '@/types/role_permission';
-import TablePagination from '@/components/ui/table-pagination';
 import { Badge } from '@/components/ui/badge';
 import { Can } from '@/components/PermissionGate';
-
-// Importing the actual Select components assuming they are from shadcn/ui which wrap Radix
 import {
     Select,
     SelectContent,
@@ -28,82 +16,243 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import CompanyDetails from '../Company/CompanyDetails';
 
+
+interface Company {
+  id: number;
+  company_name: string;
+  brand_name: string;
+  hq_address: string;
+  city: string;
+  state_province: string;
+  zip_code: string;
+  country: string;
+  company_website: string;
+  description: string;
+  created_at: string;
+  status?: 'pending' | 'approved' | 'rejected'; 
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Company Registration Requests',
-        href: '/company-requests', 
+        href: '/company-requests',
     }
 ];
 
-
-export default function Roles({ roles }: { roles: Role }) {
-
+export default function Roles({ roles }: { roles: any }) {
     const { auth } = usePage().props as any;
-    const role = auth.user.role;
+    const userRole = auth.user.role;
 
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [sampleCompanyStatus, setSampleCompanyStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+    
+    const filteredCompanies = companies.filter((company) => {
+    const matchesSearch = company.company_name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" ? true : company.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+    useEffect(() => {
+  fetch("/companies")
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return res.json();
+    })
+    .then((data: Company[]) => {
+
+      const withStatus = data.map((c) => ({
+        ...c,
+        status: c.status || 'pending',
+      }));
+      setCompanies(withStatus);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Error fetching companies:", err);
+      setError("Failed to fetch companies.");
+      setLoading(false);
+    });
+}, []);
+
 
     return (
+        <Can permission="view_request_companies" fallback={<div className="p-4">You don't have permission to view roles.</div>}>
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head>
+                    <title>Company Request</title>
+                </Head>
+                <Card>
+                    <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
+        <CardTitle>Registered Company Management</CardTitle>
+        <div className="flex gap-2 w-full md:w-auto">
+          {/* Search filter */}
+          <Input
+            type="text"
+            placeholder="Search Company..."
+            className="max-w-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
 
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head>
-                <title>Company Request</title>
-            </Head>
-            <Card>
-                <CardHeader className='flex justify-between items-center'>
-                    <CardTitle>Registered Company Management</CardTitle>
-                </CardHeader>
-                <hr />
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>Company Name</TableHead>
-                                <TableHead>Date Created</TableHead>
-                                <TableHead>Action</TableHead>
-                                <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            
-                            <TableRow>
-                                <TableCell>1</TableCell>
-                                <TableCell>Sample Company</TableCell>
-                                <TableCell>2024-06-10</TableCell>
-                                <TableCell>
-                                    
-                                    <Select
-                                        value={sampleCompanyStatus}
-                                        onValueChange={(value: 'pending' | 'approved' | 'rejected') => setSampleCompanyStatus(value)}
-                                    >
-                                        <SelectTrigger className="w-[180px]"> 
+          {/* Status filter */}
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Status</SelectLabel>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+                    <hr />
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>ID</TableHead>
+                                    <TableHead>Company Name</TableHead>
+                                    <TableHead>Date Created</TableHead>
+                                    <TableHead>Action</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Session</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center">
+                                            <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading companies...
+                                        </TableCell>
+                                    </TableRow>
+                                ) : error ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center text-red-500">
+                                            {error}
+                                        </TableCell>
+                                    </TableRow>
+                                ) : companies.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center">
+                                            No companies registered yet.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredCompanies.map((company) => (
+                                    <TableRow key={company.id}>
+                                        <TableCell>{company.id}</TableCell>
+                                        <TableCell>{company.company_name}</TableCell>
+                                        <TableCell>{new Date(company.created_at).toLocaleDateString()}</TableCell>
+
+                                        <TableCell className="flex gap-2">
+                                            <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="default">View</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                            <DialogTitle className='flex justify-between items-center mt-5'>Company Details
+                                                <p>
+                                                <strong>Status:</strong>{" "}
+                                                {company.status === "pending" && <Badge variant="secondary">Pending</Badge>}
+                                                {company.status === "approved" && <Badge variant="success">Approved</Badge>}
+                                                {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
+                                            </p>
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                Below are the details for this company.
+                                            </DialogDescription>
+                                            </DialogHeader>
+                                           <CompanyDetails company={company} />
+                                        </DialogContent>
+                                        </Dialog>                    
+                                        <Select
+                                            value={company.status}
+                                            onValueChange={(value: 'pending' | 'approved' | 'rejected') => {
+                                            setCompanies((prev) =>
+                                                prev.map((c) =>
+                                                c.id === company.id ? { ...c, status: value } : c
+                                                )
+                                            );
+
+                                            route.put(`/companies/${company.id}/status`, { status: value }, {
+                                                preserveState: true,
+                                                onError: () => {
+                                                setCompanies((prev) =>
+                                                    prev.map((c) =>
+                                                    c.id === company.id ? { ...c, status: company.status } : c
+                                                    )
+                                                );
+                                                },
+                                            });
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-[180px]">
                                             <SelectValue placeholder="Select Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
+                                            </SelectTrigger>
+                                            <SelectContent>
                                             <SelectGroup>
-                                                <SelectLabel>Status</SelectLabel>
+                                                <SelectLabel className='text-center'>Status</SelectLabel>
                                                 <SelectItem value="pending">Pending</SelectItem>
                                                 <SelectItem value="approved">Approved</SelectItem>
                                                 <SelectItem value="rejected">Rejected</SelectItem>
                                             </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </TableCell>
-                                <TableCell>
-                                    {sampleCompanyStatus === 'pending' && <Badge variant="secondary">Pending</Badge>}
-                                    {sampleCompanyStatus === 'approved' && <Badge variant="success">Approved</Badge>}
-                                    {sampleCompanyStatus === 'rejected' && <Badge variant="destructive">Rejected</Badge>}
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
+                                            </SelectContent>
+                                        </Select>
+                                        </TableCell>
 
-                    </Table>
-                </CardContent>
-            </Card>
-        </AppLayout>
-
+                                        <TableCell>
+                                        {company.status === "pending" && <Badge variant="secondary">Pending</Badge>}
+                                        {company.status === "approved" && <Badge variant="success">Approved</Badge>}
+                                        {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
+                                        </TableCell>
+                                        <TableCell>
+                                        {company.status === "approved" && (
+                                            <span className="text-green-500 text-lg">🟢</span>
+                                        )}
+                                        {company.status === "pending" && (
+                                            <span className="text-yellow-500 text-lg">🟡</span>
+                                        )}
+                                        {company.status === "rejected" && (
+                                            <span className="text-red-500 text-lg">🔴</span>
+                                        )}
+                                        </TableCell>
+                                    </TableRow>
+                                    
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </AppLayout>
+        </Can>
     );
 }

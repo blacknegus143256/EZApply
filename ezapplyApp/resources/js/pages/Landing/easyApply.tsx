@@ -13,6 +13,8 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   const [amount, setAmount] = useState("all");
   const [visibleCount, setVisibleCount] = useState(5);
 
+  
+
   const handleCheck = (companyId: number) => {
     setChecked((prev) =>
       prev.includes(companyId)

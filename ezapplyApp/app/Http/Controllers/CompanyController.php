@@ -70,8 +70,9 @@ class CompanyController extends Controller
             $logoPath = $request->file('logo')->store('logos', 'public'); // storage/app/public/logos
         }
 
+    try {
         DB::transaction(function () use ($v, $logoPath) {
-            // 1) Parent
+            // Parent
             $company = Company::create([
                 'company_name'            => $v['company_name'],
                 'brand_name'              => $v['brand_name'] ?? null,
@@ -83,10 +84,12 @@ class CompanyController extends Controller
                 'description'             => $v['description'],
                 'year_founded'            => $v['year_founded'],
                 'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
+
                 'user_id'      => Auth::id(), 
+
             ]);
 
-            // 2) Opportunity
+            // Opportunity
             $company->opportunity()->create([
                 'franchise_type'        => $v['franchise_type'],
                 'min_investment'        => $v['min_investment'],
@@ -99,7 +102,7 @@ class CompanyController extends Controller
                 'unique_selling_points' => $v['unique_selling_points'] ?? null,
             ]);
 
-            // 3) Background
+            // Background
             $company->background()->create([
                 'industry_sector'    => $v['industry_sector'],
                 'years_in_operation' => $v['years_in_operation'],
@@ -108,16 +111,16 @@ class CompanyController extends Controller
                 'company_history'    => $v['company_history'] ?? null,
             ]);
 
-            // 4) Requirements
+            // Requirements
             $company->requirements()->create([
-                'min_net_worth'     => $v['min_net_worth'],
-                'min_liquid_assets' => $v['min_liquid_assets'],
-                'prior_experience'  => (bool)($v['prior_experience'] ?? false),
-                'experience_type'   => $v['experience_type'] ?? null,
-                'other_qualifications' => $v['other_qualifications'] ?? null,
+                'min_net_worth'       => $v['min_net_worth'],
+                'min_liquid_assets'   => $v['min_liquid_assets'],
+                'prior_experience'    => (bool)($v['prior_experience'] ?? false),
+                'experience_type'     => $v['experience_type'] ?? null,
+                'other_qualifications'=> $v['other_qualifications'] ?? null,
             ]);
 
-            // 5) Marketing
+            // Marketing
             $company->marketing()->create([
                 'listing_title'            => $v['listing_title'] ?? null,
                 'listing_description'      => $v['listing_description'] ?? null,
@@ -127,8 +130,20 @@ class CompanyController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Company saved.');
+        return back()->with('success', 'Company saved successfully.');
+
+    } catch (\Throwable $e) {
+        // Log the exact error for debugging
+        \Log::error('Company store failed: '.$e->getMessage(), [
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return back()->withInput()->withErrors([
+            'error' => 'Failed to save company. Please try again later.',
+        ]);
     }
+}
+
     public function show($id)
     {
         // Load company + all related data
@@ -155,4 +170,15 @@ class CompanyController extends Controller
     return response()->json($companies);
     
 }
+public function updateStatus(Request $request, Company $company)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,approved,rejected',
+        ]);
+
+        $company->status = $validated['status'];
+        $company->save();
+
+        return back()->with('success', 'Company status updated successfully.');
+    }
 }
