@@ -30,7 +30,7 @@ class PermissionController extends Controller
         Permission::create($request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:permissions,name']
     ]));
-    return to_route('permission.index')->with('message','Permission Created Successfully');
+    return to_route('permissions.index')->with('message','Permission Created Successfully');
     }
 
     public function update(Request $request, Permission $permission){
@@ -43,6 +43,6 @@ class PermissionController extends Controller
     public function destroy(Permission $permission){
         $permission->delete();
         
-        return to_route('permission.index')->with('message', 'Permission Deleted Successfully');
+        return to_route('permissions.index')->with('message', 'Permission Deleted Successfully');
     }
 }
