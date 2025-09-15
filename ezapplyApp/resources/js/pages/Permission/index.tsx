@@ -42,7 +42,7 @@ useEffect(() => {
 
 function submit(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault();
-    post('/permission', {
+    post('/permissions', {
         onSuccess: () => {
             reset('name');
             setOpenAddPermissionDialog(false);
@@ -57,7 +57,7 @@ function edit(permission: SinglePermission){
 
 function update(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault();
-    put(`/permission/${data.id}`, {
+    put(`/permissions/${data.id}`, {
         onSuccess: () => {
             reset('name');
             setOpenEditPermissionDialog(false);
@@ -66,7 +66,7 @@ function update(e: React.FormEvent<HTMLFormElement>){
 }
 
 function deletePermission(id: number){
-    destroy(`/permission/${id}`)
+    destroy(`/permissions/${id}`)
 }
 
   const { auth } = usePage().props as any;

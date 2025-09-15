@@ -61,7 +61,7 @@ class RoleController extends Controller
         $role->syncPermissions($request->permissions);
     }
 
-    return to_route('role.index')->with('message', 'Role Created Successfully');
+    return to_route('roles.index')->with('message', 'Role Created Successfully');
     }
 
     /**
@@ -102,7 +102,7 @@ class RoleController extends Controller
         if($request->has('permissions')){
             $role->syncPermissions($request->permissions);
         }
-        return to_route('role.index')->with('message', 'Role Updated Successfully');
+        return to_route('roles.index')->with('message', 'Role Updated Successfully');
     
     }
 
@@ -113,6 +113,6 @@ class RoleController extends Controller
     {
         //
         $role->delete();
-        return to_route('role.index')->with('message', 'Role Deleted Successfully');
+        return to_route('roles.index')->with('message', 'Role Deleted Successfully');
     }
 }

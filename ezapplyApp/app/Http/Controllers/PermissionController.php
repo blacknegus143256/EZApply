@@ -37,7 +37,7 @@ class PermissionController extends Controller
         $permission->update($request->validate([
             'name' => 'required|string|max:255|unique:permissions,name,' . $permission->id,
             ]));
-            return to_route('permission.index')->with('message', 'Permission Updated Successfully');
+            return to_route('permissions.index')->with('message', 'Permission Updated Successfully');
     }
 
     public function destroy(Permission $permission){

@@ -95,7 +95,7 @@ Route::prefix('psgc')->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     //Permissions
     Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
     Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
@@ -119,7 +119,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
 
-
+/*
 
     //Permissions
     Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
@@ -144,6 +144,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('user.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('user.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+
+
+*/
     
     //Company Requests
     Route::get('/company-requests', [CompanyRequestController::class, 'index'])->name('company.requests');

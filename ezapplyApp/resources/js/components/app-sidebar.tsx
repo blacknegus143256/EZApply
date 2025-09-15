@@ -6,9 +6,8 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List } from 'lucide-react';
-
 import AppLogo from './app-logo';
-import { Avatar } from './ui/avatar';
+import { Avatar } from './ui/avatar'
 
 
 const mainNavItems: NavItem[] = [
@@ -43,18 +42,7 @@ const mainNavItems: NavItem[] = [
         icon: Folder,
         permission: 'view_customer_dashboard',
     },
-    // {
-    //     title: 'Dashboard',
-    //     href: dashboard(),
-    //     icon: LayoutGrid,
-    //     permission: 'view_company_dashboard',
-    // },
-    // {
-    //     title: 'Dashboard',
-    //     href: dashboard(),
-    //     icon: LayoutGrid,
-    //     permission: 'view_admin_dashboard',
-    // },
+
     
     // Admin only - User Management
     {
@@ -71,11 +59,10 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Permissions',
-        href: '/permission',
+        href: '/permissions',
         icon: Lock,
         permission: 'view_permissions',
     },
-
     {
         title: 'Company Requests',
         href: '/company-requests',

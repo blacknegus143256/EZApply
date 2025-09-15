@@ -26,7 +26,7 @@ class UsersTableSeeder extends Seeder
 
         // for company
         $company = User::create([
-            'email'      => 'Company@sample.com',
+            'email'      => 'company@sample.com',
             'password'   => Hash::make('password123'),
         ]);
         $company->assignRole('company');

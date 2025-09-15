@@ -17,6 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   year_founded: number;
   description?: string;
   brand_name: string;
+  status: string;
   opportunity: {
     franchise_type: string;
     min_investment: number;
@@ -142,6 +143,8 @@ const FranchiseForm = () => {
 
 // Start with all companies
 let filtered = companies;
+
+filtered = filtered.filter((c) => c.status === 'approved');
 
 // Filter by type
 if (type !== 'all') {
