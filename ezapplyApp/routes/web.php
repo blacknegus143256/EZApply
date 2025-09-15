@@ -64,6 +64,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::class, 'index'])
     ->name('applicant.applied_companies');
 
+Route::get('/api/applied-company-ids', [ApplicationController::class, 'getAppliedCompanyIds'])
+    ->name('api.applied_company_ids');
+
 
    
     Route::get('company/register', function () {

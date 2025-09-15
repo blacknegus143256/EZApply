@@ -58,4 +58,15 @@ class ApplicationController extends Controller
             'applications' => $applications,
         ]);
     }
+
+    // get applied company IDs for the authenticated user
+    public function getAppliedCompanyIds()
+    {
+        $userId = auth()->id();
+        $appliedCompanyIds = Application::where('user_id', $userId)
+            ->pluck('company_id')
+            ->toArray();
+
+        return response()->json($appliedCompanyIds);
+    }
 }

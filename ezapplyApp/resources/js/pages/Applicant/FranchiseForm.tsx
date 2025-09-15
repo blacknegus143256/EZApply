@@ -59,12 +59,22 @@ const FranchiseForm = () => {
 
 
   useEffect(() => {
+    // Fetch companies
     axios.get("/companies")
     .then((res) => {
       setCompanies(res.data);
     })
     .catch((err) => {
       console.error("Error fetching companies:", err);
+    });
+
+    // Fetch applied company IDs
+    axios.get("/api/applied-company-ids")
+    .then((res) => {
+      setApplied(res.data);
+    })
+    .catch((err) => {
+      console.error("Error fetching applied company IDs:", err);
     });
   }, []);
 
@@ -195,7 +205,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Franchise Application" />
 
-        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md list-page">
+        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
           <section className="hero">
         <h1 className="text-2xl font-bold text-white dark:text-neutral-100 mb-4">
           Looking for a Company to Franchise?
@@ -252,12 +262,18 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
             <div className="company-grid">            
               {filtered.map((company) => (
               
-                  <div className="company-card" key={company.id} >
+                  <div className={`company-card ${applied.includes(company.id) ? 'applied-card' : ''}`} key={company.id} >
+                    {applied.includes(company.id) && (
+                      <div className="applied-badge">
+                        <span className="applied-text">✓ Applied</span>
+                      </div>
+                    )}
                     <div className="company-header">
                       <input
                         type="checkbox"
                         checked={checked.includes(company.id)}
                         onChange={() => handleCheck(company.id)}
+                        disabled={applied.includes(company.id)}
                       />
                       <img
                         src={"/favicon.svg"}
@@ -274,27 +290,25 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       <p className="company-description"><strong>Description:</strong> {company.description}</p>
                     </div>
 
-                    <div className="company-actions">
-                      <a
-                        href={`/companies/${company.id}`}
-                        className="view-details-link"
-                        onClick={(e) => handleViewDetails(e, company.id)}
-                      >
-                        View Details
-                      </a>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!applied.includes(company.id)) {
-                            setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
-                          }
-                        }}
-                        disabled={applied.includes(company.id) || applying === company.id}
-                        className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
-                      >
-                        {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
-                      </button>
-                    </div>
+                    <a
+                      href={`/companies/${company.id}`}
+                      className={`view-details-link ${applied.includes(company.id) ? 'applied-link' : ''}`}
+                      onClick={(e) => handleViewDetails(e, company.id)}
+                    >
+                      View Details
+                    </a>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!applied.includes(company.id)) {
+                          setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
+                        }
+                      }}
+                      disabled={applied.includes(company.id) || applying === company.id}
+                      className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
+                    >
+                      {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
+                    </button>
                   </div>
                    ))}
                   </div>
