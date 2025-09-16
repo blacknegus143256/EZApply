@@ -124,16 +124,17 @@ class CompanyController extends Controller
                 'experience_type'      => $v['experience_type'] ?? null,
                 'other_qualifications' => $v['other_qualifications'] ?? null,
             ]);
-                // 5) Marketing
-                $company->marketing()->create([
-                    'listing_title'            => $v['listing_title'] ?? null,
-                    'listing_description'      => $v['listing_description'] ?? null,
-                    'logo_path'                => $logoPath,
-                    'target_profile'           => $v['target_profile'] ?? null,
-                    'preferred_contact_method' => $v['preferred_contact_method'] ?? null,
-                ]);
-                Log::info('Company marketing created'); // Debugging log
-            });
+
+            // Marketing
+            $company->marketing()->create([
+                'listing_title'            => $v['listing_title'] ?? null,
+                'listing_description'      => $v['listing_description'] ?? null,
+                'logo_path'                => $logoPath,
+                'target_profile'           => $v['target_profile'] ?? null,
+                'preferred_contact_method' => $v['preferred_contact_method'] ?? null,
+            ]);
+        });
+
         return back()->with('success', 'Company saved successfully. Pending approval.');
 
     } catch (\Throwable $e) {
