@@ -191,21 +191,22 @@ export default function FranchiseRegister() {
     }));
 
     post('/companies', {
-      forceFormData: true,
-      onSuccess: () => {
-        reset();
-        setStep(0);
-        setOpen(false);
-      },
-      onError: () => {
-        // Scroll to first error field
-        const firstKey = Object.keys(errors)[0];
-        if (firstKey) {
-          const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
-          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    });
+  forceFormData: true,
+  onSuccess: (response) => {
+    console.log('Company registration successful:', response);
+    reset();
+    setStep(0);
+    setOpen(false);
+  },
+  onError: (errors) => {
+    console.log('Company registration failed:', errors);
+    const firstKey = Object.keys(errors)[0];
+    if (firstKey) {
+      const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+});
   }
 
   return (

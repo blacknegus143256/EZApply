@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Auth;
 use App\Models\{
     Company,
@@ -11,68 +12,70 @@ use App\Models\{
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CompanyController extends Controller
 {
     public function store(Request $request)
-    {
-        
-        // Validate ONLY the fields for the 5 tables we kept.
-        $v = $request->validate([
-            // Step 1 — companies
-            'company_name'             => 'required|string|max:255',
-            'brand_name'               => 'nullable|string|max:255',
-            'city'                     => 'required|string|max:255',
-            'state_province'           => 'required|string|max:255',
-            'zip_code'                 => 'required|string|max:50',
-            'country'                  => 'required|string|max:100',
-            'company_website'          => 'nullable|string|max:255',
-            'description'              => 'required|string',
-            'year_founded'             => 'required|integer|between:1800,'.date('Y'),
-            'num_franchise_locations'  => 'nullable|integer|min:0',
+{
+    
 
-            // Step 3 — company_opportunities
-            'franchise_type'           => 'required|string|max:255',
-            'min_investment'           => 'required|numeric|min:0',
-            'franchise_fee'            => 'required|numeric|min:0',
-            'royalty_fee_structure'    => 'required|string|max:255',
-            'avg_annual_revenue'       => 'nullable|numeric|min:0',
-            'target_markets'           => 'required|string|max:255',
-            'training_support'         => 'nullable|string',
-            'franchise_term'           => 'required|string|max:255',
-            'unique_selling_points'    => 'nullable|string',
+    // Validate ONLY the fields for the 5 tables we kept.
+    $v = $request->validate([
+        // Step 1 — companies
+        'company_name'             => 'required|string|max:255',
+        'brand_name'               => 'nullable|string|max:255',
+        'city'                     => 'required|string|max:255',
+        'state_province'           => 'required|string|max:255',
+        'zip_code'                 => 'required|string|max:50',
+        'country'                  => 'required|string|max:100',
+        'company_website'          => 'nullable|string|max:255',
+        'description'              => 'required|string',
+        'year_founded'             => 'required|integer|between:1800,'.date('Y'),
+        'num_franchise_locations'  => 'nullable|integer|min:0',
 
-            // Step 4 — company_backgrounds
-            'industry_sector'          => 'required|string|max:255',
-            'years_in_operation'       => 'required|integer|min:0',
-            'total_revenue'            => 'nullable|numeric|min:0',
-            'awards'                   => 'nullable|string|max:255',
-            'company_history'          => 'nullable|string',
+        // Step 3 — company_opportunities
+        'franchise_type'           => 'required|string|max:255',
+        'min_investment'           => 'required|numeric|min:0',
+        'franchise_fee'            => 'required|numeric|min:0',
+        'royalty_fee_structure'    => 'required|string|max:255',
+        'avg_annual_revenue'       => 'nullable|numeric|min:0',
+        'target_markets'           => 'required|string|max:255',
+        'training_support'         => 'nullable|string',
+        'franchise_term'           => 'required|string|max:255',
+        'unique_selling_points'    => 'nullable|string',
 
-            // Step 5 — company_requirements
-            'min_net_worth'            => 'required|numeric|min:0',
-            'min_liquid_assets'        => 'required|numeric|min:0',
-            'prior_experience'         => 'sometimes|boolean',
-            'experience_type'          => 'nullable|string|max:255',
-            'other_qualifications'     => 'nullable|string',
+        // Step 4 — company_backgrounds
+        'industry_sector'          => 'required|string|max:255',
+        'years_in_operation'       => 'required|integer|min:0',
+        'total_revenue'            => 'nullable|numeric|min:0',
+        'awards'                   => 'nullable|string|max:255',
+        'company_history'          => 'nullable|string',
 
-            // Step 6 — company_marketings
-            'listing_title'            => 'nullable|string|max:255',
-            'listing_description'      => 'nullable|string',
-            'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'target_profile'           => 'nullable|string|max:255',
-            'preferred_contact_method' => 'nullable|string|max:50',
-        ]);
+        // Step 5 — company_requirements
+        'min_net_worth'            => 'required|numeric|min:0',
+        'min_liquid_assets'        => 'required|numeric|min:0',
+        'prior_experience'         => 'sometimes|boolean',
+        'experience_type'          => 'nullable|string|max:255',
+        'other_qualifications'     => 'nullable|string',
 
-        // Handle optional file upload
-        $logoPath = null;
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public'); // storage/app/public/logos
-        }
+        // Step 6 — company_marketings
+        'listing_title'            => 'nullable|string|max:255',
+        'listing_description'      => 'nullable|string',
+        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'target_profile'           => 'nullable|string|max:255',
+        'preferred_contact_method' => 'nullable|string|max:50',
+    ]);
+
+    // Handle optional file upload
+    $logoPath = null;
+    if ($request->hasFile('logo')) {
+        $logoPath = $request->file('logo')->store('logos', 'public'); 
+    }
 
     try {
         DB::transaction(function () use ($v, $logoPath) {
-            // Parent
+            // Parent Company
             $company = Company::create([
                 'company_name'            => $v['company_name'],
                 'brand_name'              => $v['brand_name'] ?? null,
@@ -84,9 +87,8 @@ class CompanyController extends Controller
                 'description'             => $v['description'],
                 'year_founded'            => $v['year_founded'],
                 'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
-
-                'user_id'      => Auth::id(), 
-
+                'status'                  => 'pending', 
+                'user_id'                 => Auth::id(),
             ]);
 
             // Opportunity
@@ -113,11 +115,11 @@ class CompanyController extends Controller
 
             // Requirements
             $company->requirements()->create([
-                'min_net_worth'       => $v['min_net_worth'],
-                'min_liquid_assets'   => $v['min_liquid_assets'],
-                'prior_experience'    => (bool)($v['prior_experience'] ?? false),
-                'experience_type'     => $v['experience_type'] ?? null,
-                'other_qualifications'=> $v['other_qualifications'] ?? null,
+                'min_net_worth'        => $v['min_net_worth'],
+                'min_liquid_assets'    => $v['min_liquid_assets'],
+                'prior_experience'     => $v['prior_experience'] ?? false,
+                'experience_type'      => $v['experience_type'] ?? null,
+                'other_qualifications' => $v['other_qualifications'] ?? null,
             ]);
 
             // Marketing
@@ -130,11 +132,10 @@ class CompanyController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Company saved successfully.');
+        return back()->with('success', 'Company saved successfully. Pending approval.');
 
     } catch (\Throwable $e) {
-        // Log the exact error for debugging
-        \Log::error('Company store failed: '.$e->getMessage(), [
+        Log::error('Company store failed: '.$e->getMessage(), [
             'trace' => $e->getTraceAsString(),
         ]);
 
@@ -156,21 +157,22 @@ class CompanyController extends Controller
 
         return response()->json($company);
     }
+
     public function index()
-{
-    // Get all companies and eager load their related data
-    
-    $companies = Company::with([
-        'opportunity',
-        'background',
-        'requirements',
-        'marketing',
-        'user',
-    ])->get();
-    return response()->json($companies);
-    
-}
-public function updateStatus(Request $request, Company $company)
+    {
+        // Get all companies and eager load their related data
+        $companies = Company::with([
+            'opportunity',
+            'background',
+            'requirements',
+            'marketing',
+            'user',
+        ])->get();
+
+        return response()->json($companies);
+    }
+
+    public function updateStatus(Request $request, Company $company)
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,approved,rejected',
