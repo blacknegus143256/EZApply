@@ -42,8 +42,18 @@ const mainNavItems: NavItem[] = [
         icon: Folder,
         permission: 'view_customer_dashboard',
     },
-
-    
+    {
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        permission: 'view_companies',
+    },
+    {
+        title: 'Company',
+        href: '/companies',
+        icon: Building2,
+        permission: 'view_companies',
+    },
     // Admin only - User Management
     {
         title: 'Users',

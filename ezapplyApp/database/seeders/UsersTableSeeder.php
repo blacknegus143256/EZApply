@@ -29,6 +29,7 @@ class UsersTableSeeder extends Seeder
             'email'      => 'company@sample.com',
             'password'   => Hash::make('password123'),
         ]);
+        $company->markEmailAsVerified();
         $company->assignRole('company');
     }
 }
