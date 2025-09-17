@@ -52,9 +52,6 @@ class RegisteredUserController extends Controller
             'role_id'    => $role ? $role->id : null, // Store role_id in users table
         ]);
 
-        
-        $addressData = $request->input('users_address');
-        $user->address()->create($addressData);
 
         // Assign role using Spatie (updates model_has_roles table)
         if ($role) {

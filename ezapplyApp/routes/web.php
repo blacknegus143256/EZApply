@@ -37,6 +37,7 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
+    
 
 
 
@@ -61,7 +62,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('applicant/attachments/{attachment}', [CustomerAttachmentController::class, 'destroy'])->name('applicant.attachments.destroy');
     
     Route::get('applicant/franchise', function () {
-        return Inertia::render('Applicant/FranchiseForm');
+        return Inertia::render('Applicant/FranchiseForm', [
+        'companies' => \App\Models\Company::with('opportunity')->get(),
+    ]);
     })->name('applicant.franchise');
 Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::class, 'index'])
     ->name('applicant.applied_companies');
@@ -76,9 +79,12 @@ Route::get('/api/applied-company-ids', [ApplicationController::class, 'getApplie
     })->name('company.register');
 
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{company}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
 
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
+    
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');
@@ -98,7 +104,7 @@ Route::prefix('psgc')->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     //Permissions
     Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
     Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
@@ -122,7 +128,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
 
-
+/*
 
     //Permissions
     Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
@@ -147,6 +153,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('user.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('user.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+
+
+*/
     
     //Company Requests
     Route::get('/company-requests', [CompanyRequestController::class, 'index'])->name('company.requests');

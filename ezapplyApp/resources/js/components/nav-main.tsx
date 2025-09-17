@@ -18,7 +18,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                     }
                     
                     return (
-                        <SidebarMenuItem key={item.title}>
+                        <SidebarMenuItem key={item.href}>
                             <SidebarMenuButton
                                 asChild
                                 isActive={page.url.startsWith(typeof item.href === 'string' ? item.href : item.href.url)}

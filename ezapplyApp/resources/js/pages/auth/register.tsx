@@ -14,134 +14,27 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useEffect } from 'react'; 
 
-type UserAddress = {
-  region_code: string;
-  region_name: string;
-  province_code: string;
-  province_name: string;
-  citymun_code: string;
-  citymun_name: string;
-  barangay_code: string;
-  barangay_name: string;
-};
 type PSGCItem = { code: string; name: string };
 interface RegisterProps {
-first_name: string;
-last_name: string;
 roles: string[];
 email: string;
-phone_number: string;
 password: string;
 password_confirmation: string;
-users_address: UserAddress;
 }
 
 export default function Register({ roles }: { roles: string[] }) {
 const { data, setData, post, processing, errors } = useForm({
-    first_name: '',
-    last_name: '',
     role: roles?.[1] || '', 
     email: '',
-    phone_number: '',
     password: '',
     password_confirmation: '',
-    users_address:{
-         region_code: "",
-        region_name: "",
-        province_code: "",
-        province_name: "",  
-        citymun_code: "",
-        citymun_name: "",
-        barangay_code: "",
-        barangay_name: ""
-    },
 });
-
-    const [regions, setRegions] = useState<PSGCItem[]>([]);
-    const [provinces, setProvinces] = useState<PSGCItem[]>([]);
-    const [cities, setCities] = useState<PSGCItem[]>([]);
-    const [barangays, setbarangays] = useState<PSGCItem[]>([]);
-
-
-const handleRegionChange = async (code: string) => {
-  const region = regions.find(r => r.code === code);
-  if (!region) return;
-
-  setData("users_address", {
-    ...data.users_address,
-    region_code: region.code,
-    region_name: region.name,
-    province_code: "",
-    province_name: "",
-    citymun_code: "",
-    citymun_name: "",
-    barangay_code: "",
-    barangay_name: ""
-  });
-
-  const res = await axios.get(`/psgc/regions/${region.code}/provinces`);
-  setProvinces(res.data);
-  setCities([]);
-  setbarangays([]);
-};
-
-const handleProvinceChange = async (code: string) => {
-  const province = provinces.find(p => p.code === code);
-  if (!province) return;
-
-  setData("users_address", {
-    ...data.users_address,
-    province_code: province.code,
-    province_name: province.name,
-    citymun_code: "",
-    citymun_name: "",
-    barangay_code: "",
-    barangay_name: ""
-  });
-
-  const res = await axios.get(`/psgc/provinces/${province.code}/cities-municipalities`);
-  setCities(res.data);
-  setbarangays([]);
-};
-
-const handleCityChange = async (code: string) => {
-  const city = cities.find(c => c.code === code);
-  if (!city) return;
-
-  setData("users_address", {
-    ...data.users_address,
-    citymun_code: city.code,
-    citymun_name: city.name,
-    barangay_code: "",
-    barangay_name: ""
-  });
-
-  const res = await axios.get(`/psgc/cities-municipalities/${city.code}/barangays`);
-  setbarangays(res.data);
-};
-
-const handleBarangayChange = (code: string) => {
-  const barangay = barangays.find(b => b.code === code);
-  if (!barangay) return;
-
-  setData("users_address", {
-    ...data.users_address,
-    barangay_code: barangay.code,
-    barangay_name: barangay.name,
-  });
-};
-
-
- useEffect(() => {
-    
-    axios.get("/psgc/regions").then(res => setRegions(res.data));
- }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/register', {
             onSuccess: () => {
-                console.log('Name:', data.first_name + ' ' + data.last_name);
+                console.log('Name:', data.email);
                 console.log('Role:', data.role);
             },
             onError: (errors) => {

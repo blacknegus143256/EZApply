@@ -23,7 +23,7 @@ import { Can } from '@/components/PermissionGate';
 const breadcrumbs: BreadcrumbItem[] = [
     { 
       title: 'Roles', 
-      href: '/role' 
+      href: '/roles' 
     }
 ];
 

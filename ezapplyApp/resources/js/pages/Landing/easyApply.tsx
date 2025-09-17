@@ -38,6 +38,9 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
 
   // Filtering logic
   let filtered = companies;
+  
+  filtered = filtered.filter((c) => c.status === "approved");
+
 
 // Filter by investment amount
 if (amount !== 'all') {

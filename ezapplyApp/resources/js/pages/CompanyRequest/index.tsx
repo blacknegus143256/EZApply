@@ -58,7 +58,6 @@ export default function Roles({ roles }: { roles: any }) {
     const [companies, setCompanies] = useState<Company[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [sampleCompanyStatus, setSampleCompanyStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
     

@@ -11,10 +11,12 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Franchise Application", href: "/applicant/franchise" },
 ];
+
+
 type CompanyDetails = {
   id: number;
   company_name: string;
-  brand_name?: string;
+  brand_name: string;
   city?: string;
   state_province?: string;
   zip_code?: string;
@@ -23,7 +25,8 @@ type CompanyDetails = {
   description?: string;
   year_founded?: number;
   num_franchise_locations?: number;
-  status?: string;
+  status: string;
+  minimumInvestment?: string;
   user?: {
     id: number;
     first_name: string;
@@ -66,8 +69,13 @@ type CompanyDetails = {
 
 type Company = CompanyDetails;
 
+
 const FranchiseForm = () => {
-  const [companies, setCompanies] = useState<Company[]>([]);
+  
+  const companies: Company[] = Array.isArray((usePage().props as any).companies) ? (usePage().props as any).companies : [];
+
+  
+  // const [companies, setCompanies] = useState<Company[]>([]);
   const [search] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
@@ -93,15 +101,10 @@ const FranchiseForm = () => {
   const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+console.log("Companies:", companies);
+  
   useEffect(() => {
     // Fetch companies
-    axios.get("/companies")
-    .then((res) => {
-      setCompanies(res.data);
-    })
-    .catch((err) => {
-      console.error("Error fetching companies:", err);
-    });
 
     // Fetch applied company IDs
     axios.get("/api/applied-company-ids")
@@ -187,6 +190,8 @@ const FranchiseForm = () => {
 
 // Start with all companies
 let filtered = companies;
+
+// filtered = filtered.filter((c) => c.status === 'approved');
 
 // Filter by type
 if (type !== 'all') {

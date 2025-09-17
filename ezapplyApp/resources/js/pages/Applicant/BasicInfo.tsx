@@ -21,8 +21,25 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-600">{message}</p>;
 }
 
+interface FormData {
+  first_name: string;
+  last_name: string;
+  birth_date: string;
+  phone: string;
+  Facebook: string;
+  LinkedIn: string;
+  Viber: string;
+  description: string;
+  users_address: {
+    region_code: string;
+    province_code: string;
+    citymun_code: string;
+    barangay_code: string;
+  };
+}
+
 export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
-  const { data, setData, post, processing, errors, reset } = useForm<any>({
+  const { data, setData, post, processing, errors, reset } = useForm<FormData>({
     first_name: basicInfo?.first_name || "",
     last_name: basicInfo?.last_name || "",
     birth_date: basicInfo?.birth_date || "",
@@ -82,7 +99,12 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   }, []);
 
   const handleRegionChange = (regionCode: string) => {
-    setData("users_address", { ...data.users_address, region_code: regionCode, province_code: "", citymun_code: "", barangay_code: "" });
+    setData("users_address", {
+      region_code: regionCode,
+      province_code: "",
+      citymun_code: "",
+      barangay_code: ""
+    });
     setProvinces([]);
     setCities([]);
     setBarangays([]);
@@ -94,7 +116,12 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   };
 
   const handleProvinceChange = (provinceCode: string) => {
-    setData("users_address", { ...data.users_address, province_code: provinceCode, citymun_code: "", barangay_code: "" });
+    setData("users_address", {
+      region_code: data.users_address.region_code,
+      province_code: provinceCode,
+      citymun_code: "",
+      barangay_code: ""
+    });
     setCities([]);
     setBarangays([]);
     if (provinceCode) {
@@ -105,7 +132,12 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   };
 
   const handleCityChange = (cityCode: string) => {
-    setData("users_address", { ...data.users_address, citymun_code: cityCode, barangay_code: "" });
+    setData("users_address", {
+      region_code: data.users_address.region_code,
+      province_code: data.users_address.province_code,
+      citymun_code: cityCode,
+      barangay_code: ""
+    });
     setBarangays([]);
     if (cityCode) {
       fetch(`/psgc/cities-municipalities/${cityCode}/barangays`)
@@ -115,7 +147,12 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   };
 
   const handleBarangayChange = (barangayCode: string) => {
-    setData("users_address", { ...data.users_address, barangay_code: barangayCode });
+    setData("users_address", {
+      region_code: data.users_address.region_code,
+      province_code: data.users_address.province_code,
+      citymun_code: data.users_address.citymun_code,
+      barangay_code: barangayCode
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

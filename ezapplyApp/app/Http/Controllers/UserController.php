@@ -76,7 +76,7 @@ class UserController extends Controller
             $user->syncRoles($request->roles);
         }
 
-        return to_route('user.index')->with('message', 'User Created Successfully');
+        return to_route('users.index')->with('message', 'User Created Successfully');
     }
 
     /**
@@ -129,7 +129,7 @@ class UserController extends Controller
             
         }
 
-        return to_route('user.index')->with('message', 'User Updated Successfully');
+        return to_route('users.index')->with('message', 'User Updated Successfully');
     }
 
     /**
@@ -139,6 +139,6 @@ class UserController extends Controller
     {
         //
         $user->delete();
-        return to_route('user.index')->with('message', 'User Deleted Successfully');
+        return to_route('users.index')->with('message', 'User Deleted Successfully');
     }
 }
