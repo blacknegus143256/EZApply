@@ -80,7 +80,6 @@ export default function CompanyDetailsModal({ company, isOpen, onClose }: Compan
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader className="relative">
-
           <DialogTitle className="text-2xl font-bold pr-8">
             {company.company_name}
             {company.brand_name && company.brand_name !== company.company_name && (
@@ -121,7 +120,7 @@ export default function CompanyDetailsModal({ company, isOpen, onClose }: Compan
               </div>
 
               <div className="space-y-1">
-                <span className="font-medium">Founded:</span>
+                <span className="font-medium">Founded:atay sayup description sa commit</span>
                 <p className="text-sm text-gray-600">{company.year_founded || 'Not specified'}</p>
               </div>
 
