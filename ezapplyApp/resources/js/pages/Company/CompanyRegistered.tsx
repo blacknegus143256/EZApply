@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import {
   Card,
   CardContent,
@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
+import { BreadcrumbItem } from "@/types";
+import { Button } from "@/components/ui/button";
 
 interface Company {
   id: number;
@@ -39,9 +41,9 @@ const CompanyRegistered = () => {
     );
   }, [companies, searchTerm]);
 
-  const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "Company Request", href: "/companies/my" },
+  const breadcrumbs : BreadcrumbItem[] = [
+    { title: "Dashboard", href: "/dashboard" },
+    { title: "Company Request", href: "/companies/my" },
   ];
 
   return (
@@ -72,6 +74,7 @@ const CompanyRegistered = () => {
                 <TableHead>ID</TableHead>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,6 +112,13 @@ const CompanyRegistered = () => {
                       {company.status === "rejected" && (
                         <Badge variant="destructive">Rejected 🔴</Badge>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/companies/${company.id}`}>
+                        <Button variant={'destructive'} size={'sm'}>
+                          Delete
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))
