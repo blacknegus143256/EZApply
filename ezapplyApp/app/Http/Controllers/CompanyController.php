@@ -183,4 +183,10 @@ class CompanyController extends Controller
 
         return back()->with('success', 'Company status updated successfully.');
     }
+
+    public function myCompanies()
+{
+    $companies = Company::where('user_id', Auth::id())->get(['id', 'company_name', 'status']);
+    return inertia('Company/CompanyRegistered', compact('companies'));
+}
 }

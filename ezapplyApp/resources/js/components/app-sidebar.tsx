@@ -42,6 +42,18 @@ const mainNavItems: NavItem[] = [
         icon: Folder,
         permission: 'view_customer_dashboard',
     },
+    {
+        title: 'My Companies',
+        href: '/my-registered-companies',
+        icon: Folder,
+        permission: 'view_my_companies',
+    },
+    {
+        title: 'Applicants',
+        href: '/applicantions',
+        icon: UserIcon,
+        permission: 'view_applicantions',
+    },
 
     
     // Admin only - User Management

@@ -15,7 +15,6 @@ export default function CompanyDetails({ company }: { company: Company }) {
       <p><strong>Name:</strong> {company.company_name}</p>
       <p><strong>Description:</strong> {company.description || "No description available."}</p>
       <p><strong>Created At:</strong> {new Date(company.created_at).toLocaleDateString()}</p>
-
     </div>
   );
 }

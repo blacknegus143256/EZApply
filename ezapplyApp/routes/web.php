@@ -76,6 +76,7 @@ Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::clas
 
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
+    Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');
