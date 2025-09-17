@@ -22,6 +22,7 @@ import { BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import CustomerDetailsModal from "@/components/CustomerDetailsModal";
+import { Link } from "@inertiajs/react";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -140,20 +141,20 @@ export default function CompanyApplicants() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center">
+                    <TableCell colSpan={3} className="text-center">
                       <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
                       Loading applicants...
                     </TableCell>
                   </TableRow>
                 ) : error ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-red-500">
+                    <TableCell colSpan={3} className="text-center text-red-500">
                       {error}
                     </TableCell>
                   </TableRow>
                 ) : filteredApplicants.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center">
+                    <TableCell colSpan={3} className="text-center">
                       No applicants yet.
                     </TableCell>
                   </TableRow>
@@ -166,7 +167,7 @@ export default function CompanyApplicants() {
                           : "Unknown User"}
                       </TableCell>
                       <TableCell>{a.user?.email ?? "No email"}</TableCell>
-                      <TableCell>
+                                            <TableCell>
                         <select
                           value={a.status}
                           onChange={(e) => handleStatusChange(a.id, e.target.value)}
@@ -178,6 +179,7 @@ export default function CompanyApplicants() {
                             </option>
                           ))}
                         </select>
+                        {/* Optional badge display */}
                         <div className="mt-1">
                           {a.status === "pending" && (
                             <Badge variant="secondary">Pending 🟡</Badge>
