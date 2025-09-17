@@ -3,6 +3,8 @@ import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { Building2, User } from "lucide-react";
 import PermissionGate from '@/components/PermissionGate';
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
+import { useState } from 'react';
 import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -14,16 +16,65 @@ type PageProps = {
   applications?: Application[];
 };
 
+type CompanyDetails = {
+  id: number;
+  company_name: string;
+  brand_name?: string;
+  city?: string;
+  state_province?: string;
+  zip_code?: string;
+  country?: string;
+  company_website?: string;
+  description?: string;
+  year_founded?: number;
+  num_franchise_locations?: number;
+  status?: string;
+  user?: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  opportunity?: {
+    franchise_type?: string;
+    min_investment?: number;
+    franchise_fee?: number;
+    royalty_fee_structure?: string;
+    avg_annual_revenue?: number;
+    target_markets?: string;
+    training_support?: string;
+    franchise_term?: string;
+    unique_selling_points?: string;
+  };
+  background?: {
+    industry_sector?: string;
+    years_in_operation?: number;
+    total_revenue?: number;
+    awards?: string;
+    company_history?: string;
+  };
+  requirements?: {
+    min_net_worth?: number;
+    min_liquid_assets?: number;
+    prior_experience?: boolean;
+    experience_type?: string;
+    other_qualifications?: string;
+  };
+  marketing?: {
+    listing_title?: string;
+    listing_description?: string;
+    logo_path?: string;
+    target_profile?: string;
+    preferred_contact_method?: string;
+  };
+};
+
 type Application = {
   id: number;
   status: string;
   desired_location?: string | null;
   deadline_date?: string | null;
-  company: {
-    id: number;
-    company_name: string;
-    user?: { id: number; first_name: string; last_name: string; email: string };
-  };
+  company: CompanyDetails;
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -41,6 +92,20 @@ function StatusBadge({ status }: { status: string }) {
 export default function AppliedCompanies() {
   const { props } = usePage<PageProps>();
   const applications = props.applications ?? [];
+  const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCompanyClick = (company: CompanyDetails, status: string) => {
+    if (status === 'pending') {
+      setSelectedCompany(company);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCompany(null);
+  };
 
   return (
     <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
@@ -61,7 +126,12 @@ export default function AppliedCompanies() {
               {applications.map((a) => (
                 <div
                   key={a.id}
-                  className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
+                  className={`w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 transition-all duration-300 ease-in-out ${
+                    a.status === 'pending' 
+                      ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 hover:shadow-md hover:scale-[1.02] hover:border-blue-300 dark:hover:border-blue-600' 
+                      : 'cursor-default hover:bg-gray-50 dark:hover:bg-neutral-800 hover:shadow-sm'
+                  }`}
+                  onClick={() => handleCompanyClick(a.company, a.status)}
                 >
                   <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
                     <Building2 className="w-4 h-4 mr-1 text-blue-500" />{a.company.company_name}
@@ -72,11 +142,22 @@ export default function AppliedCompanies() {
                     {a.company.user ? `${a.company.user.first_name} ${a.company.user.last_name}` : 'Unknown User'}
                   </span>
                   <StatusBadge status={a.status || 'pending'} />
+                  {a.status === 'pending' && (
+                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                      Click to view details
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </div>
+        
+        <CompanyDetailsModal
+          company={selectedCompany}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </AppLayout>
     </PermissionGate>
   );

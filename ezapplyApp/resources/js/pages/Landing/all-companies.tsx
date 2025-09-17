@@ -3,6 +3,7 @@ import "../../../css/AllCompanies.css";
 import EzNav from './ezapply-nav';
 import { usePage } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 
 const AllCompanies = ({ user }: { user?: any }) => {
 
@@ -16,15 +17,20 @@ const AllCompanies = ({ user }: { user?: any }) => {
 
   const [open, setOpen] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { auth } = usePage().props as any;
   const users = auth?.user;
 
-  const handleViewDetails = (e: React.MouseEvent, companyId: number) => {
+  const handleViewDetails = (e: React.MouseEvent, company: any) => {
+    e.preventDefault();
     if (!users) {
-      e.preventDefault();
-      setRedirectUrl(`/companies/${companyId}`);
+      setRedirectUrl(`/companies/${company.id}`);
       setOpen(true);
+    } else {
+      setSelectedCompany(company);
+      setIsModalOpen(true);
     }
   };
 
@@ -35,10 +41,18 @@ const AllCompanies = ({ user }: { user?: any }) => {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCompany(null);
+  };
+
   useEffect(() => {
     fetch("/companies")
       .then((res) => res.json())
-      .then((data) => setCompanies(data))
+      .then((data) => {
+        console.log("Fetched companies:", data);
+        setCompanies(data);
+      })
       .catch((err) => console.error("Error fetching companies:", err));
   }, []);
 
@@ -54,40 +68,41 @@ const AllCompanies = ({ user }: { user?: any }) => {
 
   // Filtering logic
   let filtered = companies;
+  console.log("Initial companies count:", companies.length);
 
-  filtered = filtered.filter((c) => c.status === "approved");
+  // Show all companies - no status filtering for public listing
 
   if (filterType !== "All") {
     filtered = filtered.filter(
       (c) => c.opportunity?.franchise_type === filterType
     );
+    console.log("After type filter:", filtered.length);
   }
 
   if (filterCompanyName) {
     filtered = filtered.filter((c) =>
       (c.company_name ?? "").toLowerCase().includes(filterCompanyName.toLowerCase())
     );
+    console.log("After name filter:", filtered.length);
   }
 
   if (filterMinInvestment) {
     filtered = filtered.filter((c) => {
-      const value = parseInt(
-        c.opportunity?.minimum_investment?.replace(/[₱,~USD,\s]/g, "") || "0",
-        10
-      );
+      const value = c.opportunity?.min_investment || 0;
       return value >= parseInt(filterMinInvestment, 10);
     });
+    console.log("After min investment filter:", filtered.length);
   }
 
   if (filterMaxInvestment) {
     filtered = filtered.filter((c) => {
-      const value = parseInt(
-        c.opportunity?.minimum_investment?.replace(/[₱,~USD,\s]/g, "") || "0",
-        10
-      );
+      const value = c.opportunity?.min_investment || 0;
       return value <= parseInt(filterMaxInvestment, 10);
     });
+    console.log("After max investment filter:", filtered.length);
   }
+
+  console.log("Final filtered count:", filtered.length);
 
   const handleClearFilters = () => {
     setFilterType('All');
@@ -187,13 +202,12 @@ const AllCompanies = ({ user }: { user?: any }) => {
                     <p><strong>Type:</strong> {company.opportunity?.franchise_type}</p>
                     <p><strong>Description:</strong> {company.description}</p>
 
-                    <a
-                      href={`/companies/${company.id}`}
+                    <button
                       className="view-details-link"
-                      onClick={(e) => handleViewDetails(e, company.id)}
+                      onClick={(e) => handleViewDetails(e, company)}
                     >
                       View Details
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -220,6 +234,13 @@ const AllCompanies = ({ user }: { user?: any }) => {
           <p>You must be logged in to view company details.</p>
         </DialogContent>
       </Dialog>
+
+      {/* Company Details Modal */}
+      <CompanyDetailsModal
+        company={selectedCompany}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </>
   );
 };

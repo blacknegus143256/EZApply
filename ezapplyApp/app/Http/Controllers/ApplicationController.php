@@ -49,7 +49,13 @@ class ApplicationController extends Controller
     public function index()
     {
         $userId = auth()->id();
-        $applications = Application::with(['company.user'])
+        $applications = Application::with([
+            'company.user',
+            'company.opportunity',
+            'company.background',
+            'company.requirements',
+            'company.marketing'
+        ])
             ->where('user_id', $userId)
             ->latest()
             ->get();

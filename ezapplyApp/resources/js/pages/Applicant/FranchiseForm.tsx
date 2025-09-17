@@ -4,31 +4,67 @@ import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { Head, usePage, router } from "@inertiajs/react";
 import PermissionGate from '@/components/PermissionGate';
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Franchise Application", href: "/applicant/franchise" },
 ];
- type Company = {
-
+type CompanyDetails = {
   id: number;
   company_name: string;
-  year_founded: number;
+  brand_name?: string;
+  city?: string;
+  state_province?: string;
+  zip_code?: string;
+  country?: string;
+  company_website?: string;
   description?: string;
-  brand_name: string;
-  opportunity: {
-    franchise_type: string;
-    min_investment: number;
-  };
-  minimumInvestment?: string;
+  year_founded?: number;
+  num_franchise_locations?: number;
+  status?: string;
   user?: {
     id: number;
     first_name: string;
     last_name: string;
     email: string;
   };
+  opportunity?: {
+    franchise_type?: string;
+    min_investment?: number;
+    franchise_fee?: number;
+    royalty_fee_structure?: string;
+    avg_annual_revenue?: number;
+    target_markets?: string;
+    training_support?: string;
+    franchise_term?: string;
+    unique_selling_points?: string;
+  };
+  background?: {
+    industry_sector?: string;
+    years_in_operation?: number;
+    total_revenue?: number;
+    awards?: string;
+    company_history?: string;
+  };
+  requirements?: {
+    min_net_worth?: number;
+    min_liquid_assets?: number;
+    prior_experience?: boolean;
+    experience_type?: string;
+    other_qualifications?: string;
+  };
+  marketing?: {
+    listing_title?: string;
+    listing_description?: string;
+    logo_path?: string;
+    target_profile?: string;
+    preferred_contact_method?: string;
+  };
 };
+
+type Company = CompanyDetails;
 
 const FranchiseForm = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -54,9 +90,8 @@ const FranchiseForm = () => {
   const [bulkBarangays, setBulkBarangays] = useState<any[]>([]);
   const [bulkAddressCodes, setBulkAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
 
-  const [open, setOpen] = useState(false);
-  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-
+  const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     // Fetch companies
@@ -190,15 +225,17 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
       setApplying(null);
     });
 };
-  const { auth } = usePage().props as any;
-  const users = auth?.user;
 
-  const handleViewDetails = (e: React.MouseEvent, companyId: number) => {
-    if (!users) {
-      e.preventDefault();
-      setRedirectUrl(`/companies/${companyId}`);
-      setOpen(true);
-    }
+  const handleViewDetails = (e: React.MouseEvent, company: Company) => {
+    e.preventDefault();
+    setSelectedCompany(company);
+    setIsModalOpen(true);
+  };
+
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCompany(null);
   };
   return (
     <PermissionGate permission="apply_for_franchises" fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
@@ -290,13 +327,12 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       <p className="company-description"><strong>Description:</strong> {company.description}</p>
                     </div>
 
-                    <a
-                      href={`/companies/${company.id}`}
+                    <button
                       className={`view-details-link ${applied.includes(company.id) ? 'applied-link' : ''}`}
-                      onClick={(e) => handleViewDetails(e, company.id)}
+                      onClick={(e) => handleViewDetails(e, company)}
                     >
                       View Details
-                    </a>
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -482,6 +518,11 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
           </div>
         </div>
 
+        <CompanyDetailsModal
+          company={selectedCompany}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </AppLayout>
     </PermissionGate>
   );
