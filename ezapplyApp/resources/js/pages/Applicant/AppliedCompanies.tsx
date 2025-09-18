@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from "@/types";
 import { Building2, User } from "lucide-react";
 import PermissionGate from '@/components/PermissionGate';
 import '../../../css/easyApply.css';
+import ChatButton from "@/components/ui/chat-button";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -59,21 +60,28 @@ export default function AppliedCompanies() {
           ) : (
             <div className="space-y-2">
               {applications.map((a) => (
-                <div
-                  key={a.id}
-                  className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
-                >
-                  <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
-                    <Building2 className="w-4 h-4 mr-1 text-blue-500" />{a.company.company_name}
-                  </span>
-                  <span className="mx-2 text-neutral-400">•</span>
-                  <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <User className="w-4 h-4 mr-1 text-gray-400" />
-                    {a.company.user ? `${a.company.user.first_name} ${a.company.user.last_name}` : 'Unknown User'}
-                  </span>
-                  <StatusBadge status={a.status || 'pending'} />
-                </div>
+                  <div
+                    key={a.id}
+                    className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
+                  >
+                    <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
+                      <Building2 className="w-4 h-4 mr-1 text-blue-500" />
+                      {a.company.company_name}
+                    </span>
+                    <span className="mx-2 text-neutral-400">•</span>
+                    <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                      <User className="w-4 h-4 mr-1 text-gray-400" />
+                      {a.company.user
+                        ? `${a.company.user.first_name} ${a.company.user.last_name}`
+                        : "Unknown User"}
+                    </span>
+                    <StatusBadge status={a.status || "pending"} />
+
+                    {/* Chat button */}
+                    <ChatButton status={a.status} userId={a.company.user?.id} />
+                  </div>
               ))}
+
             </div>
           )}
         </div>
