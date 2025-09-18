@@ -6,6 +6,7 @@ import PermissionGate from '@/components/PermissionGate';
 import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 import { useState } from 'react';
 import '../../../css/easyApply.css';
+import ChatButton from "@/components/ui/chat-button";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -124,31 +125,28 @@ export default function AppliedCompanies() {
           ) : (
             <div className="space-y-2">
               {applications.map((a) => (
-                <div
-                  key={a.id}
-                  className={`w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700 transition-all duration-300 ease-in-out ${
-                    a.status === 'pending' 
-                      ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800 hover:shadow-md hover:scale-[1.02] hover:border-blue-300 dark:hover:border-blue-600' 
-                      : 'cursor-default hover:bg-gray-50 dark:hover:bg-neutral-800 hover:shadow-sm'
-                  }`}
-                  onClick={() => handleCompanyClick(a.company, a.status)}
-                >
-                  <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
-                    <Building2 className="w-4 h-4 mr-1 text-blue-500" />{a.company.company_name}
-                  </span>
-                  <span className="mx-2 text-neutral-400">•</span>
-                  <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <User className="w-4 h-4 mr-1 text-gray-400" />
-                    {a.company.user ? `${a.company.user.first_name} ${a.company.user.last_name}` : 'Unknown User'}
-                  </span>
-                  <StatusBadge status={a.status || 'pending'} />
-                  {a.status === 'pending' && (
-                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                      Click to view details
+                  <div
+                    key={a.id}
+                    className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
+                  >
+                    <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
+                      <Building2 className="w-4 h-4 mr-1 text-blue-500" />
+                      {a.company.company_name}
                     </span>
-                  )}
-                </div>
+                    <span className="mx-2 text-neutral-400">•</span>
+                    <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                      <User className="w-4 h-4 mr-1 text-gray-400" />
+                      {a.company.user
+                        ? `${a.company.user.first_name} ${a.company.user.last_name}`
+                        : "Unknown User"}
+                    </span>
+                    <StatusBadge status={a.status || "pending"} />
+
+                    {/* Chat button */}
+                    <ChatButton status={a.status} userId={a.company.user?.id} />
+                  </div>
               ))}
+
             </div>
           )}
         </div>

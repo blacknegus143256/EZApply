@@ -23,6 +23,7 @@ import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import CustomerDetailsModal from "@/components/CustomerDetailsModal";
 import { Link } from "@inertiajs/react";
+import ChatButton from "@/components/ui/chat-button";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -196,13 +197,20 @@ export default function CompanyApplicants() {
                         </div>
                       </TableCell>
                       <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/applicant/${a.user?.id}`}>
                         <Button onClick={() => handleOpenModal(placeholderCustomer)} className="cursor-pointer">
                           View Profile
                         </Button>
+                        </Link>
+
+                        <ChatButton status={a.status} userId={a.user?.id} />
+                      </div>
                       </TableCell>
                     </TableRow>
                   ))
-                )}
+                  )}
+                
               </TableBody>
             </Table>
           </CardContent>
