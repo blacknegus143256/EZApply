@@ -12,7 +12,9 @@ import '../../css/easyApply.css';
 
 console.log(dashboard());
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: dashboard() }];
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: dashboard() },
+];
 
 
 export default function Dashboard() {
@@ -20,12 +22,13 @@ export default function Dashboard() {
   const { auth } = usePage().props as any;
   const role = auth?.user?.role;
     return (
+        <PermissionGate role={role}>
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     {/* Company Dashboard - Register Company/Franchise */}
-                    <PermissionGate permission="view_company_dashboard">
+                    <PermissionGate permission="view_company_dashboard"> 
                         <Link
                             href="/company/register"
                             className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border hover:shadow-lg transition-shadow duration-200 flex items-center justify-center"
@@ -77,5 +80,6 @@ export default function Dashboard() {
                 </div>
             </div>
         </AppLayout>
+        </PermissionGate>
     );
 }

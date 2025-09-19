@@ -22,6 +22,7 @@ use App\Http\Controllers\BasicInfoController;
 use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\CustomerAttachmentController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\CreditController;
 
 
 
@@ -98,6 +99,10 @@ Route::prefix('psgc')->group(function () {
 
 // Admin routes
 Route::middleware(['auth', 'verified'])->group(function () {
+    //Credit Display
+    Route::get('/credit-balance',[CreditController::class,'creditDisplay'])->name('credit.display');
+
+
     //Chatbox
     Route::get('/chat/{user}', [MessageController::class, 'index'])->name('chat.index');
     Route::post('/chat/{user}', [MessageController::class, 'store'])->name('messages.store');

@@ -62,10 +62,17 @@ const mainNavItems: NavItem[] = [
         permission: 'view_applications',
     },
     {
-        title: 'Chat with Applicants',
+        title: 'Your Chats',
         href: '/view-chats',
         icon: MessageCircle,
         permission: 'view_chats',
+    },
+    {
+        title: 'Credit Balance',
+        href: '/credit-balance',
+        icon: Banknote,
+        permission: 'view_applications',
+
     },
 
     
