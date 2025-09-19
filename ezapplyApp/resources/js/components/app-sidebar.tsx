@@ -73,6 +73,12 @@ const mainNavItems: NavItem[] = [
         icon: UserIcon,
         permission: 'view_applications',
     },
+    {
+        title: 'Chat with Applicants',
+        href: '/view-chats',
+        icon: MessageCircle,
+        permission: 'view_chats',
+    },
 
     // Admin only - User Management
     {

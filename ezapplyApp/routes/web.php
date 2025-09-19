@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Chatbox
     Route::get('/chat/{user}', [MessageController::class, 'index'])->name('chat.index');
     Route::post('/chat/{user}', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('/view-chats', [MessageController::class, 'viewChats'])->name('chat.view');
 
 
 
