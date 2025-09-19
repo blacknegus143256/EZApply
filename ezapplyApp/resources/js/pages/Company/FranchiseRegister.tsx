@@ -201,27 +201,23 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
       min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
     }));
 
-    const options = {
-      forceFormData: true,
-      onSuccess: () => {
-        reset();
-        setStep(0);
-        setOpen(false);
-      },
-      onError: () => {
-        const firstKey = Object.keys(errors)[0];
-        if (firstKey) {
-          const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
-          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
-    } as const;
-
-    if (companyId) {
-      put(`/companies/${companyId}`, options as any);
-    } else {
-      post('/companies', options as any);
+    post('/companies', {
+  forceFormData: true,
+  onSuccess: (response) => {
+    console.log('Company registration successful:', response);
+    reset();
+    setStep(0);
+    setOpen(false);
+  },
+  onError: (errors) => {
+    console.log('Company registration failed:', errors);
+    const firstKey = Object.keys(errors)[0];
+    if (firstKey) {
+      const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  }
+});
   }
 
   return (

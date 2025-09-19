@@ -84,7 +84,7 @@ Route::get('/api/applied-company-ids', [ApplicationController::class, 'getApplie
 
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
-    
+    Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');
@@ -105,6 +105,12 @@ Route::prefix('psgc')->group(function () {
 
 // Admin routes
 Route::middleware(['auth', 'verified'])->group(function () {
+    //Company
+    Route::get('/company-applicants', [CompanyController::class, 'companyApplicants'])->name('company.applicants');
+    Route::put('/company/applicants/{id}/status', [CompanyController::class, 'updateApplicantStatus']);
+
+
+
     //Permissions
     Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
     Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');

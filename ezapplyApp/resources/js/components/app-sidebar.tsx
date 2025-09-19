@@ -18,6 +18,13 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
         permission: 'view_customer_dashboard',
     },
+    {
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        permission: 'view_company_dashboard',
+    },
+
      {
         title: 'Basic Info',
         href: '/applicant/basicinfo',
@@ -54,6 +61,19 @@ const mainNavItems: NavItem[] = [
         icon: Building2,
         permission: 'view_request_companies',
     },
+    {
+        title: 'My Companies',
+        href: '/my-registered-companies',
+        icon: Building2,
+        permission: 'view_my_companies',
+    },
+    {
+        title: 'Applicants',
+        href: '/company-applicants',
+        icon: UserIcon,
+        permission: 'view_applications',
+    },
+
     // Admin only - User Management
     {
         title: 'Users',

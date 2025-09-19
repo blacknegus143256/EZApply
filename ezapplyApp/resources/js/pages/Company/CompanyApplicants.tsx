@@ -1,0 +1,218 @@
+import React, { useState, useMemo } from "react";
+import { Head, usePage, router } from "@inertiajs/react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
+import AppLayout from "@/layouts/app-layout";
+import { BreadcrumbItem } from "@/types";
+import PermissionGate from "@/components/PermissionGate";
+import { Button } from "@/components/ui/button";
+import CustomerDetailsModal from "@/components/CustomerDetailsModal";
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: "Dashboard", href: "/dashboard" },
+  { title: "Company Applicants", href: "/company/applicants" },
+];
+const placeholderCustomer = {
+  id: 1,
+  email: "placeholder@example.com",
+  basicinfo: {
+    first_name: "John",
+    last_name: "Doe",
+    birth_date: new Date("1990-01-01"),
+    phone: 1234567890,
+    Facebook: "john.doe",
+    LinkedIn: "john-linkedin",
+    Viber: "john-viber",
+  },
+  affiliations: {
+    institution: "ABC Corp",
+    position: "Software Engineer",
+  },
+  financials: {
+    annual_income: 50000,
+    salary: 4000,
+  },
+  customer_attachments: {
+    attachment_type: "ID Card",
+  },
+};
+
+type Applicant = {
+  id: number;
+  status: string;
+  user: {
+    id: number;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  };
+};
+
+type PageProps = {
+  applicants?: Applicant[];
+};
+
+const statusOptions = ["pending", "approved", "rejected", "interested"];
+
+export default function CompanyApplicants() {
+  const { props } = usePage<PageProps>();
+  const applicants = props.applicants ?? [];
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
+
+  // Modal states
+  const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = (applicant: any) => {
+    setSelectedApplicant(applicant);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedApplicant(null);
+  };
+
+  // Filter logic
+  const filteredApplicants = useMemo(() => {
+    return applicants.filter((a) =>
+      `${a.user?.first_name ?? ""} ${a.user?.last_name ?? ""}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  }, [applicants, searchTerm]);
+
+  const handleStatusChange = (id: number, status: string) => {
+    router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
+  };
+
+  return (
+    <PermissionGate
+      permission="view_company_dashboard"
+      fallback={<div className="p-6">You don't have permission to access this page.</div>}
+    >
+      <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Company Applicants" />
+
+        <Card>
+          <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
+            <CardTitle>Company Applicants</CardTitle>
+            <div className="flex gap-2 w-full md:w-auto">
+              <Input
+                type="text"
+                placeholder="Search applicant..."
+                className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </CardHeader>
+
+          <hr />
+
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
+                      Loading applicants...
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-red-500">
+                      {error}
+                    </TableCell>
+                  </TableRow>
+                ) : filteredApplicants.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      No applicants yet.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredApplicants.map((a) => (
+                    <TableRow key={a.id}>
+                      <TableCell>
+                        {a.user && (a.user.first_name || a.user.last_name)
+                          ? `${a.user.first_name ?? ""} ${a.user.last_name ?? ""}`.trim()
+                          : "Unknown User"}
+                      </TableCell>
+                      <TableCell>{a.user?.email ?? "No email"}</TableCell>
+                      <TableCell>
+                        <select
+                          value={a.status}
+                          onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                          className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm"
+                        >
+                          {statusOptions.map((status) => (
+                            <option key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="mt-1">
+                          {a.status === "pending" && (
+                            <Badge variant="secondary">Pending 🟡</Badge>
+                          )}
+                          {a.status === "approved" && (
+                            <Badge variant="success">Approved 🟢</Badge>
+                          )}
+                          {a.status === "rejected" && (
+                            <Badge variant="destructive">Rejected 🔴</Badge>
+                          )}
+                          {a.status === "interested" && (
+                            <Badge variant="outline">Interested 🔵</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button onClick={() => handleOpenModal(placeholderCustomer)} className="cursor-pointer">
+                          View Profile
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Modal */}
+        <CustomerDetailsModal
+          customer={selectedApplicant}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      </AppLayout>
+    </PermissionGate>
+  );
+}
