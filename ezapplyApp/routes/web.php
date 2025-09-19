@@ -48,6 +48,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+    // update company
+    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    // edit company
+    Route::get('/companies/{company}/edit',[CompanyController::class,'edit'])->name('companies.edit');
+    
+    Route::get('/my-companies', [CompanyController::class, 'myCompanies'])
+    ->name('companies.my');
     Route::get('applicant/basicinfo', [BasicInfoController::class, 'index'])->name('applicant.basicinfo');
     Route::post('applicant/basicinfo', [BasicInfoController::class, 'store'])->name('applicant.basicinfo.store');
     

@@ -8,7 +8,7 @@ import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
 
 // Steps definition
-const STEPS = [
+export const STEPS = [
   'Company Info',
   'Opportunity',
   'Background',
@@ -100,8 +100,25 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-400">{message}</p>;
 }
 
-export default function FranchiseRegister() {
-  const { data, setData, post, processing, errors, reset, transform } = useForm<CompanyForm>({
+export default function FranchiseRegister({
+    initialData,
+    companyId,
+    mode = 'create',
+  }: {
+    initialData?: Partial<CompanyForm>;
+    companyId?: number;
+    mode?: 'create' | 'edit';
+  }) {
+    const {
+  data,
+  setData,
+  post,
+  put,
+  processing,
+  errors,
+  reset,
+  transform,
+} = useForm<CompanyForm>({
     company_name: '',
     brand_name: null,
     city: '',
@@ -145,6 +162,7 @@ export default function FranchiseRegister() {
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
 
   useEffect(() => {
     if (open) {
@@ -153,20 +171,20 @@ export default function FranchiseRegister() {
     }
   }, [open]);
 
-  function validateStep(s: number) {
-    const req: Record<number, (keyof CompanyForm)[]> = {
+  function validateStep(step: number) {
+    const requiredFields: Record<number, (keyof typeof data)[]> = {
       0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
     };
-    for (const k of req[s] ?? []) {
-      const v = data[k];
-      if (v === '' || v === null || v === undefined) return false;
-    }
-    return true;
+
+   for (const field of requiredFields[step] || []) {
+    if (!data[field] && data[field] !== 0) return false;
   }
+  return true;
+}
 
   function next() {
     if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -175,39 +193,50 @@ export default function FranchiseRegister() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  function doSubmit() {
-    transform((d) => ({
-      ...d,
-      prior_experience: d.prior_experience ? 1 : 0,
-      year_founded: d.year_founded === '' ? null : d.year_founded,
-      num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
-      min_investment: d.min_investment === '' ? null : d.min_investment,
-      franchise_fee: d.franchise_fee === '' ? null : d.franchise_fee,
-      avg_annual_revenue: d.avg_annual_revenue === '' ? null : d.avg_annual_revenue,
-      years_in_operation: d.years_in_operation === '' ? null : d.years_in_operation,
-      total_revenue: d.total_revenue === '' ? null : d.total_revenue,
-      min_net_worth: d.min_net_worth === '' ? null : d.min_net_worth,
-      min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
-    }));
+function doSubmit() {
+  transform((d) => ({
+    ...d,
+    prior_experience: d.prior_experience ? 1 : 0,
+    year_founded: d.year_founded === '' ? null : d.year_founded,
+    num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
+    min_investment: d.min_investment === '' ? null : d.min_investment,
+    franchise_fee: d.franchise_fee === '' ? null : d.franchise_fee,
+    avg_annual_revenue: d.avg_annual_revenue === '' ? null : d.avg_annual_revenue,
+    years_in_operation: d.years_in_operation === '' ? null : d.years_in_operation,
+    total_revenue: d.total_revenue === '' ? null : d.total_revenue,
+    min_net_worth: d.min_net_worth === '' ? null : d.min_net_worth,
+    min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
+  }));
 
+
+
+// put(`/companies/${companyId}`, {
+//   data,
+//   forceFormData: true,
+//   onSuccess: () => {
+//     // redirect or toast
+//   },
+// });
+  if (mode === 'edit' && companyId) {
+    console.log(data.company_name, data); 
+    put(`/companies/${companyId}`, {
+      forceFormData: true,
+      onSuccess: () => {
+        // redirect or toast
+      },
+    });
+  } else {
     post('/companies', {
-  forceFormData: true,
-  onSuccess: (response) => {
-    console.log('Company registration successful:', response);
-    reset();
-    setStep(0);
-    setOpen(false);
-  },
-  onError: (errors) => {
-    console.log('Company registration failed:', errors);
-    const firstKey = Object.keys(errors)[0];
-    if (firstKey) {
-      const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+      forceFormData: true,
+      onSuccess: () => {
+        reset();
+        setStep(0);
+        setOpen(false);
+      },
+    });
   }
-});
-  }
+}
+
 
   return (
     <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
@@ -455,9 +484,8 @@ export default function FranchiseRegister() {
                         type="button"
                         onClick={doSubmit}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                        disabled={processing}
-                      >
-                        Submit
+                        disabled={processing}>
+                        {mode === 'edit' ? 'update' : 'submit'}
                       </button>
                     )}
                   </div>

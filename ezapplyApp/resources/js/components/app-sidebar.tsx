@@ -51,9 +51,9 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'My Companies',
-        href: '/my-registered-companies',
+        href: '/my-companies',
         icon: Building2,
-        permission: 'view_my_companies',
+        permission: 'view_company_dashboard',
     },
     {
         title: 'Applicants',
