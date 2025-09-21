@@ -53,10 +53,10 @@ export default function CompanyEditWrapper() {
         preferred_contact_method: company.marketing?.preferred_contact_method || '',
         logo: null as File | null,
 
-        // Optional uploads
-        // dti_sbc: null,
-        // bir_2303: null,
-        // ipo_registration: null,
+        // Documents (file inputs cannot be pre-filled, but paths available)
+        dti_sbc: null as File | null, // existing: company.documents?.dti_sbc_path
+        bir_2303: null as File | null, // existing: company.documents?.bir_2303_path
+        ipo_registration: null as File | null, // existing: company.documents?.ipo_registration_path
       }}
       companyId={company.id}
       // mode="edit" // can be used inside FranchiseRegister to differentiate between create & edit

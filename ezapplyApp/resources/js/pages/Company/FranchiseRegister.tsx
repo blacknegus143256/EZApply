@@ -10,10 +10,11 @@ import PermissionGate from '@/components/PermissionGate';
 // Steps definition
 export const STEPS = [
   'Company Info',
-  'Opportunity',
+  'Opportunity', 
   'Background',
   'Requirements',
   'Marketing / Listing',
+  'Documents', // Add this new step
 ];
 
 // Breadcrumbs
@@ -64,6 +65,11 @@ interface CompanyForm {
   logo: File | null;
   target_profile: string | null;
   preferred_contact_method: string | null;
+
+  // Document fields
+  dti_sbc: File | null;
+  bir_2303: File | null;
+  ipo_registration: File | null;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -140,6 +146,10 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
     logo: null, // File inputs cannot be pre-filled
     target_profile: initialData?.target_profile || null,
     preferred_contact_method: initialData?.preferred_contact_method || null,
+
+    dti_sbc: null, // File inputs cannot be pre-filled
+    bir_2303: null, // File inputs cannot be pre-filled  
+    ipo_registration: null, // File inputs cannot be pre-filled
   });
 
   const [step, setStep] = useState(0);
@@ -161,6 +171,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
+      5: ['dti_sbc', 'bir_2303', 'ipo_registration'], // Add validation for documents step
     };
 
    for (const field of requiredFields[step] || []) {
@@ -439,6 +450,46 @@ function doSubmit() {
                       <Field label="Preferred Contact Method for Inquiries (optional)">
                         <Input name="preferred_contact_method" value={data.preferred_contact_method ?? ''} onChange={(e) => setData('preferred_contact_method', e.target.value)} />
                         <ErrorText message={(errors as any).preferred_contact_method} />
+                      </Field>
+                    </div>
+                  )}
+
+                  {/* Step 6: Documents */}
+                  {step === 5 && (
+                    <div className="grid gap-3">
+                      <h3 className="text-md font-semibold">Required Business Documents</h3>
+                      
+                      <Field label="DTI/SBC Certificate *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).dti_sbc} />
+                      </Field>
+
+                      <Field label="BIR 2303 Form *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).bir_2303} />
+                      </Field>
+
+                      <Field label="IPO Registration *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).ipo_registration} />
                       </Field>
                     </div>
                   )}
