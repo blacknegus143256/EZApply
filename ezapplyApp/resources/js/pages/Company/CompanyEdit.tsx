@@ -59,7 +59,7 @@ export default function CompanyEditWrapper() {
         // ipo_registration: null,
       }}
       companyId={company.id}
-      mode="edit" // can be used inside FranchiseRegister to differentiate between create & edit
+      // mode="edit" // can be used inside FranchiseRegister to differentiate between create & edit
     />
   );
 }

@@ -100,63 +100,46 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-400">{message}</p>;
 }
 
-export default function FranchiseRegister({
-    initialData,
-    companyId,
-    mode = 'create',
-  }: {
-    initialData?: Partial<CompanyForm>;
-    companyId?: number;
-    mode?: 'create' | 'edit';
-  }) {
-    const {
-  data,
-  setData,
-  post,
-  put,
-  processing,
-  errors,
-  reset,
-  transform,
-} = useForm<CompanyForm>({
-    company_name: '',
-    brand_name: null,
-    city: '',
-    state_province: '',
-    zip_code: '',
-    country: '',
-    company_website: null,
-    description: '',
-    year_founded: '',
-    num_franchise_locations: '',
+export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
+  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>({
+    company_name: initialData?.company_name || '',
+    brand_name: initialData?.brand_name || null,
+    city: initialData?.city || '',
+    state_province: initialData?.state_province || '',
+    zip_code: initialData?.zip_code || '',
+    country: initialData?.country || '',
+    company_website: initialData?.company_website || null,
+    description: initialData?.description || '',
+    year_founded: initialData?.year_founded || '',
+    num_franchise_locations: initialData?.num_franchise_locations || '',
 
-    franchise_type: '',
-    min_investment: '',
-    franchise_fee: '',
-    royalty_fee_structure: '',
-    avg_annual_revenue: '',
-    target_markets: '',
-    training_support: null,
-    franchise_term: '',
-    unique_selling_points: null,
+    franchise_type: initialData?.franchise_type || '',
+    min_investment: initialData?.min_investment || '',
+    franchise_fee: initialData?.franchise_fee || '',
+    royalty_fee_structure: initialData?.royalty_fee_structure || '',
+    avg_annual_revenue: initialData?.avg_annual_revenue || '',
+    target_markets: initialData?.target_markets || '',
+    training_support: initialData?.training_support || null,
+    franchise_term: initialData?.franchise_term || '',
+    unique_selling_points: initialData?.unique_selling_points || null,
 
-    industry_sector: '',
-    years_in_operation: '',
-    total_revenue: '',
-    awards: null,
-    company_history: null,
+    industry_sector: initialData?.industry_sector || '',
+    years_in_operation: initialData?.years_in_operation || '',
+    total_revenue: initialData?.total_revenue || '',
+    awards: initialData?.awards || null,
+    company_history: initialData?.company_history || null,
 
-    min_net_worth: '',
-    min_liquid_assets: '',
-    prior_experience: false,
-    experience_type: null,
-    other_qualifications: null,
+    min_net_worth: initialData?.min_net_worth || '',
+    min_liquid_assets: initialData?.min_liquid_assets || '',
+    prior_experience: initialData?.prior_experience || false,
+    experience_type: initialData?.experience_type || null,
+    other_qualifications: initialData?.other_qualifications || null,
 
-    listing_title: null,
-    listing_description: null,
-    logo: null,
-    target_profile: null,
-    preferred_contact_method: null,
+    listing_title: initialData?.listing_title || null,
+    listing_description: initialData?.listing_description || null,
+    logo: null, // File inputs cannot be pre-filled
+    target_profile: initialData?.target_profile || null,
+    preferred_contact_method: initialData?.preferred_contact_method || null,
   });
 
   const [step, setStep] = useState(0);
@@ -196,7 +179,7 @@ export default function FranchiseRegister({
 function doSubmit() {
   transform((d) => ({
     ...d,
-    prior_experience: d.prior_experience ? 1 : 0,
+    prior_experience: d.prior_experience,
     year_founded: d.year_founded === '' ? null : d.year_founded,
     num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
     min_investment: d.min_investment === '' ? null : d.min_investment,
@@ -208,30 +191,31 @@ function doSubmit() {
     min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
   }));
 
-
-
-// put(`/companies/${companyId}`, {
-//   data,
-//   forceFormData: true,
-//   onSuccess: () => {
-//     // redirect or toast
-//   },
-// });
-  if (mode === 'edit' && companyId) {
+  if (companyId) {
     console.log(data.company_name, data); 
     put(`/companies/${companyId}`, {
-      forceFormData: true,
       onSuccess: () => {
-        // redirect or toast
+        window.location.href = '/my-companies';
+      },
+      onError: (errors) => {
+        console.error('Update failed:', errors);
+        console.error('Request data:', data);
+        console.error('Company ID:', companyId);
+        alert('Update failed. Please check console for details.');
       },
     });
   } else {
     post('/companies', {
-      forceFormData: true,
       onSuccess: () => {
         reset();
         setStep(0);
         setOpen(false);
+        window.location.href = '/my-companies';
+      },
+      onError: (errors) => {
+        console.error('Submission failed:', errors);
+        console.error('Request data:', data);
+        alert('Submission failed. Please check console for details.');
       },
     });
   }
@@ -485,7 +469,7 @@ function doSubmit() {
                         onClick={doSubmit}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                         disabled={processing}>
-                        {mode === 'edit' ? 'update' : 'submit'}
+                        {companyId ? 'Resubmit' : 'Submit'}
                       </button>
                     )}
                   </div>
