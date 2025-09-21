@@ -48,4 +48,14 @@ class AffiliationController extends Controller
 
         return redirect()->back()->with('success', 'Affiliations saved successfully!');
     }
+        public function destroy($id)
+    {
+        $user = Auth::user();
+
+        $affiliation = $user->affiliations()->findOrFail($id);
+
+        $affiliation->delete();
+
+        return response()->json(['message' => 'Affiliation deleted successfully']);
+    }
 }

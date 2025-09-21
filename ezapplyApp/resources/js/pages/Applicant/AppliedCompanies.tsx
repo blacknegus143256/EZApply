@@ -140,8 +140,11 @@ export default function AppliedCompanies() {
                         ? `${a.company.user.first_name} ${a.company.user.last_name}`
                         : "Unknown User"}
                     </span>
-                    <StatusBadge status={a.status || "pending"} />
 
+                    <StatusBadge status={a.status || "pending"} />
+                        <button className="view-btn btn-2 cursor-pointer"
+                        onClick={() => handleCompanyClick(a.company, a.status)}
+                        >Company Profile</button>
                     {/* Chat button */}
                     <ChatButton status={a.status} userId={a.company.user?.id} />
                   </div>

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import PermissionGate from '@/components/PermissionGate';
 import '../../../css/easyApply.css';
 import { Plus, Trash2 } from "lucide-react";
-
+import {route} from 'ziggy-js';
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: dashboard() },
   { title: "Affiliations", href: "/applicant/affiliations" }
@@ -50,11 +50,27 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
   };
 
   // Remove affiliation
-  const removeAffiliation = (index: number) => {
-    if (data.affiliations.length > 1) {
-      const updatedAffiliations = data.affiliations.filter((_, i) => i !== index);
-      setData("affiliations", updatedAffiliations);
-    }
+  const removeAffiliation = async (id: number) => {
+   try {
+    const token = document
+      .querySelector('meta[name="csrf-token"]')
+      ?.getAttribute("content");
+
+    await fetch(`/applicant/affiliations/${id}`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRF-TOKEN": token || "",
+        "Accept": "application/json",
+      },
+    });
+
+    // Update state after success
+    const updatedAffiliations = data.affiliations.filter((a) => a.id !== id);
+    setData("affiliations", updatedAffiliations);
+
+  } catch (error) {
+    console.error("Failed to delete affiliation:", error);
+  }
   };
 
   // Update affiliation
@@ -106,7 +122,7 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => removeAffiliation(index)}
+                      onClick={() => removeAffiliation(affiliation.id)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -147,7 +163,7 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
                       <p className="text-red-600 text-sm mt-1">{errors[`affiliations.${index}.position`]}</p>
                     )}
                   </div>
-                </div>
+                </div> 
               </div>
             ))}
           </div>

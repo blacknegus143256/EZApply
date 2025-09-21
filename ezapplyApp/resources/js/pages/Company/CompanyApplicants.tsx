@@ -197,10 +197,11 @@ export default function CompanyApplicants() {
                         </div>
                       </TableCell>
                       <TableCell>
+                        
                       <div className="flex items-center gap-2">
                         <Link href={`/applicant/${a.user?.id}`}>
-                        <Button onClick={() => handleOpenModal(placeholderCustomer)} className="cursor-pointer">
-                          View Profile
+                        <Button onClick={() => handleOpenModal(placeholderCustomer)} className="view-btn btn-2 cursor-pointer">
+                          Applicant Profile
                         </Button>
                         </Link>
 

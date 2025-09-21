@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('applicant/affiliations', [AffiliationController::class, 'index'])->name('applicant.affiliations');
     Route::post('applicant/affiliations', [AffiliationController::class, 'store'])->name('applicant.affiliations.store');
+    Route::delete('applicant/affiliations/{id}', [AffiliationController::class, 'destroy'])->name('applicant.affiliations.destroy');
     
     Route::get('applicant/financial', [FinancialController::class, 'index'])->name('applicant.financial');
     Route::post('applicant/financial', [FinancialController::class, 'store'])->name('applicant.financial.store');
