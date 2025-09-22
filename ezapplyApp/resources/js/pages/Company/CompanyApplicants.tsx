@@ -1,19 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
@@ -23,6 +11,7 @@ import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogFooter, DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 import ChatButton from "@/components/ui/chat-button";
+import { SharedData } from "@/types";
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,21 +41,22 @@ type PageProps = {
 const statusOptions = ["pending", "approved", "rejected", "interested"];
 
 export default function CompanyApplicants() {
-  const { props } = usePage<PageProps>();
+  type PagePropsWithAuth = PageProps & SharedData;
+  const { props } = usePage<PagePropsWithAuth>();
   const applicants = props.applicants ?? [];
   const [searchTerm, setSearchTerm] = useState("");
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
-
+  const credits = props.auth.user?.credits ?? 0;
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
-  const [balance, setBalance] = useState(); 
+  const [balance, setBalance] = useState(credits); 
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingApplicant, setPendingApplicant] = useState<Applicant | null>(null);
+  
 
-  const cost = 10;
+  const cost = 50;
 
-  // Filter logic
   const filteredApplicants = useMemo(() => {
     return applicants.filter((a) =>
       `${a.user?.first_name ?? ""} ${a.user?.last_name ?? ""}`
@@ -80,6 +70,7 @@ export default function CompanyApplicants() {
   };
 
   const handleViewProfileClick = (applicant: Applicant) => {
+    console.log(balance, cost)
     if (balance < cost) {
       alert("Insufficient balance to view profile.");
       return;
@@ -89,12 +80,27 @@ export default function CompanyApplicants() {
   };
 
   const confirmViewProfile = () => {
-    if (!pendingApplicant) return;
-    setBalance(balance - cost);
-    setSelectedApplicant(pendingApplicant);
-    setShowConfirmDialog(false);
-    setShowProfileDialog(true);
-  };
+  if (!pendingApplicant) return;
+
+  const updatedBalance = balance - cost;
+  setBalance(updatedBalance);
+
+  setSelectedApplicant(pendingApplicant);
+  setShowProfileDialog(true);
+  setShowConfirmDialog(false);
+  setPendingApplicant(null);
+
+  router.put('/company/deduct-balance', { new_balance: updatedBalance })
+  .then(() => {
+    console.log('Database updated!');
+  })
+  .catch(() => {
+    alert('Failed to update balance.');
+  });
+
+};
+
+
 
   return (
     <PermissionGate
@@ -180,7 +186,7 @@ export default function CompanyApplicants() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button onClick={() => handleViewProfileClick(a)}>View Profile</Button>
+                          <Button onClick={() => handleViewProfileClick(a)} disabled={balance < cost} >View Profile</Button>
                           <ChatButton status={a.status} userId={a.user?.id} />
                         </div>
                       </TableCell>

@@ -101,6 +101,8 @@ Route::prefix('psgc')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     //Credit Display
     Route::get('/credit-balance',[CreditController::class,'creditDisplay'])->name('credit.display');
+    Route::put('/company/deduct-balance', [CreditController::class, 'deductBalance'])->name('company.deduct-balance');
+    
 
 
     //Chatbox
