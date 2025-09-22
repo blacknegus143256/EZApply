@@ -7,6 +7,8 @@ import { Wallet, History, PlusCircle } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from '@/components/PermissionGate';
+import { usePage } from "@inertiajs/react";
+import { SharedData } from "@/types";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -21,6 +23,8 @@ const tabs = [
 
 export default function BalancePage() {
   const [activeTab, setActiveTab] = useState("balance");
+  const { props } = usePage<SharedData>();
+  const creditsDisplay = props.balance ?? 0;
 
   return (
     <PermissionGate role="company">
@@ -63,7 +67,7 @@ export default function BalancePage() {
           <Card className="w-full max-w-md shadow-lg">
             <CardContent className="p-6 text-center">
               <h2 className="text-lg font-semibold text-gray-600 mb-2">Current Balance</h2>
-              <p className="text-4xl font-bold text-green-600 mb-6">₱ 1,200.00</p>
+              <p className="text-4xl font-bold text-green-600 mb-6">ez {creditsDisplay}</p>
               <Button className="w-full" variant="default">
                 <PlusCircle className="w-4 h-4 mr-2" /> Add Credits
               </Button>

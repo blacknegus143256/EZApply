@@ -21,8 +21,9 @@ import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
-import { Link } from "@inertiajs/react";
+import { Dialog, DialogClose, DialogFooter, DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 import ChatButton from "@/components/ui/chat-button";
+
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -42,6 +43,10 @@ type Applicant = {
 
 type PageProps = {
   applicants?: Applicant[];
+  user: {
+    id: number;
+    balance: number;
+  };
 };
 
 const statusOptions = ["pending", "approved", "rejected", "interested"];
@@ -52,6 +57,14 @@ export default function CompanyApplicants() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
+
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
+  const [balance, setBalance] = useState(); 
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingApplicant, setPendingApplicant] = useState<Applicant | null>(null);
+
+  const cost = 10;
 
   // Filter logic
   const filteredApplicants = useMemo(() => {
@@ -64,6 +77,23 @@ export default function CompanyApplicants() {
 
   const handleStatusChange = (id: number, status: string) => {
     router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
+  };
+
+  const handleViewProfileClick = (applicant: Applicant) => {
+    if (balance < cost) {
+      alert("Insufficient balance to view profile.");
+      return;
+    }
+    setPendingApplicant(applicant);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmViewProfile = () => {
+    if (!pendingApplicant) return;
+    setBalance(balance - cost);
+    setSelectedApplicant(pendingApplicant);
+    setShowConfirmDialog(false);
+    setShowProfileDialog(true);
   };
 
   return (
@@ -103,20 +133,20 @@ export default function CompanyApplicants() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">
+                    <TableCell colSpan={4} className="text-center">
                       <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
                       Loading applicants...
                     </TableCell>
                   </TableRow>
                 ) : error ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-red-500">
+                    <TableCell colSpan={4} className="text-center text-red-500">
                       {error}
                     </TableCell>
                   </TableRow>
                 ) : filteredApplicants.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">
+                    <TableCell colSpan={4} className="text-center">
                       No applicants yet.
                     </TableCell>
                   </TableRow>
@@ -129,7 +159,7 @@ export default function CompanyApplicants() {
                           : "Unknown User"}
                       </TableCell>
                       <TableCell>{a.user?.email ?? "No email"}</TableCell>
-                                            <TableCell>
+                      <TableCell>
                         <select
                           value={a.status}
                           onChange={(e) => handleStatusChange(a.id, e.target.value)}
@@ -141,31 +171,19 @@ export default function CompanyApplicants() {
                             </option>
                           ))}
                         </select>
-                        {/* Optional badge display */}
                         <div className="mt-1">
-                          {a.status === "pending" && (
-                            <Badge variant="secondary">Pending 🟡</Badge>
-                          )}
-                          {a.status === "approved" && (
-                            <Badge variant="success">Approved 🟢</Badge>
-                          )}
-                          {a.status === "rejected" && (
-                            <Badge variant="destructive">Rejected 🔴</Badge>
-                          )}
-                          {a.status === "interested" && (
-                            <Badge variant="outline">Interested 🔵</Badge>
-                          )}
+                          {a.status === "pending" && <Badge variant="secondary">Pending 🟡</Badge>}
+                          {a.status === "approved" && <Badge variant="success">Approved 🟢</Badge>}
+                          {a.status === "rejected" && <Badge variant="destructive">Rejected 🔴</Badge>}
+                          {a.status === "interested" && <Badge variant="outline">Interested 🔵</Badge>}
                         </div>
-                        </TableCell>
-                        <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link href={`/applicant/${a.user?.id}`}>
-                          <Button className="cursor-pointer">View Profile</Button>
-                        </Link>
-
-                        <ChatButton status={a.status} userId={a.user?.id} />
-                      </div>
-                    </TableCell>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button onClick={() => handleViewProfileClick(a)}>View Profile</Button>
+                          <ChatButton status={a.status} userId={a.user?.id} />
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -173,6 +191,36 @@ export default function CompanyApplicants() {
             </Table>
           </CardContent>
         </Card>
+
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="p-6 rounded-md max-w-md mx-auto mt-5 bg-white dark:bg-neutral-800">
+            <DialogTitle className="text-lg font-bold mb-4">Confirm Transaction</DialogTitle>
+            <p>This will cost <strong>{cost} credits</strong>. Do you want to proceed?</p>
+            <div className="mt-4 flex justify-end gap-2">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={confirmViewProfile}>Proceed</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {selectedApplicant && (
+          <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+            <DialogContent className="p-6 rounded-md max-w-md mx-auto mt-5 bg-white dark:bg-neutral-800">
+              <DialogTitle className="text-lg font-bold mb-2">Applicant Profile</DialogTitle>
+              <hr/>
+              <p><strong>Name:</strong> {selectedApplicant.user?.first_name} {selectedApplicant.user?.last_name}</p>
+              <p><strong>Email:</strong> {selectedApplicant.user?.email}</p>
+              <p><strong>Status:</strong> {selectedApplicant.status}</p>
+              <div className="mt-4 text-right">
+                <DialogClose asChild>
+                  <Button>Close</Button>
+                </DialogClose>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </AppLayout>
     </PermissionGate>
   );

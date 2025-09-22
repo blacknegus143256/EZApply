@@ -6,6 +6,8 @@ import { type BreadcrumbItem } from '@/types';
 import { type PropsWithChildren } from 'react';
 import DisplayBalance from '@/components/balance-display';
 
+
+
 export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
     return (
         <AppShell variant="sidebar">

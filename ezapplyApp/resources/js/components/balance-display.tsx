@@ -5,7 +5,7 @@ import { SharedData } from "@/types";
 
 export default function BalanceDisplay() {
   const { props } = usePage<SharedData>();
-  const credits = props.balance ?? 0;
+  const credits = props.auth.user?.credits ?? 0;
 
   return (
     <PermissionGate role="company">

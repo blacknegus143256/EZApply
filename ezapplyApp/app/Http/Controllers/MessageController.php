@@ -55,18 +55,15 @@ public function viewChats()
 {
     $authUser = Auth::user();
 
-    // Get all messages involving the auth user
     $messages = Message::where('sender_id', $authUser->id)
         ->orWhere('receiver_id', $authUser->id)
         ->orderBy('created_at', 'desc')
         ->get();
 
-    // Map latest message per other user
     $chats = collect();
     foreach ($messages as $msg) {
         $otherUserId = $msg->sender_id === $authUser->id ? $msg->receiver_id : $msg->sender_id;
 
-        // Skip if already added (we only want latest per user)
         if ($chats->contains('userId', $otherUserId)) continue;
 
         $otherUser = User::find($otherUserId);
@@ -82,7 +79,6 @@ public function viewChats()
     }
 
     return Inertia::render('Chat/Chat-list', [
-        'auth' => ['user' => $authUser],
         'chats' => $chats->values(),
     ]);
 }

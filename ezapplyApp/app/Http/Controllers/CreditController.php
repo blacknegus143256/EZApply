@@ -12,7 +12,7 @@ class CreditController extends Controller
     public function creditDisplay()
 {
     $user = auth()->user();
-    $credits = $user?->creditRelation?->balance ?? 0;
+    $credits = $user?->credit?->balance ?? 0;
 
     return inertia('Credits/balancePage', [
         'balance' => $credits,

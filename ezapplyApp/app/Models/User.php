@@ -111,7 +111,7 @@ public function attachments()
     }
 
 
-    public function creditRelation()
+    public function credit()
 {
     return $this->hasOne(UserCredit::class);
 }
