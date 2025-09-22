@@ -147,7 +147,7 @@ export default function CompanyApplicants() {
                             <Badge variant="secondary">Pending 🟡</Badge>
                           )}
                           {a.status === "approved" && (
-                            <Badge variant="success">Approved 🟢</Badge>
+                            <Badge variant="secondary">Approved 🟢</Badge>
                           )}
                           {a.status === "rejected" && (
                             <Badge variant="destructive">Rejected 🔴</Badge>

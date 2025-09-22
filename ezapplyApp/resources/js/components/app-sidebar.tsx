@@ -8,6 +8,7 @@ import { Link,usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar'
+import CompanyApplicants from '@/pages/Company/CompanyApplicants';
 
 
 const mainNavItems: NavItem[] = [
@@ -53,6 +54,12 @@ const mainNavItems: NavItem[] = [
         title: 'My Companies',
         href: '/my-companies',
         icon: Building2,
+        permission: 'view_company_dashboard',
+    },
+    {
+        title: 'Company Applicants',
+        href: '/company-applicants',
+        icon: Folder,
         permission: 'view_company_dashboard',
     },
     {
