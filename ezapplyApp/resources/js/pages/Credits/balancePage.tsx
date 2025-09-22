@@ -26,7 +26,7 @@ export default function BalancePage() {
     <PermissionGate role="company">
         <AppLayout breadcrumbs={breadcrumbs}>
         <div className="flex flex-col min-h-screen bg-gray-50 p-6">
-      {/* Top Nav Tabs */}
+
       <div className="flex justify-around relative border-b">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -57,7 +57,7 @@ export default function BalancePage() {
         })}
       </div>
 
-      {/* Content */}
+      
       <div className="flex-1 flex items-center justify-center">
         {activeTab === "balance" && (
           <Card className="w-full max-w-md shadow-lg">

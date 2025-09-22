@@ -36,13 +36,13 @@ class PermissionsTableSeeder extends Seeder
         $company->givePermissionTo([
             'view_companies', 'create_companies', 'edit_companies', 'manage_own_companies',
             'view_franchises', 'create_franchises', 'edit_franchises',
-            'view_company_dashboard', 'view_settings', 'edit_settings',
+            'view_company_dashboard', 'view_settings', 'edit_settings','view_applications','view_chats',
         ]);
 
         $customer = Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
         $customer->givePermissionTo([
             'view_companies', 'view_franchises', 'apply_for_franchises',
-            'view_customer_dashboard', 'view_settings', 'edit_settings',
+            'view_customer_dashboard', 'view_settings', 'edit_settings','view_chats',
         ]);
     }
 }

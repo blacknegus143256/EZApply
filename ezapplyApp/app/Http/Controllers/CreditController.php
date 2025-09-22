@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class CreditController extends Controller
 {
     //
     public function creditDisplay()
-    {
-        // For demonstration, we'll use a static balance.
-        // In a real application, you would fetch this from the database.
-        $balance = 1500; // Example balance amount
+{
+    $user = auth()->user();
+    $credits = $user?->creditRelation?->balance ?? 0;
 
-        return inertia('Credits/balancePage', ['balance' => $balance]);
-    }
+    return inertia('Credits/balancePage', [
+        'balance' => $credits,
+    ]);
+}
+
+    
 }

@@ -30,5 +30,6 @@ class UsersTableSeeder extends Seeder
             'password'   => Hash::make('password123'),
         ]);
         $company->assignRole('company');
+        $company->credit()->create(['balance' => 200]);
     }
 }
