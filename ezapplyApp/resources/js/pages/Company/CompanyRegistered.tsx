@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import {
   Card,
   CardContent,
@@ -20,6 +20,8 @@ import { Loader2 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { Link } from '@inertiajs/react';
 import { route } from 'ziggy-js';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 
 interface Company {
   id: number;
@@ -39,7 +41,30 @@ const CompanyRegistered = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
-  console.log(companies);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<number | null>(null);
+
+  const handleDelete = (id: number) => {
+    setCompanyToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (companyToDelete !== null) {
+      router.delete(`/companies/${companyToDelete}`, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setCompanyToDelete(null);
+          // Inertia.js will automatically refresh the page data
+        },
+        onError: (errors) => {
+          console.error('Delete failed:', errors);
+          // Keep dialog open to show error or add toast notification
+        }
+      });
+    }
+  };
+
   // Filter logic
   const filteredCompanies = useMemo(() => {
     return (companies || []).filter((c) =>
@@ -140,13 +165,18 @@ const CompanyRegistered = () => {
                         : "—"}
                     </TableCell>
                     <TableCell>
-                    <a
-                    href={`/companies/${company.id}/edit`}
-                    className="inline-flex items-center px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
-                  >
-                    Edit
-                  </a>
-                  </TableCell>
+                      <div className="flex gap-2">
+                        <Button asChild variant="primary">
+                          <Link href={`/companies/${company.id}/edit`}>Edit</Link>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDelete(company.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -154,6 +184,21 @@ const CompanyRegistered = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>Confirm Delete</DialogHeader>
+          <p>Are you sure you want to delete this company?</p>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

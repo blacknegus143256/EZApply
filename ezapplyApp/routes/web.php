@@ -55,6 +55,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/my-companies', [CompanyController::class, 'myCompanies'])
     ->name('companies.my');
+
+
+    Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+
     Route::get('applicant/basicinfo', [BasicInfoController::class, 'index'])->name('applicant.basicinfo');
     Route::post('applicant/basicinfo', [BasicInfoController::class, 'store'])->name('applicant.basicinfo.store');
     

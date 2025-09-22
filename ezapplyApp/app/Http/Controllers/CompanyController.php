@@ -370,6 +370,28 @@ public function updateApplicantStatus(Request $request, $id)
     return back()->with('success', 'Applicant status updated.');
 }
 
+public function destroy(Company $company)
+    {
+        abort_unless($company->user_id === Auth::id(), 403);
 
+        try {
+            DB::transaction(function () use ($company) {
+                $company->opportunity()?->delete();
+                $company->background()?->delete();
+                $company->requirements()?->delete();
+                $company->marketing()?->delete();
+                $company->documents()?->delete();
+                $company->applications()->delete();
+                $company->delete();
+            });
 
+            return redirect('/my-companies')->with('success', 'Company deleted successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete company: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors(['error' => 'Failed to delete company. Please try again later.']);
+        }
+    }
 }
