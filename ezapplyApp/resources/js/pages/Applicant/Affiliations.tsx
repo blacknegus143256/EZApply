@@ -1,20 +1,12 @@
 // resources/js/Pages/Applicant/Affiliations.tsx
-import React, { useState } from "react";
-import { PlaceholderPattern } from "@/components/ui/placeholder-pattern";
-import AppLayout from "@/layouts/app-layout";
-import { dashboard } from "@/routes";
-import { type BreadcrumbItem } from "@/types";
-import { useForm, Head } from "@inertiajs/react";
+import React, { useState, useCallback, useRef  } from "react";
+import { useForm, router } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import PermissionGate from '@/components/PermissionGate';
+import {route} from "ziggy-js"; 
+import axios from "axios";
 import '../../../css/easyApply.css';
-import { Plus, Trash2 } from "lucide-react";
-import {route} from 'ziggy-js';
-const breadcrumbs: BreadcrumbItem[] = [
-  { title: "Dashboard", href: dashboard() },
-  { title: "Affiliations", href: "/applicant/affiliations" }
-];
+import { Plus, Trash2, Save } from "lucide-react";
 
 interface Affiliation {
   id?: number;
@@ -27,146 +19,170 @@ interface AffiliationsProps {
 }
 
 export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
-  const { data, setData, post, processing, errors } = useForm<{
+  
+  const { data, setData, processing, errors } = useForm<{
     affiliations: Affiliation[];
   }>({
-    affiliations: affiliations.length > 0 ? affiliations : [
-      {
-        institution: "",
-        position: "",
-      }
-    ]
+    affiliations: affiliations.length > 0 ? affiliations : [{ institution: "", position: "" }],
   });
 
-  // Add new affiliation
-  const addAffiliation = () => {
-    setData("affiliations", [
-      ...data.affiliations,
-      {
-        institution: "",
-        position: "",
+  const [visibleCount, setVisibleCount] = useState(3);
+
+  const saveAffiliation = async (affiliation: Affiliation, index: number) => {
+    try{
+      
+      if (affiliation.id) {
+        // Update existing
+        const res = await axios.put(
+          `/applicant/affiliations/${affiliation.id}`,
+          affiliation
+        );
+        const updated = [...data.affiliations];
+        updated[index] = res.data;
+        setData("affiliations", updated);
+      } else {
+        // Create new
+        const res = await axios.post(`/applicant/affiliations`, affiliation);
+        const updated = [...data.affiliations];
+        updated[index] = res.data; // replace temp with backend record
+        setData("affiliations", updated);
       }
-    ]);
+    } catch (err) {
+      console.error("Save failed:", err);
+    }
   };
+  
+    const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Remove affiliation
-  const removeAffiliation = async (id: number) => {
-   try {
-    const token = document
-      .querySelector('meta[name="csrf-token"]')
-      ?.getAttribute("content");
+    const handleChange = (index: number, field: keyof Affiliation, value: string) => {
+    const updated = [...data.affiliations];
+    updated[index] = { ...updated[index], [field]: value };
+    setData("affiliations", updated);
 
-    await fetch(`/applicant/affiliations/${id}`, {
-      method: "DELETE",
-      headers: {
-        "X-CSRF-TOKEN": token || "",
-        "Accept": "application/json",
-      },
-    });
-
-    // Update state after success
-    const updatedAffiliations = data.affiliations.filter((a) => a.id !== id);
-    setData("affiliations", updatedAffiliations);
-
-  } catch (error) {
-    console.error("Failed to delete affiliation:", error);
+    if (updated[index].id) {
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+    typingTimeout.current = setTimeout(() => {
+      saveAffiliation(updated[index], index);
+    }, 1000);
   }
   };
 
-  // Update affiliation
-  const updateAffiliation = (index: number, field: keyof Affiliation, value: string) => {
-    const updatedAffiliations = [...data.affiliations];
-    updatedAffiliations[index] = {
-      ...updatedAffiliations[index],
-      [field]: value
-    };
-    setData("affiliations", updatedAffiliations);
+  // Add new affiliation
+  const addAffiliation = () => {
+     const newAffiliations = [
+    ...data.affiliations,
+    { institution: "", position: "" },
+  ];
+  setData("affiliations", newAffiliations);
+      if (visibleCount !== 3) {
+    setVisibleCount(newAffiliations.length);
+  }
   };
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    post("/applicant/affiliations", {
-      onSuccess: () => {
-        console.log("Affiliations saved successfully!");
-      },
-      onError: (errors) => {
-        console.error("Error saving affiliations:", errors);
-      }
-    });
+  // Remove affiliation
+  const removeAffiliation = async (id?: number, index?: number) => {
+    if(id) {
+      await axios.delete(`/applicant/affiliations/${id}`);
+          setData(
+            "affiliations",
+            data.affiliations.filter((a) => a.id !== id)
+          );
+
+    } else if (index !== undefined) {
+      setData(
+        "affiliations",
+        data.affiliations.filter((_, i) => i !== index)
+      );
+    }
   };
 
   return (
-    <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Affiliations" />
-      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <section className="hero">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white dark:text-white">Affiliations</h1>
-          <p className="text-white dark:text-gray-400 mt-2">
-            Add your professional affiliations, memberships, and organizational positions.
-          </p>
-        </div> 
-        </section>
-        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            {data.affiliations.map((affiliation, index) => (
-              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Affiliation {index + 1}
-                  </h3>
-                  {data.affiliations.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeAffiliation(affiliation.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Remove
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Institution/Organization *
-                    </label>
-                    <Input
-                      value={affiliation.institution}
-                      onChange={(e) => updateAffiliation(index, "institution", e.target.value)}
-                      placeholder="e.g., Philippine Medical Association"
-                      required
-                      className="w-full"
-                    />
-                    {errors[`affiliations.${index}.institution`] && (
-                      <p className="text-red-600 text-sm mt-1">{errors[`affiliations.${index}.institution`]}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Position/Role *
-                    </label>
-                    <Input
-                      value={affiliation.position}
-                      onChange={(e) => updateAffiliation(index, "position", e.target.value)}
-                      placeholder="e.g., Board Member, Secretary, Treasurer"
-                      required
-                      className="w-full"
-                    />
-                    {errors[`affiliations.${index}.position`] && (
-                      <p className="text-red-600 text-sm mt-1">{errors[`affiliations.${index}.position`]}</p>
-                    )}
-                  </div>
-                </div> 
-              </div>
-            ))}
+      {data.affiliations.slice(0, visibleCount).map((affiliation, index) => (
+        <div
+          key={affiliation.id ?? index}
+          className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Affiliation {index + 1}
+            </h3>
+            <div className="flex gap-2">
+              {/* Show Save button only for NEW affiliations */}
+              {!affiliation.id && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => saveAffiliation(affiliation, index)}
+                  className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
+              )}
+            {data.affiliations.length > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => removeAffiliation(affiliation.id, index)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove
+              </Button>
+            )}
           </div>
+        </div>
+        
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium">Institution *</label>
+              <Input
+                value={affiliation.institution ?? ""}
+                onChange={(e) => handleChange(index, "institution", e.target.value)}
+                placeholder="e.g., Philippine Medical Association"
+                required
+              />
+              {errors[`affiliations.${index}.institution`] && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors[`affiliations.${index}.institution`]}
+                </p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Position *</label>
+              <Input
+                value={affiliation.position ?? ""}
+                onChange={(e) => handleChange(index, "position", e.target.value)}
+                placeholder="e.g., Board Member, Secretary"
+                required
+              />
+              {errors[`affiliations.${index}.position`] && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors[`affiliations.${index}.position`]}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {data.affiliations.length > 3 && (
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() =>
+              setVisibleCount(
+                visibleCount === 3 ? data.affiliations.length : 3
+              )
+            }
+          >
+            {visibleCount === 3 ? "Show More" : "Show Less"}
+          </Button>
+        </div>
+      )}
 
           {/* Add Affiliation Button */}
           <div className="flex justify-center">
@@ -181,23 +197,6 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
             </Button>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-            <Button
-              type="submit"
-              disabled={processing}
-              className="px-8 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {processing ? "Saving..." : "Save Affiliations"}
-            </Button>
-          </div>
-        </form>
-
-        <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-          <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-        </div>
       </div>
-    </AppLayout>
-    </PermissionGate>
   );
 }

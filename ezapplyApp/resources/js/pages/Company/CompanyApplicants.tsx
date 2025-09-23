@@ -53,16 +53,39 @@ const placeholderCustomer = {
     attachment_type: "ID Card",
   },
 };
+type CustomerDetails = {
+
+user?: {
+  id: number;
+  email: string;
+};
+  basicinfo?: {
+    first_name: string;
+    last_name: string;
+    birth_date: string;
+    phone: number;
+    Facebook?: string;
+    LinkedIn?: string;
+    Viber?: string;
+  };
+  affiliations?: {
+    institution: string;
+    position: string;
+  }[];
+  financials?: {
+    annual_income?: number;
+    salary?: number;
+  };
+  customer_attachments?: {
+    attachment_type?: string;
+  }[];
+};
+
 
 type Applicant = {
   id: number;
   status: string;
-  user: {
-    id: number;
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  };
+  customer: CustomerDetails;
 };
 
 type PageProps = {
@@ -77,15 +100,9 @@ export default function CompanyApplicants() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
-
   // Modal states
-  const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
+  const [selectedApplicant, setSelectedApplicant] = useState<CustomerDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleOpenModal = (applicant: any) => {
-    setSelectedApplicant(applicant);
-    setIsModalOpen(true);
-  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -94,16 +111,27 @@ export default function CompanyApplicants() {
 
   // Filter logic
   const filteredApplicants = useMemo(() => {
-    return applicants.filter((a) =>
-      `${a.user?.first_name ?? ""} ${a.user?.last_name ?? ""}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+    return applicants.filter((a) =>{
+      const firstName = a.user?.basicinfo?.first_name ?? "";
+      const lastName = a.user?.basicinfo?.last_name ?? "";
+      const email = a.user?.email ?? "";
+      const fullName = `${firstName} ${lastName} ${email}` .toLowerCase();
+
+      
+    return fullName.includes(searchTerm.toLowerCase());
+    }
     );
   }, [applicants, searchTerm]);
 
   const handleStatusChange = (id: number, status: string) => {
     router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
   };
+
+  const handleCustomerClick = (customer: CustomerDetails, status: string ) => {
+  console.log("Clicked Applicant:", customer, status);
+    setSelectedApplicant(customer);
+    setIsModalOpen(true);
+  }
 
   return (
     <PermissionGate
@@ -161,13 +189,13 @@ export default function CompanyApplicants() {
                   </TableRow>
                 ) : (
                   filteredApplicants.map((a) => (
-                    <TableRow key={a.id}>
+                    <TableRow key={a.user?.id ?? a.id}>
                       <TableCell>
-                        {a.user && (a.user.first_name || a.user.last_name)
-                          ? `${a.user.first_name ?? ""} ${a.user.last_name ?? ""}`.trim()
+                        {a.customer?.basicinfo && (a.customer.basicinfo.first_name || a.customer.basicinfo.last_name)
+                          ? `${a.customer.basicinfo.first_name ?? ""} ${a.customer.basicinfo.last_name ?? ""}`.trim()
                           : "Unknown User"}
                       </TableCell>
-                      <TableCell>{a.user?.email ?? "No email"}</TableCell>
+                      <TableCell>{a.customer?.user?.email ?? "No email"}</TableCell>
                                             <TableCell>
                         <select
                           value={a.status}
@@ -199,13 +227,11 @@ export default function CompanyApplicants() {
                       <TableCell>
                         
                       <div className="flex items-center gap-2">
-                        <Link href={`/applicant/${a.user?.id}`}>
-                        <Button onClick={() => handleOpenModal(placeholderCustomer)} className="view-btn btn-2 cursor-pointer">
+                        <Button onClick={() => handleCustomerClick(a.customer, a.status)} className="view-btn btn-2 cursor-pointer">
                           Applicant Profile
                         </Button>
-                        </Link>
 
-                        <ChatButton status={a.status} userId={a.user?.id} />
+                        <ChatButton status={a.status} userId={a.customer?.user?.id} />
                       </div>
                       </TableCell>
                     </TableRow>

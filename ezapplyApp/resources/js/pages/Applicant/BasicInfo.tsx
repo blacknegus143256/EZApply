@@ -29,12 +29,15 @@ interface FormData {
   Facebook: string;
   LinkedIn: string;
   Viber: string;
-  description: string;
   users_address: {
     region_code: string;
+    region_name: string;
     province_code: string;
+    province_name: string;
     citymun_code: string;
+    citymun_name: string;
     barangay_code: string;
+    barangay_name: string;
   };
 }
 
@@ -47,12 +50,15 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     Facebook: basicInfo?.Facebook || "",
     LinkedIn: basicInfo?.LinkedIn || "",
     Viber: basicInfo?.Viber || "",
-    description: "",
     users_address: {
       region_code: address?.region_code || "",
+      region_name: address?.region_name || "",
       province_code: address?.province_code || "",
+      province_name: address?.province_name || "",
       citymun_code: address?.citymun_code || "",
+      citymun_name: address?.citymun_name || "",
       barangay_code: address?.barangay_code || "",
+      barangay_name: address?.barangay_name || "",
     },
   });
 
@@ -63,47 +69,95 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   const [saved, setSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(!basicInfo);
 
-  useEffect(() => {
 
-    fetch("/psgc/regions")
-      .then((res) => res.json())
-      .then((data) => setRegions(data as any[]))
-  }, []);
-
-  // Preload dependent lists if codes already exist (to resolve names)
   useEffect(() => {
-    const { region_code, province_code, citymun_code } = data.users_address;
-    if (region_code) {
-      fetch(`/psgc/regions/${region_code}/provinces`)
-        .then((res) => res.json())
-        .then((prov) => {
-          setProvinces(prov as any[]);
-          if (province_code) {
-            fetch(`/psgc/provinces/${province_code}/cities-municipalities`)
-              .then((res) => res.json())
-              .then((ct) => {
-                setCities(ct as any[]);
-                if (citymun_code) {
-                  fetch(`/psgc/cities-municipalities/${citymun_code}/barangays`)
-                    .then((res) => res.json())
-                    .then((b) => setBarangays(b as any[]))
-                    .catch(() => {});
-                }
-              })
-              .catch(() => {});
-          }
-        })
-        .catch(() => {});
+  fetch("/psgc/regions")
+    .then((res) => res.json())
+    .then((data) => setRegions(data))
+    .catch(() => setRegions([]));
+}, []);
+
+useEffect(() => {
+  const { region_code, province_code, citymun_code, barangay_code } = data.users_address;
+
+  if (region_code) {
+    // resolve region name immediately
+    const region = regions.find(r => r.code === region_code);
+    if (region) {
+      setData("users_address", {
+        ...data.users_address,
+        region_name: region.name,
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    // preload provinces
+    fetch(`/psgc/regions/${region_code}/provinces`)
+      .then((res) => res.json())
+      .then((prov) => {
+        setProvinces(prov as any[]);
+
+        if (province_code) {
+          const province = prov.find((p: any) => p.code === province_code);
+          if (province) {
+            setData("users_address", {
+              ...data.users_address,
+              province_name: province.name,
+            });
+          }
+
+          // preload cities
+          fetch(`/psgc/provinces/${province_code}/cities-municipalities`)
+            .then((res) => res.json())
+            .then((ct) => {
+              setCities(ct as any[]);
+
+              if (citymun_code) {
+                const city = ct.find((c: any) => c.code === citymun_code);
+                if (city) {
+                  setData("users_address", {
+                    ...data.users_address,
+                    citymun_name: city.name,
+                  });
+                }
+
+                // preload barangays
+                fetch(`/psgc/cities-municipalities/${citymun_code}/barangays`)
+                  .then((res) => res.json())
+                  .then((b) => {
+                    setBarangays(b as any[]);
+                    if (barangay_code) {
+                      const brgy = b.find((br: any) => br.code === barangay_code);
+                      if (brgy) {
+                        setData("users_address", {
+                          ...data.users_address,
+                          barangay_name: brgy.name,
+                        });
+                      }
+                    }
+                  })
+                  .catch(() => {});
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
   const handleRegionChange = (regionCode: string) => {
+    const region = regions.find ((r) => r.code === regionCode)
     setData("users_address", {
+      ...data.users_address,
       region_code: regionCode,
+      region_name: region ? region.name : "",
       province_code: "",
+      province_name: "",
       citymun_code: "",
-      barangay_code: ""
+      citymun_name: "",
+      barangay_code: "",
+      barangay_name: ""
     });
     setProvinces([]);
     setCities([]);
@@ -111,52 +165,78 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     if (regionCode) {
       fetch(`/psgc/regions/${regionCode}/provinces`)
         .then((res) => res.json())
-        .then((data) => setProvinces(data as any[]));
+        .then((prov) => setProvinces(prov))
+        .catch(() => setProvinces([]));
+    }
+    else{
+    setProvinces([]);
+    setCities([]);
+    setBarangays([]);
     }
   };
 
   const handleProvinceChange = (provinceCode: string) => {
+    const province = provinces.find ((p) => p.code === provinceCode)
     setData("users_address", {
-      region_code: data.users_address.region_code,
+      ...data.users_address,
       province_code: provinceCode,
+      province_name: province ? province.name : "",
       citymun_code: "",
-      barangay_code: ""
+      citymun_name: "",
+      barangay_code: "",
+      barangay_name: ""
     });
     setCities([]);
     setBarangays([]);
     if (provinceCode) {
       fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`)
         .then((res) => res.json())
-        .then((data) => setCities(data as any[]));
+        .then((ct) => setCities(ct))
+        .catch(() => setCities([]));
+    }
+    else{
+    setCities([]);
+    setBarangays([]);
     }
   };
 
   const handleCityChange = (cityCode: string) => {
+    const city = cities.find ((c) => c.code === cityCode)
     setData("users_address", {
-      region_code: data.users_address.region_code,
-      province_code: data.users_address.province_code,
+      ...data.users_address,
       citymun_code: cityCode,
-      barangay_code: ""
+      citymun_name: city ? city.name : "",
+      barangay_code: "",
+      barangay_name: ""
     });
     setBarangays([]);
     if (cityCode) {
       fetch(`/psgc/cities-municipalities/${cityCode}/barangays`)
         .then((res) => res.json())
-        .then((data) => setBarangays(data as any[]));
+        .then((b) => setBarangays(b))
+        .catch (() => setBarangays([]));
+    }
+    else{
+      setBarangays([]);
     }
   };
 
   const handleBarangayChange = (barangayCode: string) => {
+    const barangay = barangays.find ((b) => b.code === barangayCode)
     setData("users_address", {
-      region_code: data.users_address.region_code,
-      province_code: data.users_address.province_code,
-      citymun_code: data.users_address.citymun_code,
-      barangay_code: barangayCode
+      ...data.users_address,
+      barangay_code: barangayCode,
+      barangay_name: barangay ? barangay.name : "",
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("Initial basicInfo prop:", basicInfo);
+console.log("Initial address prop:", address);
+
+  console.log("Submitting form:", data);
     setSaved(false);
     post("/applicant/basicinfo", {
       onSuccess: () => {
@@ -189,10 +269,7 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     </div>
   );
   return (
-    <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
-    <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Basic Info" />
-      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+      <div className="p-4">
         {saved && (
           <div className="rounded-md bg-green-600/15 border border-green-700 px-4 py-2 text-green-700 text-sm">
             Basic information saved successfully.
@@ -210,10 +287,10 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
               <SummaryRow label="Facebook" value={data.Facebook} />
               <SummaryRow label="LinkedIn" value={data.LinkedIn} />
               <SummaryRow label="Viber" value={data.Viber} />
-              <SummaryRow label="Region" value={regionName} />
-              <SummaryRow label="Province" value={provinceName} />
-              <SummaryRow label="City/Municipality" value={cityName} />
-              <SummaryRow label="Barangay" value={barangayName} />
+              <SummaryRow label="Region" value={data.users_address.region_name} />
+              <SummaryRow label="Province" value={data.users_address.province_name} />
+              <SummaryRow label="City/Municipality" value={data.users_address.citymun_name} />
+              <SummaryRow label="Barangay" value={data.users_address.barangay_name} />
             </div>
             <div className="flex justify-end mt-4">
               <button
@@ -295,17 +372,6 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
               <ErrorText message={(errors as any).Viber} />
             </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium">Description</label>
-              <textarea
-                name="description"
-                value={data.description}
-                onChange={(e) => setData("description", e.target.value)}
-                className="w-full border rounded px-3 py-2 min-h-[100px]"
-                placeholder="Tell us about yourself..."
-              />
-              <ErrorText message={(errors as any).description} />
-            </div>
 
             <h3 className="text-md font-semibold mt-4">Current Address</h3>
             <div className="border p-4 rounded space-y-4">
@@ -386,11 +452,6 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
           </form>
         )}
 
-        <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-          <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-        </div>
       </div>
-    </AppLayout>
-    </PermissionGate>
   );
 }

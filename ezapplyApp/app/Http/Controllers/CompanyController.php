@@ -13,7 +13,6 @@ use App\Models\{
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Models\Application;
 use Inertia\Inertia;
 
@@ -195,15 +194,19 @@ class CompanyController extends Controller
 
    public function companyApplicants()
 {
-    $companyId = auth()->user()->company->id ?? null;
+    $companyIds = auth()->user()->companies()->pluck ('id') ?? null;
 
-    if (!$companyId) {
+    if (!$companyIds) {
         abort(403, 'You do not have a company assigned.');
     }
 
     // Get applicants that applied to this company
-    $applicants = Application::with('user')
-        ->whereIn('company_id', auth()->user()->companies()->pluck('id'))
+    $applicants = Application::with([
+        'user',
+        'user.basicinfo',
+        'company'
+        ])
+        ->whereIn('company_id',$companyIds)
     ->get();
 
 return Inertia::render('Company/CompanyApplicants', [

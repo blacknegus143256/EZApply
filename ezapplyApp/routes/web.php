@@ -21,6 +21,9 @@ use App\Http\Controllers\AffiliationController;
 use App\Http\Controllers\BasicInfoController;
 use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\CustomerAttachmentController;
+
+use App\Http\Controllers\CustomerProfileController;
+
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
 
@@ -56,6 +59,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('applicant/affiliations', [AffiliationController::class, 'index'])->name('applicant.affiliations');
     Route::post('applicant/affiliations', [AffiliationController::class, 'store'])->name('applicant.affiliations.store');
     Route::delete('applicant/affiliations/{id}', [AffiliationController::class, 'destroy'])->name('applicant.affiliations.destroy');
+    Route::put('applicant/affiliations/{id}', [AffiliationController::class, 'update'])->name('applicant.affiliations.update');
+
     
     Route::get('applicant/financial', [FinancialController::class, 'index'])->name('applicant.financial');
     Route::post('applicant/financial', [FinancialController::class, 'store'])->name('applicant.financial.store');
@@ -64,6 +69,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('applicant/attachments', [CustomerAttachmentController::class, 'store'])->name('applicant.attachments.store');
     Route::delete('applicant/attachments/{attachment}', [CustomerAttachmentController::class, 'destroy'])->name('applicant.attachments.destroy');
     
+        Route::get('/applicant/profile', [CustomerProfileController::class, 'index'])
+    ->name('applicant.profile');
+
     Route::get('applicant/franchise', function () {
         return Inertia::render('Applicant/FranchiseForm', [
         'companies' => \App\Models\Company::with('opportunity')->get(),

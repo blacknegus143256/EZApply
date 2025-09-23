@@ -90,13 +90,42 @@ const FranchiseForm = () => {
   const [applyProvinces, setApplyProvinces] = useState<any[]>([]);
   const [applyCities, setApplyCities] = useState<any[]>([]);
   const [applyBarangays, setApplyBarangays] = useState<any[]>([]);
-  const [applyAddressCodes, setApplyAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
+  const [applyAddressCodes, setApplyAddressCodes] = useState<{
+    region_code: string;
+    region_name:string; 
+    province_code: string;
+    province_name:string; 
+    citymun_code: string; 
+    citymun_name:string;
+    barangay_code: string;
+    barangay_name:string;
+  }
+    >
+    ({ region_code: '', region_name: '' ,  province_code: '', province_name: '' , citymun_code: '', citymun_name: '' , barangay_code: '', barangay_name: ''});
   // PSGC for bulk modal
   const [bulkRegions, setBulkRegions] = useState<any[]>([]);
   const [bulkProvinces, setBulkProvinces] = useState<any[]>([]);
   const [bulkCities, setBulkCities] = useState<any[]>([]);
   const [bulkBarangays, setBulkBarangays] = useState<any[]>([]);
-  const [bulkAddressCodes, setBulkAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
+  const [bulkAddressCodes, setBulkAddressCodes] = useState<{
+    region_code: string; 
+    region_name: string;
+    province_code: string; 
+    province_name:string;
+    citymun_code: string;
+    citymun_name:string; 
+    barangay_code: string;
+    barangay_name: string;
+  }>({ 
+    region_code: '', 
+    province_code: '', 
+    citymun_code: '', 
+    barangay_code: '', 
+    region_name: '', 
+    province_name: '', 
+    citymun_name: '', 
+    barangay_name: '' 
+  });
 
   const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -162,7 +191,7 @@ console.log("Companies:", companies);
 
   // Bulk PSGC handlers
   const onBulkRegionChange = (regionCode: string) => {
-    setBulkAddressCodes({ region_code: regionCode, province_code: '', citymun_code: '', barangay_code: '' });
+    setBulkAddressCodes({ region_code: regionCode, region_name: '', province_code: '', province_name: '', citymun_code: '', citymun_code: '', barangay_code: '', barangay_name: '' });
     setBulkProvinces([]); setBulkCities([]); setBulkBarangays([]);
     if (regionCode) fetch(`/psgc/regions/${regionCode}/provinces`).then(r=>r.json()).then(setBulkProvinces).catch(()=>{});
   };
@@ -445,8 +474,8 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
                       onClick={() => {
                         if (applyModal.companyId) {
-                          const { region_code, province_code, citymun_code, barangay_code } = applyAddressCodes;
-                          const locationStr = [region_code, province_code, citymun_code, barangay_code].filter(Boolean).join('-');
+                          const { region_name, province_name, citymun_name, barangay_name } = applyAddressCodes;
+                          const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join('-');
                           handleApplySingle(applyModal.companyId, locationStr, applyModal.deadline_date);
                         }
                       }}
@@ -506,8 +535,8 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                     <button className="px-4 py-2 rounded-md bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600" onClick={()=>setBulkModal({ open: false, desired_location: '', deadline_date: '' })}>Cancel</button>
                     <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={()=>{
                       if (checked.length > 0) {
-                        const { region_code, province_code, citymun_code, barangay_code } = bulkAddressCodes;
-                        const locationStr = [region_code, province_code, citymun_code, barangay_code].filter(Boolean).join('-');
+                        const { region_name, province_name, citymun_name, barangay_name } = bulkAddressCodes;
+                        const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join('-');
                         axios.post('/applicant/applications', { companyIds: checked, desired_location: locationStr, deadline_date: bulkModal.deadline_date })
                           .then(()=>{
                             setApplied((prev)=> Array.from(new Set([...prev, ...checked])));

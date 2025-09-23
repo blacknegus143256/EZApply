@@ -9,12 +9,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 interface CustomerDetails {
+  user?: {
   id: number;
   email: string;
-  basicinfo?: {
+  }
+    basicinfo?: {
     first_name: string;
     last_name: string;
-    birth_date: Date;
+    birth_date: string;
     phone: number;
     Facebook?: string;
     LinkedIn?: string;
@@ -23,7 +25,7 @@ interface CustomerDetails {
   affiliations?: {
     institution: string;
     position: string;
-  };
+  }[];
   financials?: {
     annual_income?: number;
     salary?: number;
@@ -64,8 +66,8 @@ export default function CustomerDetailsModal({
       <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="relative">
           <DialogTitle className="text-2xl font-bold pr-8">
-            {customer.basicinfo
-              ? `${customer.basicinfo.first_name} ${customer.basicinfo.last_name}`
+            {customer.user?.basicinfo
+              ? `${customer.user.basicinfo.first_name} ${customer.user.basicinfo.last_name}`
               : "Unnamed Customer"}
           </DialogTitle>
           <DialogDescription className="text-base">
@@ -75,7 +77,7 @@ export default function CustomerDetailsModal({
 
         <div className="space-y-6">
           {/* Basic Information */}
-          {customer.basicinfo && (
+          {customer.user?.basicinfo && (
             <section>
               <h3 className="text-lg font-semibold border-b pb-2">
                 Basic Information
@@ -84,61 +86,61 @@ export default function CustomerDetailsModal({
                 <div>
                   <span className="font-medium">Full Name:</span>
                   <p className="text-sm text-gray-600">
-                    {customer.basicinfo.first_name} {customer.basicinfo.last_name}
+                    {customer.user.basicinfo.first_name} {customer.user.basicinfo.last_name}
                   </p>
                 </div>
 
                 <div>
                   <span className="font-medium">Birth Date:</span>
                   <p className="text-sm text-gray-600">
-                    {formatDate(customer.basicinfo.birth_date)}
+                    {formatDate(customer.user.basicinfo.birth_date)}
                   </p>
                 </div>
 
                 <div>
                   <span className="font-medium">Phone:</span>
                   <p className="text-sm text-gray-600">
-                    {customer.basicinfo.phone || "Not specified"}
+                    {customer.user.basicinfo.phone || "Not specified"}
                   </p>
                 </div>
 
                 <div>
                   <span className="font-medium">Email:</span>
-                  <p className="text-sm text-gray-600">{customer.email}</p>
+                  <p className="text-sm text-gray-600">{customer.user.email}</p>
                 </div>
 
                 {/* Social Links */}
-                {customer.basicinfo.Facebook && (
+                {customer.user.basicinfo.Facebook && (
                   <div>
                     <span className="font-medium">Facebook:</span>
                     <a
-                      href={customer.basicinfo.Facebook}
+                      href={customer.user.basicinfo.Facebook}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline text-sm block"
                     >
-                      {customer.basicinfo.Facebook}
+                      {customer.user.basicinfo.Facebook}
                     </a>
                   </div>
                 )}
-                {customer.basicinfo.LinkedIn && (
+                {customer.user.basicinfo.LinkedIn && (
                   <div>
                     <span className="font-medium">LinkedIn:</span>
                     <a
-                      href={customer.basicinfo.LinkedIn}
+                      href={customer.user.basicinfo.LinkedIn}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline text-sm block"
                     >
-                      {customer.basicinfo.LinkedIn}
+                      {customer.user.basicinfo.LinkedIn}
                     </a>
                   </div>
                 )}
-                {customer.basicinfo.Viber && (
+                {customer.user.basicinfo.Viber && (
                   <div>
                     <span className="font-medium">Viber:</span>
                     <p className="text-sm text-gray-600">
-                      {customer.basicinfo.Viber}
+                      {customer.user.basicinfo.Viber}
                     </p>
                   </div>
                 )}
@@ -147,7 +149,7 @@ export default function CustomerDetailsModal({
           )}
 
           {/* Affiliations */}
-          {customer.affiliations && (
+          {customer.user?.affiliations && (
             <section>
               <h3 className="text-lg font-semibold border-b pb-2">
                 Affiliations
@@ -156,13 +158,13 @@ export default function CustomerDetailsModal({
                 <div>
                   <span className="font-medium">Institution:</span>
                   <p className="text-sm text-gray-600">
-                    {customer.affiliations.institution || "Not specified"}
+                    {customer.user.affiliations.institution || "Not specified"}
                   </p>
                 </div>
                 <div>
                   <span className="font-medium">Position:</span>
                   <p className="text-sm text-gray-600">
-                    {customer.affiliations.position || "Not specified"}
+                    {customer.user.affiliations.position || "Not specified"}
                   </p>
                 </div>
               </div>
@@ -170,7 +172,7 @@ export default function CustomerDetailsModal({
           )}
 
           {/* Financial Information */}
-          {customer.financials && (
+          {customer.user?.financials && (
             <section>
               <h3 className="text-lg font-semibold border-b pb-2">
                 Financial Information
@@ -179,13 +181,13 @@ export default function CustomerDetailsModal({
                 <div>
                   <span className="font-medium">Annual Income:</span>
                   <p className="text-sm text-gray-600">
-                    {formatNumber(customer.financials.annual_income)}
+                    {formatNumber(customer.user.financials.annual_income)}
                   </p>
                 </div>
                 <div>
                   <span className="font-medium">Salary:</span>
                   <p className="text-sm text-gray-600">
-                    {formatNumber(customer.financials.salary)}
+                    {formatNumber(customer.user.financials.salary)}
                   </p>
                 </div>
               </div>
@@ -193,13 +195,13 @@ export default function CustomerDetailsModal({
           )}
 
           {/* Attachments */}
-          {customer.customer_attachments && customer.customer_attachments.length > 0 && (
+          {customer.user?.customer_attachments && customer.user?.customer_attachments.length > 0 && (
             <section>
               <h3 className="text-lg font-semibold border-b pb-2">
                 Attachments
               </h3>
               <ul className="list-disc list-inside text-sm text-gray-600">
-                {customer.customer_attachments.map((attachment, idx) => (
+                {customer.user.customer_attachments.map((attachment, idx) => (
                   <li key={idx}>
                     {attachment.attachment_type || "Unknown Attachment"}
                   </li>
