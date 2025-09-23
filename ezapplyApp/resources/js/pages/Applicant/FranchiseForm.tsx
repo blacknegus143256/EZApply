@@ -165,48 +165,106 @@ console.log("Companies:", companies);
   }, [bulkModal.open]);
 
   const onApplyRegionChange = (regionCode: string) => {
-    setApplyAddressCodes({ region_code: regionCode, province_code: '', citymun_code: '', barangay_code: '' });
+  const region = applyRegions.find((r) => r.code === regionCode);
+    setApplyAddressCodes({
+    region_code: regionCode,
+    region_name: region?.name || '',
+    province_code: '',
+    province_name: '',
+    citymun_code: '',
+    citymun_name: '',
+    barangay_code: '',
+    barangay_name: '',
+   });
     setApplyProvinces([]); setApplyCities([]); setApplyBarangays([]);
     if (regionCode) {
       fetch(`/psgc/regions/${regionCode}/provinces`).then(r => r.json()).then(setApplyProvinces).catch(() => {});
     }
   };
   const onApplyProvinceChange = (provinceCode: string) => {
-    setApplyAddressCodes((prev) => ({ ...prev, province_code: provinceCode, citymun_code: '', barangay_code: '' }));
+    
+  const province = applyProvinces.find((p) => p.code === provinceCode);
+    setApplyAddressCodes((prev) => ({ 
+      ...prev,
+      province_code: provinceCode,
+      province_name: province?.name || '',
+      citymun_code: '',
+      citymun_name: '',
+      barangay_code: '',
+      barangay_name: '',
+    }));
     setApplyCities([]); setApplyBarangays([]);
     if (provinceCode) {
       fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`).then(r => r.json()).then(setApplyCities).catch(() => {});
     }
   };
   const onApplyCityChange = (cityCode: string) => {
-    setApplyAddressCodes((prev) => ({ ...prev, citymun_code: cityCode, barangay_code: '' }));
+    const city = applyCities.find((c) => c.code === cityCode);
+    setApplyAddressCodes((prev) => ({ 
+      ...prev,
+      citymun_code: cityCode,
+      citymun_name: city?.name || '',
+      barangay_code: '',
+      barangay_name: '',
+   }));
     setApplyBarangays([]);
     if (cityCode) {
       fetch(`/psgc/cities-municipalities/${cityCode}/barangays`).then(r => r.json()).then(setApplyBarangays).catch(() => {});
     }
   };
   const onApplyBarangayChange = (barangayCode: string) => {
-    setApplyAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
+    const barangay = applyBarangays.find((b) => b.code === barangayCode);
+    setApplyAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode, 
+    barangay_name: barangay?.name || '', }));
   };
 
   // Bulk PSGC handlers
   const onBulkRegionChange = (regionCode: string) => {
-    setBulkAddressCodes({ region_code: regionCode, region_name: '', province_code: '', province_name: '', citymun_code: '', citymun_code: '', barangay_code: '', barangay_name: '' });
+  const region = applyRegions.find((r) => r.code === regionCode);
+    setBulkAddressCodes({ 
+    region_code: regionCode,
+    region_name: region?.name || '',
+    province_code: '',
+    province_name: '', 
+    citymun_code: '', 
+    citymun_name: '', 
+    barangay_code: '', 
+    barangay_name: '' });
     setBulkProvinces([]); setBulkCities([]); setBulkBarangays([]);
     if (regionCode) fetch(`/psgc/regions/${regionCode}/provinces`).then(r=>r.json()).then(setBulkProvinces).catch(()=>{});
   };
   const onBulkProvinceChange = (provinceCode: string) => {
-    setBulkAddressCodes((prev) => ({ ...prev, province_code: provinceCode, citymun_code: '', barangay_code: '' }));
+    const province = applyProvinces.find((p) => p.code === provinceCode);
+    setBulkAddressCodes((prev) => ({ 
+      ...prev, province_code: provinceCode, 
+    province_name: province?.name || '',
+    citymun_code: '', 
+    citymun_name: '',
+    barangay_code: '',  
+    barangay_name: '', 
+  }));
+  
     setBulkCities([]); setBulkBarangays([]);
     if (provinceCode) fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`).then(r=>r.json()).then(setBulkCities).catch(()=>{});
   };
   const onBulkCityChange = (cityCode: string) => {
-    setBulkAddressCodes((prev) => ({ ...prev, citymun_code: cityCode, barangay_code: '' }));
+  const city = applyCities.find((c) => c.code === cityCode);
+    setBulkAddressCodes((prev) => ({ 
+      ...prev,
+    citymun_code: cityCode,
+    citymun_name: city?.name || '',
+    barangay_code: '',
+    barangay_name: '', }));
     setBulkBarangays([]);
     if (cityCode) fetch(`/psgc/cities-municipalities/${cityCode}/barangays`).then(r=>r.json()).then(setBulkBarangays).catch(()=>{});
   };
   const onBulkBarangayChange = (barangayCode: string) => {
-    setBulkAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
+  const barangay = applyBarangays.find((b) => b.code === barangayCode);
+    setBulkAddressCodes((prev) => ({ 
+      ...prev,
+       barangay_code: barangayCode,
+      barangay_name: barangay?.name || '',
+       }));
   };
 
   const handleCheck = (companyId: number) => {
