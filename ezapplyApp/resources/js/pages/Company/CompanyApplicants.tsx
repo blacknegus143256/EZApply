@@ -1,59 +1,46 @@
 import React, { useState, useMemo } from "react";
-import { Head, usePage, router } from "@inertiajs/react";
-import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
+import { usePage, router } from "@inertiajs/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
-import { BreadcrumbItem } from "@/types";
+import { BreadcrumbItem, SharedData } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogFooter, DialogHeader, DialogTitle, DialogContent } from '@/components/ui/dialog';
 import ChatButton from "@/components/ui/chat-button";
-import { SharedData } from "@/types";
-
+import PaymentConfirmationDialog from "./PaymentConfirm";
+import ViewProfileDialog from "./ViewProfileDialog";
+import { Application } from "@/types/applicants";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Company Applicants", href: "/company/applicants" },
 ];
 
-type Applicant = {
-  id: number;
-  status: string;
-  user: {
-    id: number;
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  };
-};
-
-type PageProps = {
-  applicants?: Applicant[];
-  user: {
-    id: number;
-    balance: number;
-  };
-};
-
-const statusOptions = ["pending", "approved", "rejected", "interested"];
-
 export default function CompanyApplicants() {
-  type PagePropsWithAuth = PageProps & SharedData;
+  type PagePropsWithAuth = {
+    applicants?: Application[];
+    user: { id: number; balance: number };
+  } & SharedData;
+
   const { props } = usePage<PagePropsWithAuth>();
   const applicants = props.applicants ?? [];
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading] = useState(false);
-  const [error] = useState<string | null>(null);
-  const credits = props.auth.user?.credits ?? 0;
-  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
-  const [balance, setBalance] = useState(credits); 
+  const [balance, setBalance] = useState(props.auth.user?.credits ?? 0);
+
+  const [pendingApplicant, setPendingApplicant] = useState<Application | null>(
+    null
+  );
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingApplicant, setPendingApplicant] = useState<Applicant | null>(null);
-  
 
   const cost = 50;
 
@@ -66,66 +53,94 @@ export default function CompanyApplicants() {
   }, [applicants, searchTerm]);
 
   const handleStatusChange = (id: number, status: string) => {
-    router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
+    router.put(
+      `/company/applicants/${id}/status`,
+      { status },
+      { preserveScroll: true }
+    );
   };
 
-  const handleViewProfileClick = (applicant: Applicant) => {
-    console.log(balance, cost)
-    if (balance < cost) {
-      alert("Insufficient balance to view profile.");
-      return;
+  const handleViewProfileClick = async (applicant: Application) => {
+  setPendingApplicant(applicant);
+
+  try {
+    const res = await fetch(`/company/check-applicant-view/${applicant.id}`, {
+      headers: {
+        'Accept': 'application/json', 
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error('Network response was not ok');
     }
-    setPendingApplicant(applicant);
-    setShowConfirmDialog(true);
-  };
 
-  const confirmViewProfile = () => {
-  if (!pendingApplicant) return;
+    const data = await res.json();
 
-  const updatedBalance = balance - cost;
-  setBalance(updatedBalance);
-
-  setSelectedApplicant(pendingApplicant);
-  setShowProfileDialog(true);
-  setShowConfirmDialog(false);
-  setPendingApplicant(null);
-
-  router.put('/company/deduct-balance', { new_balance: updatedBalance })
-  .then(() => {
-    console.log('Database updated!');
-  })
-  .catch(() => {
-    alert('Failed to update balance.');
-  });
-
+    if (data.already_viewed) {
+      setShowProfileDialog(true);
+    } else if (balance >= cost) {
+      setShowPaymentDialog(true);
+    } else {
+      alert('Insufficient balance to view this profile.');
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Error checking applicant view status.');
+  }
 };
 
+
+
+  const confirmPayment = async () => {
+  if (!pendingApplicant) return;
+
+  try {
+    await router.post(
+      "/company/view-applicant",
+      { application_id: pendingApplicant.id }, 
+      {
+        onSuccess: (page) => {
+          if (page.props?.already_paid) {
+            setShowProfileDialog(true);
+            return;
+          }
+
+          if (page.props.auth?.user?.credits !== undefined) {
+            setBalance(page.props.auth.user.credits);
+          } else {
+            setBalance((prev) => prev - cost);
+          }
+
+          setShowProfileDialog(true);
+        },
+        onError: () => {
+          alert("Payment failed. Please check your balance.");
+        },
+      }
+    );
+  } catch {
+    alert("Something went wrong.");
+  }
+};
 
 
   return (
     <PermissionGate
       permission="view_company_dashboard"
-      fallback={<div className="p-6">You don't have permission to access this page.</div>}
+      fallback={<div className="p-6">You don't have permission.</div>}
     >
       <AppLayout breadcrumbs={breadcrumbs}>
-        <Head title="Company Applicants" />
-
         <Card>
           <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
             <CardTitle>Company Applicants</CardTitle>
-            <div className="flex gap-2 w-full md:w-auto">
-              <Input
-                type="text"
-                placeholder="Search applicant..."
-                className="max-w-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+            <Input
+              type="text"
+              placeholder="Search applicant..."
+              className="max-w-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </CardHeader>
-
-          <hr />
-
           <CardContent>
             <Table>
               <TableHeader>
@@ -137,56 +152,59 @@ export default function CompanyApplicants() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
+                {filteredApplicants.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center">
-                      <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
-                      Loading applicants...
-                    </TableCell>
-                  </TableRow>
-                ) : error ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-red-500">
-                      {error}
-                    </TableCell>
-                  </TableRow>
-                ) : filteredApplicants.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                      No applicants yet.
+                      No applicants found.
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredApplicants.map((a) => (
                     <TableRow key={a.id}>
-                      <TableCell>
-                        {a.user && (a.user.first_name || a.user.last_name)
-                          ? `${a.user.first_name ?? ""} ${a.user.last_name ?? ""}`.trim()
-                          : "Unknown User"}
-                      </TableCell>
-                      <TableCell>{a.user?.email ?? "No email"}</TableCell>
+                      <TableCell>{`${a.user?.first_name ?? ""} ${
+                        a.user?.last_name ?? ""
+                      }`.trim()}</TableCell>
+                      <TableCell>{a.user?.email}</TableCell>
                       <TableCell>
                         <select
                           value={a.status}
-                          onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                          onChange={(e) =>
+                            handleStatusChange(a.id, e.target.value)
+                          }
                           className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm"
                         >
-                          {statusOptions.map((status) => (
-                            <option key={status} value={status}>
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </option>
-                          ))}
+                          {["pending", "approved", "rejected", "interested"].map(
+                            (status) => (
+                              <option key={status} value={status}>
+                                {status.charAt(0).toUpperCase() +
+                                  status.slice(1)}
+                              </option>
+                            )
+                          )}
                         </select>
                         <div className="mt-1">
-                          {a.status === "pending" && <Badge variant="secondary">Pending 🟡</Badge>}
-                          {a.status === "approved" && <Badge variant="success">Approved 🟢</Badge>}
-                          {a.status === "rejected" && <Badge variant="destructive">Rejected 🔴</Badge>}
-                          {a.status === "interested" && <Badge variant="outline">Interested 🔵</Badge>}
+                          {a.status === "pending" && (
+                            <Badge variant="secondary">Pending 🟡</Badge>
+                          )}
+                          {a.status === "approved" && (
+                            <Badge variant="success">Approved 🟢</Badge>
+                          )}
+                          {a.status === "rejected" && (
+                            <Badge variant="destructive">Rejected 🔴</Badge>
+                          )}
+                          {a.status === "interested" && (
+                            <Badge variant="outline">Interested 🔵</Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button onClick={() => handleViewProfileClick(a)} disabled={balance < cost} >View Profile</Button>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleViewProfileClick(a)}
+                            // disabled={balance < cost}
+                          >
+                            View Profile
+                          </Button>
                           <ChatButton status={a.status} userId={a.user?.id} />
                         </div>
                       </TableCell>
@@ -198,34 +216,22 @@ export default function CompanyApplicants() {
           </CardContent>
         </Card>
 
-        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent className="p-6 rounded-md max-w-md mx-auto mt-5 bg-white dark:bg-neutral-800">
-            <DialogTitle className="text-lg font-bold mb-4">Confirm Transaction</DialogTitle>
-            <p>This will cost <strong>{cost} credits</strong>. Do you want to proceed?</p>
-            <div className="mt-4 flex justify-end gap-2">
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={confirmViewProfile}>Proceed</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {pendingApplicant && (
+          <PaymentConfirmationDialog
+            open={showPaymentDialog}
+            onOpenChange={setShowPaymentDialog}
+            cost={cost}
+            balance={balance}
+            onConfirm={confirmPayment}
+          />
+        )}
 
-        {selectedApplicant && (
-          <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
-            <DialogContent className="p-6 rounded-md max-w-md mx-auto mt-5 bg-white dark:bg-neutral-800">
-              <DialogTitle className="text-lg font-bold mb-2">Applicant Profile</DialogTitle>
-              <hr/>
-              <p><strong>Name:</strong> {selectedApplicant.user?.first_name} {selectedApplicant.user?.last_name}</p>
-              <p><strong>Email:</strong> {selectedApplicant.user?.email}</p>
-              <p><strong>Status:</strong> {selectedApplicant.status}</p>
-              <div className="mt-4 text-right">
-                <DialogClose asChild>
-                  <Button>Close</Button>
-                </DialogClose>
-              </div>
-            </DialogContent>
-          </Dialog>
+        {pendingApplicant && (
+          <ViewProfileDialog
+            open={showProfileDialog}
+            onOpenChange={setShowProfileDialog}
+            application={pendingApplicant}
+          />
         )}
       </AppLayout>
     </PermissionGate>

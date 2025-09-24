@@ -44,3 +44,15 @@ export interface User {
     roles: string[];
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Transactions {
+    id: number;
+    user_id: number;
+    amount: number;
+    type: string;
+    description: string;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+
+}

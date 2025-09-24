@@ -21,7 +21,8 @@ class PermissionsTableSeeder extends Seeder
             'view_companies', 'create_companies', 'edit_companies', 'delete_companies', 'manage_own_companies',
             'view_franchises', 'create_franchises', 'edit_franchises', 'delete_franchises', 'apply_for_franchises',
             'view_customer_dashboard', 'view_company_dashboard', 'view_admin_dashboard',
-            'view_settings', 'edit_settings','view_request_companies','view_chats','view_applications','view_my_companies'
+            'view_settings', 'edit_settings','view_request_companies','view_chats','view_applications','view_my_companies',
+            'view_balance',
         ];
 
         foreach ($permissions as $permission) {
@@ -37,6 +38,7 @@ class PermissionsTableSeeder extends Seeder
             'view_companies', 'create_companies', 'edit_companies', 'manage_own_companies',
             'view_franchises', 'create_franchises', 'edit_franchises',
             'view_company_dashboard', 'view_settings', 'edit_settings','view_applications','view_chats','view_my_companies',
+            'view_balance',
         ]);
 
         $customer = Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);

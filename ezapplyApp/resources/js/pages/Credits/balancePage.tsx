@@ -8,7 +8,7 @@ import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from '@/components/PermissionGate';
 import { usePage } from "@inertiajs/react";
-import { SharedData } from "@/types";
+import { SharedData, Transactions } from "@/types";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -25,6 +25,7 @@ export default function BalancePage() {
   const [activeTab, setActiveTab] = useState("balance");
   const { props } = usePage<SharedData>();
   const creditsDisplay = props.balance ?? 0;
+
 
   return (
     <PermissionGate role="company">
@@ -80,18 +81,7 @@ export default function BalancePage() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold text-gray-600 mb-4">Transaction History</h2>
               <ul className="space-y-3 text-sm">
-                <li className="flex justify-between border-b pb-2">
-                  <span>Top Up ₱500</span>
-                  <span className="text-green-600">+₱500</span>
-                </li>
-                <li className="flex justify-between border-b pb-2">
-                  <span>Purchase Service</span>
-                  <span className="text-red-600">-₱300</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Top Up ₱1000</span>
-                  <span className="text-green-600">+₱1000</span>
-                </li>
+                
               </ul>
             </CardContent>
           </Card>

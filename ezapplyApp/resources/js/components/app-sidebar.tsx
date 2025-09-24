@@ -71,7 +71,7 @@ const mainNavItems: NavItem[] = [
         title: 'Credit Balance',
         href: '/credit-balance',
         icon: Banknote,
-        permission: 'view_applications',
+        permission: 'view_balance',
 
     },
 
