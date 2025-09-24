@@ -29,7 +29,7 @@ class CustomerAttachmentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'attachment_type' => 'required|in:resume,cover_letter,portfolio,CVs,other',
+            'attachment_type' => 'required|in:Resume/CV,Valid ID,Proof of Income,Proof of Address,Business Documents,other',
             'attachment' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240', // 10MB max
         ]);
 

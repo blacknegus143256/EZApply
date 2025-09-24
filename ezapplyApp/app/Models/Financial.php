@@ -12,8 +12,11 @@ class Financial extends Model
 
     protected $fillable = [
         'user_id',
-        'annual_income',
-        'salary',
+        'income_source',
+        'monthly_income',
+        'other_income',
+        'monthly_expenses',
+        'existing_loans',
     ];
 
     /**

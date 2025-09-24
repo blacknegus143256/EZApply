@@ -74,9 +74,7 @@ export default function Affiliations({ affiliations = [] }: AffiliationsProps) {
     { institution: "", position: "" },
   ];
   setData("affiliations", newAffiliations);
-      if (visibleCount !== 3) {
     setVisibleCount(newAffiliations.length);
-  }
   };
 
   // Remove affiliation

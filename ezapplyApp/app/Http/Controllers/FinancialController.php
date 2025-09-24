@@ -27,19 +27,19 @@ class FinancialController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'annual_income' => 'required|numeric|min:0',
-            'salary' => 'required|numeric|min:0',
+        $validated = $request->validate([
+            'income_source' => 'nullable|string|max:255',
+            'monthly_income' => 'nullable|numeric|min:0',
+            'other_income'      => 'nullable|string|max:1000',
+            'monthly_expenses'  => 'nullable|numeric|min:0',
+            'existing_loans'    => 'nullable|numeric|min:0',
         ]);
 
         $user = Auth::user();
         
-        $financial = $user->financial()->updateOrCreate(
+        $user->financial()->updateOrCreate(
             ['user_id' => $user->id],
-            [
-                'annual_income' => $request->annual_income,
-                'salary' => $request->salary,
-            ]
+           $validated
         );
 
         return redirect()->back()->with('success', 'Financial information saved successfully!');

@@ -278,7 +278,7 @@ console.log("Companies:", companies);
 // Start with all companies
 let filtered = companies;
 
-// filtered = filtered.filter((c) => c.status === 'approved');
+filtered = filtered.filter((c) => c.status === 'approved');
 
 // Filter by type
 if (type !== 'all') {
@@ -533,7 +533,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       onClick={() => {
                         if (applyModal.companyId) {
                           const { region_name, province_name, citymun_name, barangay_name } = applyAddressCodes;
-                          const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join('-');
+                          const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join(' - ');
                           handleApplySingle(applyModal.companyId, locationStr, applyModal.deadline_date);
                         }
                       }}

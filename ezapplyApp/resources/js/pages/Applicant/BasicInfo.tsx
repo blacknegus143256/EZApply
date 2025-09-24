@@ -278,7 +278,7 @@ console.log("Initial address prop:", address);
 
         {!isEditing ? (
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-4">
-            <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Your Basic Information</h2>
+            <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100 hero">Your Basic Information</h2>
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               <SummaryRow label="First Name" value={data.first_name} />
               <SummaryRow label="Last Name" value={data.last_name} />
