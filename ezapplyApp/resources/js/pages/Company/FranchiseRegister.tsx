@@ -369,7 +369,16 @@ function doSubmit() {
                         <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
                         <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment} onChange={(e) => setData('min_investment', Number(e.target.value) || '')} required /></Field>
                         <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee} onChange={(e) => setData('franchise_fee', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Royalty Fee*"><Input name="royalty_fee" value={data.royalty_fee_structure} onChange={(e) => setData('royalty_fee_structure', e.target.value)} required /></Field>
+                        <Field label="Royalty Fee Structure*">
+                          <Input
+                            name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
+                            value={data.royalty_fee_structure}
+                            onChange={(e) => setData("royalty_fee_structure", e.target.value)}
+                          />
+                          {errors.royalty_fee_structure && (
+                            <div className="text-red-500">{errors.royalty_fee_structure}</div>
+                          )}
+                        </Field>                        
                         <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue} onChange={(e) => setData('avg_annual_revenue', Number(e.target.value) || '')} /></Field>
                         <ErrorText message={(errors as any).avg_annual_revenue} />
                       </div>
@@ -386,15 +395,18 @@ function doSubmit() {
                         <Field label="Industry Sector *">
                           <Input name="industry_sector" value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required />
                         </Field>
-                        <Field label="Date Started *">
-                          <Input
-                            name="years_in_operation"
-                            type="date"
-                            value={data.years_in_operation}
-                            onChange={(e) => setData('years_in_operation', e.target.value)}
-                            required
-                          />
-                        </Field>
+                        <Field label="Years in Operation*">
+                        <Input
+                          type="number"
+                          name="years_in_operation"
+                          value={data.years_in_operation}
+                          onChange={(e) => setData("years_in_operation", e.target.value)}
+                        />
+                        {errors.years_in_operation && (
+                          <div className="text-red-500">{errors.years_in_operation}</div>
+                        )}
+                      </Field>
+
                         <ErrorText message={(errors as any).years_in_operation} />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -464,38 +476,6 @@ function doSubmit() {
                     </div>
                   )}
 
-                  {/* Step 6: Documents */}
-                  {step === 5 && (
-                  <div className="grid gap-3">
-                        <Field label={`DTI/SBC Registration Document ${companyId ? '(optional on edit)' : '*'}`}>
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="mt-1 block w-full text-gray-200"
-                            onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
-                            required={!companyId}
-                          />
-                        </Field>
-                        <Field label={`BIR 2303 Certificate ${companyId ? '(optional on edit)' : '*'}`}>
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="mt-1 block w-full text-gray-200"
-                            onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
-                            required={!companyId}
-                          />
-                        </Field>
-                        <Field label={`IPO Registration Document ${companyId ? '(optional on edit)' : '*'}`}>
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="mt-1 block w-full text-gray-200"
-                            onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
-                            required={!companyId}
-                          />
-                        </Field>
-                      </div>
-                  )}
 
                   {/* Step 6: Documents */}
                   {step === 5 && (

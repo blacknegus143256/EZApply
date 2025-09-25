@@ -38,36 +38,6 @@ const mainNavItems: NavItem[] = [
     icon: MessageCircle,
     permission: 'view_customer_dashboard',
     },
-    //  {
-    //     title: 'Basic Info',
-    //     href: '/applicant/basicinfo',
-    //     icon: UserIcon,
-    //     permission: 'view_customer_dashboard',
-    // },
-    //  {
-    //     title: 'Affiliations',
-    //     href: '/applicant/affiliations',
-    //     icon: Building2,
-    //     permission: 'view_customer_dashboard',
-    // },
-    //  {
-    //     title: 'Financial Info',
-    //     href: '/applicant/financial',
-    //     icon: Banknote,
-    //     permission: 'view_customer_dashboard',
-    // },
-    //  {
-    //     title: 'Attachments',
-    //     href: '/applicant/attachments',
-    //     icon: Folder,
-    //     permission: 'view_customer_dashboard',
-    // },
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-        permission: 'view_companies_dashboard',
-    },
     {
         title: 'Company',
         href: '/companies',
@@ -105,31 +75,6 @@ const mainNavItems: NavItem[] = [
         permission: 'view_applications',
 
     },
-    {
-        title: 'My Companies',
-        href: '/my-registered-companies',
-        icon: Building2,
-        permission: 'view_my_companies',
-    },
-    {
-        title: 'Applicants',
-        href: '/company-applicants',
-        icon: UserIcon,
-        permission: 'view_applications',
-    },
-    {
-        title: 'Your Chats',
-        href: '/view-chats',
-        icon: MessageCircle,
-        permission: 'view_chats',
-    },
-    {
-        title: 'Credit Balance',
-        href: '/credit-balance',
-        icon: Banknote,
-        permission: 'view_balance',
-
-    },
 
     
     // Admin only - User Management
@@ -157,36 +102,10 @@ const mainNavItems: NavItem[] = [
         icon: List,
         permission: 'view_request_companies',
     },
-    
-    
-    // Company specific
-    // {
-    //     title: 'My Companies',
-    //     href: '/companies',
-    //     icon: Folder,
-    //     permission: 'manage_own_companies',
-    // },
-    
-    // Customer specific
-    // {
-    //     title: 'Browse Franchises',
-    //     href: '/companies',
-    //     icon: Folder,
-    //     permission: 'view_companies',
-    // },
+
 ];
 
 const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Repository',
-    //     href: 'https://github.com/laravel/react-starter-kit',
-    //     icon: Folder,
-    // },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits#react',
-    //     icon: BookOpen,
-    // },
     {
         title: 'Home Page',
         href: `/easy-apply`,
@@ -216,7 +135,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} role={page.props.role} url={url} />
                 <div className="mt-4">
                     <div className="px-4 text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                     Franchise Application

@@ -330,7 +330,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
     setSelectedCompany(null);
   };
   return (
-    <PermissionGate permission="apply_for_franchises" fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
+    <PermissionGate permission="apply_for_franchises"  fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Franchise Application" />
 
