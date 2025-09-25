@@ -35,7 +35,7 @@ class CompanyController extends Controller
         'year_founded'             => 'required|integer|between:1800,'.date('Y'),
         'num_franchise_locations'  => 'nullable|integer|min:0',
 
-        // Step 3 — company_opportunities
+        // Step 2 — company_opportunities
         'franchise_type'           => 'required|string|max:255',
         'min_investment'           => 'required|numeric|min:0',
         'franchise_fee'            => 'required|numeric|min:0',
@@ -46,21 +46,21 @@ class CompanyController extends Controller
         'franchise_term'           => 'required|string|max:255',
         'unique_selling_points'    => 'nullable|string',
 
-        // Step 4 — company_backgrounds
+        // Step 3 — company_backgrounds
         'industry_sector'          => 'required|string|max:255',
         'years_in_operation'       => 'required|integer|min:0',
         'total_revenue'            => 'nullable|numeric|min:0',
         'awards'                   => 'nullable|string|max:255',
         'company_history'          => 'nullable|string',
 
-        // Step 5 — company_requirements
+        // Step 4 — company_requirements
         'min_net_worth'            => 'required|numeric|min:0',
         'min_liquid_assets'        => 'required|numeric|min:0',
         'prior_experience'         => 'sometimes|boolean',
         'experience_type'          => 'nullable|string|max:255',
         'other_qualifications'     => 'nullable|string',
 
-        // Step 6 — company_marketings
+        // Step 5 — company_marketings
         'listing_title'            => 'nullable|string|max:255',
         'listing_description'      => 'nullable|string',
         'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
@@ -188,7 +188,9 @@ class CompanyController extends Controller
 
     public function myCompanies()
 {
-    $companies = Company::where('user_id', Auth::id())->get(['id', 'company_name', 'status']);
+    $companies = Company::where('user_id', Auth::id())
+    ->with(['opportunity','background','requirements','marketing'])
+    ->get(['id', 'company_name', 'brand_name', 'year_founded', 'country','status', 'created_at']);
     return inertia('Company/CompanyRegistered', compact('companies'));
 }
 
@@ -232,6 +234,28 @@ public function updateApplicantStatus(Request $request, $id)
     return back()->with('success', 'Applicant status updated.');
 }
 
+public function destroy(Company $company)
+    {
+        abort_unless($company->user_id === Auth::id(), 403);
 
+        try {
+            DB::transaction(function () use ($company) {
+                $company->opportunity()?->delete();
+                $company->background()?->delete();
+                $company->requirements()?->delete();
+                $company->marketing()?->delete();
+                $company->documents()?->delete();
+                $company->applications()->delete();
+                $company->delete();
+            });
 
+            return redirect('/my-companies')->with('success', 'Company deleted successfully.');
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete company: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors(['error' => 'Failed to delete company. Please try again later.']);
+        }
+    }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Head, Link, usePage } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import {
   Card,
   CardContent,
@@ -18,12 +18,20 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem } from "@/types";
-import { Button } from "@/components/ui/button";
+import { Link } from '@inertiajs/react';
+import { route } from 'ziggy-js';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 
 interface Company {
   id: number;
   company_name: string;
+  brand_name: string;
+  opportunity?: {
+    franchise_type?: string | null;
+  };
+  year_founded?: number | null;
+  country?: string | null;
   created_at: string;
   status: "pending" | "approved" | "rejected";
 }
@@ -33,6 +41,29 @@ const CompanyRegistered = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState<number | null>(null);
+
+  const handleDelete = (id: number) => {
+    setCompanyToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (companyToDelete !== null) {
+      router.delete(`/companies/${companyToDelete}`, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setCompanyToDelete(null);
+          // Inertia.js will automatically refresh the page data
+        },
+        onError: (errors) => {
+          console.error('Delete failed:', errors);
+          // Keep dialog open to show error or add toast notification
+        }
+      });
+    }
+  };
 
   // Filter logic
   const filteredCompanies = useMemo(() => {
@@ -41,9 +72,9 @@ const CompanyRegistered = () => {
     );
   }, [companies, searchTerm]);
 
-  const breadcrumbs : BreadcrumbItem[] = [
+  const breadcrumbs = [
     { title: "Dashboard", href: "/dashboard" },
-    { title: "Company Request", href: "/companies/my" },
+    { title: "Company Request", href: "/my-companies" },
   ];
 
   return (
@@ -73,7 +104,12 @@ const CompanyRegistered = () => {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Company Name</TableHead>
+                <TableHead>Brand Name</TableHead>
+                <TableHead>Franchise Type</TableHead>
+                <TableHead>Year Founded</TableHead>
+                <TableHead>Country</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Created At</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -101,24 +137,45 @@ const CompanyRegistered = () => {
                 filteredCompanies.map((company) => (
                   <TableRow key={company.id}>
                     <TableCell>{company.id}</TableCell>
-                    <TableCell>{company.company_name}</TableCell>
+                    <TableCell>{company?.company_name || "—"}</TableCell>
+                    <TableCell>{company.brand_name || "—"}</TableCell>
+                    <TableCell>
+                      {company.opportunity?.franchise_type || "—"}
+                    </TableCell>
+                    <TableCell>{company.year_founded || "—"}</TableCell>
+                    <TableCell>{company.country || "—"}</TableCell>
                     <TableCell>
                       {company.status === "pending" && (
                         <Badge variant="secondary">Pending 🟡</Badge>
                       )}
                       {company.status === "approved" && (
-                        <Badge variant="success">Approved 🟢 </Badge>
+                        <Badge variant="secondary">Approved 🟢</Badge>
                       )}
                       {company.status === "rejected" && (
                         <Badge variant="destructive">Rejected 🔴</Badge>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Link href={`/companies/${company.id}`}>
-                        <Button variant={'destructive'} size={'sm'}>
+                      {company.created_at
+                        ? new Date(company.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button asChild variant="default">
+                          <Link href={`/companies/${company.id}/edit`}>Edit</Link>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDelete(company.id)}
+                        >
                           Delete
                         </Button>
-                      </Link>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -127,6 +184,21 @@ const CompanyRegistered = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>Confirm Delete</DialogHeader>
+          <p>Are you sure you want to delete this company?</p>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

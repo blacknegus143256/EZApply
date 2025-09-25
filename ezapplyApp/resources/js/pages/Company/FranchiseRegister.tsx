@@ -8,9 +8,9 @@ import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
 
 // Steps definition
-const STEPS = [
+export const STEPS = [
   'Company Info',
-  'Opportunity',
+  'Opportunity', 
   'Background',
   'Requirements',
   'Marketing / Listing',
@@ -41,7 +41,7 @@ interface CompanyForm {
   franchise_type: string;
   min_investment: number | '';
   franchise_fee: number | '';
-  royalty_fee: string;
+  royalty_fee_structure: string;
   avg_annual_revenue: number | '';
   target_markets: string;
   training_support: string | null;
@@ -49,7 +49,7 @@ interface CompanyForm {
   unique_selling_points: string | null;
 
   industry_sector: string;
-  date_started: string; // Changed from years_in_operation
+  years_in_operation: string; // Changed from years_in_operation
   total_revenue: number | '';
   awards: string | null;
   company_history: string | null;
@@ -105,56 +105,56 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-400">{message}</p>;
 }
 
-export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>; companyId?: number }) {
-  const defaults: CompanyForm = {
-    company_name: '',
-    brand_name: null,
-    city: '',
-    state_province: '',
-    zip_code: '',
-    country: '',
-    company_website: null,
-    description: '',
-    year_founded: '',
-    num_franchise_locations: '',
+export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
+  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>({
+    company_name: initialData?.company_name || '',
+    brand_name: initialData?.brand_name || null,
+    city: initialData?.city || '',
+    state_province: initialData?.state_province || '',
+    zip_code: initialData?.zip_code || '',
+    country: initialData?.country || '',
+    company_website: initialData?.company_website || null,
+    description: initialData?.description || '',
+    year_founded: initialData?.year_founded || '',
+    num_franchise_locations: initialData?.num_franchise_locations || '',
 
-    franchise_type: '',
-    min_investment: '',
-    franchise_fee: '',
-    royalty_fee: '',
-    avg_annual_revenue: '',
-    target_markets: '',
-    training_support: null,
-    franchise_term: '',
-    unique_selling_points: null,
+    franchise_type: initialData?.franchise_type || '',
+    min_investment: initialData?.min_investment || '',
+    franchise_fee: initialData?.franchise_fee || '',
+    royalty_fee_structure: initialData?.royalty_fee_structure || '',
+    avg_annual_revenue: initialData?.avg_annual_revenue || '',
+    target_markets: initialData?.target_markets || '',
+    training_support: initialData?.training_support || null,
+    franchise_term: initialData?.franchise_term || '',
+    unique_selling_points: initialData?.unique_selling_points || null,
 
-    industry_sector: '',
-    date_started: '', // Changed from years_in_operation
-    total_revenue: '',
-    awards: null,
-    company_history: null,
+    industry_sector: initialData?.industry_sector || '',
+    years_in_operation: initialData?.years_in_operation || '',
+    total_revenue: initialData?.total_revenue || '',
+    awards: initialData?.awards || null,
+    company_history: initialData?.company_history || null,
 
-    min_net_worth: '',
-    min_liquid_assets: '',
-    prior_experience: false,
-    experience_type: null,
-    other_qualifications: null,
+    min_net_worth: initialData?.min_net_worth || '',
+    min_liquid_assets: initialData?.min_liquid_assets || '',
+    prior_experience: initialData?.prior_experience || false,
+    experience_type: initialData?.experience_type || null,
+    other_qualifications: initialData?.other_qualifications || null,
 
-    listing_title: null,
-    listing_description: null,
-    logo: null,
-    target_profile: null,
-    preferred_contact_method: null,
-    dti_sbc: null,
-    bir_2303: null,
-    ipo_registration: null,
-  };
-  const merged: CompanyForm = { ...defaults, ...(initialData as any) };
-  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>(merged);
+    listing_title: initialData?.listing_title || null,
+    listing_description: initialData?.listing_description || null,
+    logo: null, // File inputs cannot be pre-filled
+    target_profile: initialData?.target_profile || null,
+    preferred_contact_method: initialData?.preferred_contact_method || null,
+
+    dti_sbc: null, // File inputs cannot be pre-filled
+    bir_2303: null, // File inputs cannot be pre-filled  
+    ipo_registration: null, // File inputs cannot be pre-filled
+  });
 
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
 
   useEffect(() => {
     if (open) {
@@ -163,21 +163,21 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
     }
   }, [open]);
 
-  function validateStep(s: number) {
-    const req: Record<number, (keyof CompanyForm)[]> = {
+  function validateStep(step: number) {
+    const requiredFields: Record<number, (keyof typeof data)[]> = {
       0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
-      1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee', 'target_markets', 'franchise_term'],
-      2: ['industry_sector', 'date_started'], // Changed from years_in_operation
+      1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
+      2: ['industry_sector', 'years_in_operation'], // Changed from years_in_operation
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
-      5: companyId ? [] : ['dti_sbc', 'bir_2303', 'ipo_registration'],
+      5: ['dti_sbc', 'bir_2303', 'ipo_registration'], // Add validation for documents step
     };
-    for (const k of req[s] ?? []) {
-      const v = data[k];
-      if (v === '' || v === null || v === undefined) return false;
-    }
-    return true;
+
+   for (const field of requiredFields[step] || []) {
+    if (!data[field] && data[field] !== 0) return false;
   }
+  return true;
+}
 
   function next() {
     if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -186,39 +186,51 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
     setStep((s) => Math.max(s - 1, 0));
   }
 
-  function doSubmit() {
-    transform((d) => ({
-      ...d,
-      prior_experience: d.prior_experience ? 1 : 0,
-      year_founded: d.year_founded === '' ? null : d.year_founded,
-      num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
-      min_investment: d.min_investment === '' ? null : d.min_investment,
-      franchise_fee: d.franchise_fee === '' ? null : d.franchise_fee,
-      avg_annual_revenue: d.avg_annual_revenue === '' ? null : d.avg_annual_revenue,
-      date_started: d.date_started === '' ? null : d.date_started, // Changed from years_in_operation
-      total_revenue: d.total_revenue === '' ? null : d.total_revenue,
-      min_net_worth: d.min_net_worth === '' ? null : d.min_net_worth,
-      min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
-    }));
+function doSubmit() {
+  transform((d) => ({
+    ...d,
+    prior_experience: d.prior_experience,
+    year_founded: d.year_founded === '' ? null : d.year_founded,
+    num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
+    min_investment: d.min_investment === '' ? null : d.min_investment,
+    franchise_fee: d.franchise_fee === '' ? null : d.franchise_fee,
+    avg_annual_revenue: d.avg_annual_revenue === '' ? null : d.avg_annual_revenue,
+    years_in_operation: d.years_in_operation === '' ? null : d.years_in_operation,
+    total_revenue: d.total_revenue === '' ? null : d.total_revenue,
+    min_net_worth: d.min_net_worth === '' ? null : d.min_net_worth,
+    min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
+  }));
 
+  if (companyId) {
+    console.log(data.company_name, data); 
+    put(`/companies/${companyId}`, {
+      onSuccess: () => {
+        window.location.href = '/my-companies';
+      },
+      onError: (errors) => {
+        console.error('Update failed:', errors);
+        console.error('Request data:', data);
+        console.error('Company ID:', companyId);
+        alert('Update failed. Please check console for details.');
+      },
+    });
+  } else {
     post('/companies', {
-  forceFormData: true,
-  onSuccess: (response) => {
-    console.log('Company registration successful:', response);
-    reset();
-    setStep(0);
-    setOpen(false);
-  },
-  onError: (errors) => {
-    console.log('Company registration failed:', errors);
-    const firstKey = Object.keys(errors)[0];
-    if (firstKey) {
-      const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+      onSuccess: () => {
+        reset();
+        setStep(0);
+        setOpen(false);
+        window.location.href = '/my-companies';
+      },
+      onError: (errors) => {
+        console.error('Submission failed:', errors);
+        console.error('Request data:', data);
+        alert('Submission failed. Please check console for details.');
+      },
+    });
   }
-});
-  }
+}
+
 
   return (
     <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
@@ -357,7 +369,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
                         <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
                         <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment} onChange={(e) => setData('min_investment', Number(e.target.value) || '')} required /></Field>
                         <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee} onChange={(e) => setData('franchise_fee', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Royalty Fee*"><Input name="royalty_fee" value={data.royalty_fee} onChange={(e) => setData('royalty_fee', e.target.value)} required /></Field>
+                        <Field label="Royalty Fee*"><Input name="royalty_fee" value={data.royalty_fee_structure} onChange={(e) => setData('royalty_fee_structure', e.target.value)} required /></Field>
                         <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue} onChange={(e) => setData('avg_annual_revenue', Number(e.target.value) || '')} /></Field>
                         <ErrorText message={(errors as any).avg_annual_revenue} />
                       </div>
@@ -376,14 +388,14 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
                         </Field>
                         <Field label="Date Started *">
                           <Input
-                            name="date_started"
+                            name="years_in_operation"
                             type="date"
-                            value={data.date_started}
-                            onChange={(e) => setData('date_started', e.target.value)}
+                            value={data.years_in_operation}
+                            onChange={(e) => setData('years_in_operation', e.target.value)}
                             required
                           />
                         </Field>
-                        <ErrorText message={(errors as any).date_started} />
+                        <ErrorText message={(errors as any).years_in_operation} />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue} onChange={(e) => setData('total_revenue', Number(e.target.value) || '')} /></Field>
@@ -485,6 +497,46 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
                       </div>
                   )}
 
+                  {/* Step 6: Documents */}
+                  {step === 5 && (
+                    <div className="grid gap-3">
+                      <h3 className="text-md font-semibold">Required Business Documents</h3>
+                      
+                      <Field label="DTI/SBC Certificate *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).dti_sbc} />
+                      </Field>
+
+                      <Field label="BIR 2303 Form *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).bir_2303} />
+                      </Field>
+
+                      <Field label="IPO Registration *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).ipo_registration} />
+                      </Field>
+                    </div>
+                  )}
+
                   {/* controls */}
                   <div className="mt-4 flex items-center justify-between">
                     <button
@@ -510,9 +562,8 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
                         type="button"
                         onClick={doSubmit}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                        disabled={processing}
-                      >
-                        Submit
+                        disabled={processing}>
+                        {companyId ? 'Resubmit' : 'Submit'}
                       </button>
                     )}
                   </div>
