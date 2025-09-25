@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { usePage, router } from "@inertiajs/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Head, usePage, router } from "@inertiajs/react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -11,136 +16,147 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
-import { BreadcrumbItem, SharedData } from "@/types";
+import { BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
+import CustomerDetailsModal from "@/components/CustomerDetailsModal";
+import { Link } from "@inertiajs/react";
 import ChatButton from "@/components/ui/chat-button";
-import PaymentConfirmationDialog from "./PaymentConfirm";
-import ViewProfileDialog from "./ViewProfileDialog";
-import { Application } from "@/types/applicants";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Company Applicants", href: "/company/applicants" },
 ];
+const placeholderCustomer = {
+  id: 1,
+  email: "placeholder@example.com",
+  basicinfo: {
+    first_name: "John",
+    last_name: "Doe",
+    birth_date: new Date("1990-01-01"),
+    phone: 1234567890,
+    Facebook: "john.doe",
+    LinkedIn: "john-linkedin",
+    Viber: "john-viber",
+  },
+  affiliations: {
+    institution: "ABC Corp",
+    position: "Software Engineer",
+  },
+  financials: {
+    annual_income: 50000,
+    salary: 4000,
+  },
+  customer_attachments: {
+    attachment_type: "ID Card",
+  },
+};
+type CustomerDetails = {
+
+user?: {
+  id: number;
+  email: string;
+};
+  basicinfo?: {
+    first_name: string;
+    last_name: string;
+    birth_date: string;
+    phone: number;
+    Facebook?: string;
+    LinkedIn?: string;
+    Viber?: string;
+  };
+  affiliations?: {
+    institution: string;
+    position: string;
+  }[];
+  financials?: {
+    annual_income?: number;
+    salary?: number;
+  };
+  customer_attachments?: {
+    attachment_type?: string;
+  }[];
+};
+
+
+type Applicant = {
+  id: number;
+  status: string;
+  customer: CustomerDetails;
+};
+
+type PageProps = {
+  applicants?: Applicant[];
+};
+
+const statusOptions = ["pending", "approved", "rejected", "interested"];
 
 export default function CompanyApplicants() {
-  type PagePropsWithAuth = {
-    applicants?: Application[];
-    user: { id: number; balance: number };
-  } & SharedData;
-
-  const { props } = usePage<PagePropsWithAuth>();
+  const { props } = usePage<PageProps>();
   const applicants = props.applicants ?? [];
   const [searchTerm, setSearchTerm] = useState("");
-  const [balance, setBalance] = useState(props.auth.user?.credits ?? 0);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
+  // Modal states
+  const [selectedApplicant, setSelectedApplicant] = useState<CustomerDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [pendingApplicant, setPendingApplicant] = useState<Application | null>(
-    null
-  );
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedApplicant(null);
+  };
 
-  const cost = 50;
-
+  // Filter logic
   const filteredApplicants = useMemo(() => {
-    return applicants.filter((a) =>
-      `${a.user?.first_name ?? ""} ${a.user?.last_name ?? ""}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+    return applicants.filter((a) =>{
+      const firstName = a.user?.basicinfo?.first_name ?? "";
+      const lastName = a.user?.basicinfo?.last_name ?? "";
+      const email = a.user?.email ?? "";
+      const fullName = `${firstName} ${lastName} ${email}` .toLowerCase();
+
+      
+    return fullName.includes(searchTerm.toLowerCase());
+    }
     );
   }, [applicants, searchTerm]);
 
   const handleStatusChange = (id: number, status: string) => {
-    router.put(
-      `/company/applicants/${id}/status`,
-      { status },
-      { preserveScroll: true }
-    );
+    router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
   };
 
-  const handleViewProfileClick = async (applicant: Application) => {
-  setPendingApplicant(applicant);
-
-  try {
-    const res = await fetch(`/company/check-applicant-view/${applicant.id}`, {
-      headers: {
-        'Accept': 'application/json', 
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const data = await res.json();
-
-    if (data.already_viewed) {
-      setShowProfileDialog(true);
-    } else if (balance >= cost) {
-      setShowPaymentDialog(true);
-    } else {
-      alert('Insufficient balance to view this profile.');
-    }
-  } catch (error) {
-    console.error(error);
-    alert('Error checking applicant view status.');
+  const handleCustomerClick = (customer: CustomerDetails, status: string ) => {
+  console.log("Clicked Applicant:", customer, status);
+    setSelectedApplicant(customer);
+    setIsModalOpen(true);
   }
-};
-
-
-
-  const confirmPayment = async () => {
-  if (!pendingApplicant) return;
-
-  try {
-    await router.post(
-      "/company/view-applicant",
-      { application_id: pendingApplicant.id }, 
-      {
-        onSuccess: (page) => {
-          if (page.props?.already_paid) {
-            setShowProfileDialog(true);
-            return;
-          }
-
-          if (page.props.auth?.user?.credits !== undefined) {
-            setBalance(page.props.auth.user.credits);
-          } else {
-            setBalance((prev) => prev - cost);
-          }
-
-          setShowProfileDialog(true);
-        },
-        onError: () => {
-          alert("Payment failed. Please check your balance.");
-        },
-      }
-    );
-  } catch {
-    alert("Something went wrong.");
-  }
-};
-
 
   return (
     <PermissionGate
       permission="view_company_dashboard"
-      fallback={<div className="p-6">You don't have permission.</div>}
+      fallback={<div className="p-6">You don't have permission to access this page.</div>}
     >
       <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Company Applicants" />
+
         <Card>
           <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
             <CardTitle>Company Applicants</CardTitle>
-            <Input
-              type="text"
-              placeholder="Search applicant..."
-              className="max-w-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="flex gap-2 w-full md:w-auto">
+              <Input
+                type="text"
+                placeholder="Search applicant..."
+                className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </CardHeader>
+
+          <hr />
+
           <CardContent>
             <Table>
               <TableHeader>
@@ -152,36 +168,47 @@ export default function CompanyApplicants() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredApplicants.length === 0 ? (
+                {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center">
-                      No applicants found.
+                    <TableCell colSpan={3} className="text-center">
+                      <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
+                      Loading applicants...
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-red-500">
+                      {error}
+                    </TableCell>
+                  </TableRow>
+                ) : filteredApplicants.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center">
+                      No applicants yet.
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredApplicants.map((a) => (
-                    <TableRow key={a.id}>
-                      <TableCell>{`${a.user?.first_name ?? ""} ${
-                        a.user?.last_name ?? ""
-                      }`.trim()}</TableCell>
-                      <TableCell>{a.user?.email}</TableCell>
+                    <TableRow key={a.user?.id ?? a.id}>
                       <TableCell>
+                        {a.customer?.basicinfo && (a.customer.basicinfo.first_name || a.customer.basicinfo.last_name)
+                          ? `${a.customer.basicinfo.first_name ?? ""} ${a.customer.basicinfo.last_name ?? ""}`.trim()
+                          : "Unknown User"}
+                      </TableCell>
+                      <TableCell>{a.customer?.user?.email ?? "No email"}</TableCell>
+                                            <TableCell>
                         <select
                           value={a.status}
-                          onChange={(e) =>
-                            handleStatusChange(a.id, e.target.value)
-                          }
+                          onChange={(e) => handleStatusChange(a.id, e.target.value)}
                           className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm"
                         >
-                          {["pending", "approved", "rejected", "interested"].map(
-                            (status) => (
-                              <option key={status} value={status}>
-                                {status.charAt(0).toUpperCase() +
-                                  status.slice(1)}
-                              </option>
-                            )
-                          )}
+                          {statusOptions.map((status) => (
+                            <option key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </option>
+                          ))}
                         </select>
+                        {/* Optional badge display */}
                         <div className="mt-1">
                           {a.status === "pending" && (
                             <Badge variant="secondary">Pending 🟡</Badge>
@@ -198,41 +225,30 @@ export default function CompanyApplicants() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleViewProfileClick(a)}
-                            // disabled={balance < cost}
-                          >
-                            View Profile
-                          </Button>
-                          <ChatButton status={a.status} userId={a.user?.id} />
-                        </div>
+                        
+                      <div className="flex items-center gap-2">
+                        <Button onClick={() => handleCustomerClick(a.customer, a.status)} className="view-btn btn-2 cursor-pointer">
+                          Applicant Profile
+                        </Button>
+
+                        <ChatButton status={a.status} userId={a.customer?.user?.id} />
+                      </div>
                       </TableCell>
                     </TableRow>
                   ))
-                )}
+                  )}
+                
               </TableBody>
             </Table>
           </CardContent>
         </Card>
 
-        {pendingApplicant && (
-          <PaymentConfirmationDialog
-            open={showPaymentDialog}
-            onOpenChange={setShowPaymentDialog}
-            cost={cost}
-            balance={balance}
-            onConfirm={confirmPayment}
-          />
-        )}
-
-        {pendingApplicant && (
-          <ViewProfileDialog
-            open={showProfileDialog}
-            onOpenChange={setShowProfileDialog}
-            application={pendingApplicant}
-          />
-        )}
+        {/* Modal */}
+        <CustomerDetailsModal
+          customer={selectedApplicant}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </AppLayout>
     </PermissionGate>
   );

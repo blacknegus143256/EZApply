@@ -17,8 +17,11 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: PropsWi
                 <div className="absolute top-3 right-4">
                     <DisplayBalance />
                 </div>
+                <div className="absolute top-3 right-4">
+                    <DisplayBalance />
+                </div>
                 {children}
-            </AppContent>        
+            </AppContent>              
         </AppShell>
     );
 }

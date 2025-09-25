@@ -25,29 +25,78 @@ const mainNavItems: NavItem[] = [
         permission: 'view_company_dashboard',
     },
 
-     {
-        title: 'Basic Info',
-        href: '/applicant/basicinfo',
+    {
+        title: 'Customer Profile',
+        href: '/applicant/profile',
         icon: UserIcon,
         permission: 'view_customer_dashboard',
+     },
+    {
+    title: 'Applied Companies',
+    href: '/applicant/franchise/appliedcompanies',
+    icon: MessageCircle,
+    permission: 'view_customer_dashboard',
     },
-     {
-        title: 'Affiliations',
-        href: '/applicant/affiliations',
+    //  {
+    //     title: 'Basic Info',
+    //     href: '/applicant/basicinfo',
+    //     icon: UserIcon,
+    //     permission: 'view_customer_dashboard',
+    // },
+    //  {
+    //     title: 'Affiliations',
+    //     href: '/applicant/affiliations',
+    //     icon: Building2,
+    //     permission: 'view_customer_dashboard',
+    // },
+    //  {
+    //     title: 'Financial Info',
+    //     href: '/applicant/financial',
+    //     icon: Banknote,
+    //     permission: 'view_customer_dashboard',
+    // },
+    //  {
+    //     title: 'Attachments',
+    //     href: '/applicant/attachments',
+    //     icon: Folder,
+    //     permission: 'view_customer_dashboard',
+    // },
+    {
+        title: 'Dashboard',
+        href: dashboard(),
+        icon: LayoutGrid,
+        permission: 'view_companies_dashboard',
+    },
+    {
+        title: 'Company',
+        href: '/companies',
         icon: Building2,
-        permission: 'view_customer_dashboard',
+        permission: 'view_request_companies',
     },
-     {
-        title: 'Financial Info',
-        href: '/applicant/financial',
+    {
+        title: 'My Companies',
+        href: '/my-registered-companies',
+        icon: Building2,
+        permission: 'view_my_companies',
+    },
+    {
+        title: 'Applicants',
+        href: '/company-applicants',
+        icon: UserIcon,
+        permission: 'view_applications',
+    },
+    {
+        title: 'Your Chats',
+        href: '/view-chats',
+        icon: MessageCircle,
+        permission: 'view_chats',
+    },
+    {
+        title: 'Credit Balance',
+        href: '/credit-balance',
         icon: Banknote,
-        permission: 'view_customer_dashboard',
-    },
-     {
-        title: 'Attachments',
-        href: '/applicant/attachments',
-        icon: Folder,
-        permission: 'view_customer_dashboard',
+        permission: 'view_applications',
+
     },
     {
         title: 'My Companies',
@@ -161,7 +210,6 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
-                {url.startsWith('/applicant/franchise') && (
                 <div className="mt-4">
                     <div className="px-4 text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                     Franchise Application
@@ -171,22 +219,13 @@ export function AppSidebar() {
           <SidebarMenuButton asChild>
             <Link href="/applicant/franchise">
               <Building2 className="h-4 w-4" />
-              <span>Browse Companies</span>
+              <span>Browse Franchise Companies</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <Link href="/applicant/franchise/appliedcompanies">
-              <MessageCircle className="h-4 w-4" />
-              <span>Applied Companies</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
                 </div>
-                )}
             </SidebarContent>
 
             <SidebarFooter>

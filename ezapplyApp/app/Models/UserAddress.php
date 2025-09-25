@@ -10,6 +10,7 @@ class UserAddress extends Model
     use HasFactory;
     protected $table = 'users_address';
     protected $fillable = [
+        'user_id',
         'region_code', 'region_name',
         'province_code', 'province_name',
         'citymun_code', 'citymun_name',

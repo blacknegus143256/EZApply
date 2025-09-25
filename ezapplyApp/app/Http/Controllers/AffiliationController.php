@@ -28,24 +28,43 @@ class AffiliationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'affiliations' => 'required|array|min:1',
-            'affiliations.*.institution' => 'required|string|max:255',
-            'affiliations.*.position' => 'required|string|max:255',
+            'institution' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
         ]);
 
         $user = Auth::user();
-        
-        // Delete existing affiliations
-        $user->affiliations()->delete();
-        
-        // Create new affiliations
-        foreach ($request->affiliations as $affiliationData) {
-            $user->affiliations()->create([
-                'institution' => $affiliationData['institution'],
-                'position' => $affiliationData['position'],
-            ]);
-        }
 
-        return redirect()->back()->with('success', 'Affiliations saved successfully!');
+        $affiliation = $user->affiliations()->create([
+            'institution' => $request->institution,
+            'position' => $request->position,
+        ]);
+
+        return response()->json($affiliation);
+    }
+
+        public function update(Request $request, $id)
+    {
+        $request->validate([
+            'institution' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+        ]);
+
+        $user = Auth::user();
+
+        $affiliation = $user->affiliations()->findOrFail($id);
+        $affiliation->update($request->only('institution', 'position'));
+
+        return response()->json($affiliation);
+    }
+    
+        public function destroy($id)
+    {
+        $user = Auth::user();
+
+        $affiliation = $user->affiliations()->findOrFail($id);
+
+        $affiliation->delete();
+
+        return response()->json(['message' => 'Affiliation deleted successfully']);
     }
 }

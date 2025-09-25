@@ -23,6 +23,7 @@ use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\CustomerAttachmentController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
+use App\Http\Controllers\CustomerProfileController;
 
 
 
@@ -39,6 +40,8 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
+    
+
 
 
 
@@ -54,6 +57,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('applicant/affiliations', [AffiliationController::class, 'index'])->name('applicant.affiliations');
     Route::post('applicant/affiliations', [AffiliationController::class, 'store'])->name('applicant.affiliations.store');
+    Route::delete('applicant/affiliations/{id}', [AffiliationController::class, 'destroy'])->name('applicant.affiliations.destroy');
+    Route::put('applicant/affiliations/{id}', [AffiliationController::class, 'update'])->name('applicant.affiliations.update');
+
     
     Route::get('applicant/financial', [FinancialController::class, 'index'])->name('applicant.financial');
     Route::post('applicant/financial', [FinancialController::class, 'store'])->name('applicant.financial.store');
@@ -62,11 +68,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('applicant/attachments', [CustomerAttachmentController::class, 'store'])->name('applicant.attachments.store');
     Route::delete('applicant/attachments/{attachment}', [CustomerAttachmentController::class, 'destroy'])->name('applicant.attachments.destroy');
     
+        Route::get('/applicant/profile', [CustomerProfileController::class, 'index'])
+    ->name('applicant.profile');
+
     Route::get('applicant/franchise', function () {
-        return Inertia::render('Applicant/FranchiseForm');
+        return Inertia::render('Applicant/FranchiseForm', [
+        'companies' => \App\Models\Company::with('opportunity')->get(),
+    ]);
     })->name('applicant.franchise');
 Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::class, 'index'])
     ->name('applicant.applied_companies');
+
+Route::get('/api/applied-company-ids', [ApplicationController::class, 'getAppliedCompanyIds'])
+    ->name('api.applied_company_ids');
 
 
    
@@ -75,9 +89,12 @@ Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::clas
     })->name('company.register');
 
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{company}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
+    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
 
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
+    Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
     Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])

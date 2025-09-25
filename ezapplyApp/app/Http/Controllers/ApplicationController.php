@@ -49,7 +49,13 @@ class ApplicationController extends Controller
     public function index()
     {
         $userId = auth()->id();
-        $applications = Application::with(['company.user'])
+        $applications = Application::with([
+            'company.user',
+            'company.opportunity',
+            'company.background',
+            'company.requirements',
+            'company.marketing'
+        ])
             ->where('user_id', $userId)
             ->latest()
             ->get();
@@ -57,5 +63,16 @@ class ApplicationController extends Controller
         return Inertia::render('Applicant/AppliedCompanies', [
             'applications' => $applications,
         ]);
+    }
+
+    // get applied company IDs for the authenticated user
+    public function getAppliedCompanyIds()
+    {
+        $userId = auth()->id();
+        $appliedCompanyIds = Application::where('user_id', $userId)
+            ->pluck('company_id')
+            ->toArray();
+
+        return response()->json($appliedCompanyIds);
     }
 }

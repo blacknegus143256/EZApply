@@ -46,16 +46,7 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 	};
 
 	return (
-		<PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
-		<AppLayout breadcrumbs={breadcrumbs}>
-			<Head title="Attachments" />
-			<div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-
-				<div className="mb-6 hero">
-					<h1 className="text-2xl font-bold text-white dark:text-white">Attachments</h1>
-					<p className="text-white dark:text-gray-400 mt-2">Upload supporting documents (PDF, DOC, images).</p>
-				</div>
-
+			<div className="p-4">
 				<form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
@@ -99,13 +90,7 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 						</ul>
 					</div>
 				)}
-
-				<div className="relative min-h-[40vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border mt-8">
-					<PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-				</div>
 			</div>
-		</AppLayout>
-		</PermissionGate>
 	);
 }
 

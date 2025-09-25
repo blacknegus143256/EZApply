@@ -430,6 +430,76 @@
   cursor: wait;
 }
 
+/* Applied card styling */
+.company-card.applied-card {
+  opacity: 0.7;
+  background: rgba(240, 248, 255, 0.9);
+  border: 2px solid #16a34a;
+  position: relative;
+  filter: grayscale(0.2);
+}
+
+.company-card.applied-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.15);
+  border-color: #15803d;
+}
+
+/* Applied badge */
+.applied-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+  z-index: 10;
+  border: 2px solid white;
+}
+
+.applied-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Disabled checkbox for applied cards */
+.company-card.applied-card input[type="checkbox"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Applied card content styling */
+.company-card.applied-card .company-name {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.company-card.applied-card .company-details p {
+  color: #666;
+}
+
+.company-card.applied-card .company-details p strong {
+  color: #444;
+}
+
+/* Applied link styling */
+.view-details-link.applied-link {
+  opacity: 0.6;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.view-details-link.applied-link:hover {
+  background: #16a34a;
+  color: white;
+  opacity: 1;
+}
+
 /* Responsive grid adjustments */
 @media (max-width: 768px) {
   .company-grid {
@@ -685,4 +755,48 @@
   .ezapply__company-card {
     padding: 1rem;
   }
+}
+
+.view-btn {
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;
+  height: 40px;
+  color: #fff;
+  border-radius: 5px;
+  padding: 0.5rem 1.5rem;
+  font-family: 'Lato', sans-serif;
+  font-weight: 500;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+  box-shadow: inset 2px 2px 2px 0px rgba(255,255,255,.5),
+              7px 7px 20px 0px rgba(0,0,0,.1),
+              4px 4px 5px 0px rgba(0,0,0,.1);
+  outline: none;
+  font-size: 15px;
+  white-space: nowrap;
+  margin: 0.5rem;
+}
+
+.btn-2 {
+  background: #004dff;
+  background: linear-gradient(0deg, #004dff 0%, #004dff 100%);
+  border: none;
+}
+
+.btn-2:before {
+  height: 0%;
+  width: 2px;
+}
+
+.btn-2:hover {
+  box-shadow: 4px 4px 6px 0 rgba(255,255,255,.5),
+              -4px -4px 6px 0 rgba(116, 125, 136, .5),
+              inset -4px -4px 6px 0 rgba(255,255,255,.2),
+              inset 4px 4px 6px 0 rgba(0, 0, 0, .4);
 }

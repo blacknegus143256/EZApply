@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             // Using Spatie roles via pivot tables; no direct role_id column
-            $table->string('phone_number')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();

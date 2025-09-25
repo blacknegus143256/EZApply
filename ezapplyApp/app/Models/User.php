@@ -80,7 +80,7 @@ public function companies()
 // affiliations
 public function affiliations()
 {
-    return $this->hasMany(Affiliation::class);
+    return $this->hasMany(\App\Models\Affiliation::class);
 }
 
 // basic info

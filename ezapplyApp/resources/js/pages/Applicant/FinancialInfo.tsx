@@ -41,9 +41,7 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 	};
 
 	return (
-		<AppLayout breadcrumbs={breadcrumbs}>
-			<Head title="Financial Info" />
-			<div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+			<div className="p-4">
 				<div className="mb-6">
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Information</h1>
 					<p className="text-gray-600 dark:text-gray-400 mt-2">Provide your current income details.</p>
@@ -82,12 +80,7 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 						</Button>
 					</div>
 				</form>
-
-				<div className="relative min-h-[40vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-					<PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-				</div>
 			</div>
-		</AppLayout>
 	);
 }
 

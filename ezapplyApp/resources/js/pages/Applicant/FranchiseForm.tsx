@@ -4,24 +4,28 @@ import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { Head, usePage, router } from "@inertiajs/react";
 import PermissionGate from '@/components/PermissionGate';
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Franchise Application", href: "/applicant/franchise" },
 ];
- type Company = {
 
+
+type CompanyDetails = {
   id: number;
   company_name: string;
-  year_founded: number;
-  description?: string;
   brand_name: string;
+  city?: string;
+  state_province?: string;
+  zip_code?: string;
+  country?: string;
+  company_website?: string;
+  description?: string;
+  year_founded?: number;
+  num_franchise_locations?: number;
   status: string;
-  opportunity: {
-    franchise_type: string;
-    min_investment: number;
-  };
   minimumInvestment?: string;
   user?: {
     id: number;
@@ -29,10 +33,49 @@ const breadcrumbs: BreadcrumbItem[] = [
     last_name: string;
     email: string;
   };
+  opportunity?: {
+    franchise_type?: string;
+    min_investment?: number;
+    franchise_fee?: number;
+    royalty_fee_structure?: string;
+    avg_annual_revenue?: number;
+    target_markets?: string;
+    training_support?: string;
+    franchise_term?: string;
+    unique_selling_points?: string;
+  };
+  background?: {
+    industry_sector?: string;
+    years_in_operation?: number;
+    total_revenue?: number;
+    awards?: string;
+    company_history?: string;
+  };
+  requirements?: {
+    min_net_worth?: number;
+    min_liquid_assets?: number;
+    prior_experience?: boolean;
+    experience_type?: string;
+    other_qualifications?: string;
+  };
+  marketing?: {
+    listing_title?: string;
+    listing_description?: string;
+    logo_path?: string;
+    target_profile?: string;
+    preferred_contact_method?: string;
+  };
 };
 
+type Company = CompanyDetails;
+
+
 const FranchiseForm = () => {
-  const [companies, setCompanies] = useState<Company[]>([]);
+  
+  const companies: Company[] = Array.isArray((usePage().props as any).companies) ? (usePage().props as any).companies : [];
+
+  
+  // const [companies, setCompanies] = useState<Company[]>([]);
   const [search] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
@@ -47,25 +90,58 @@ const FranchiseForm = () => {
   const [applyProvinces, setApplyProvinces] = useState<any[]>([]);
   const [applyCities, setApplyCities] = useState<any[]>([]);
   const [applyBarangays, setApplyBarangays] = useState<any[]>([]);
-  const [applyAddressCodes, setApplyAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
+  const [applyAddressCodes, setApplyAddressCodes] = useState<{
+    region_code: string;
+    region_name:string; 
+    province_code: string;
+    province_name:string; 
+    citymun_code: string; 
+    citymun_name:string;
+    barangay_code: string;
+    barangay_name:string;
+  }
+    >
+    ({ region_code: '', region_name: '' ,  province_code: '', province_name: '' , citymun_code: '', citymun_name: '' , barangay_code: '', barangay_name: ''});
   // PSGC for bulk modal
   const [bulkRegions, setBulkRegions] = useState<any[]>([]);
   const [bulkProvinces, setBulkProvinces] = useState<any[]>([]);
   const [bulkCities, setBulkCities] = useState<any[]>([]);
   const [bulkBarangays, setBulkBarangays] = useState<any[]>([]);
-  const [bulkAddressCodes, setBulkAddressCodes] = useState<{region_code: string; province_code: string; citymun_code: string; barangay_code: string}>({ region_code: '', province_code: '', citymun_code: '', barangay_code: '' });
+  const [bulkAddressCodes, setBulkAddressCodes] = useState<{
+    region_code: string; 
+    region_name: string;
+    province_code: string; 
+    province_name:string;
+    citymun_code: string;
+    citymun_name:string; 
+    barangay_code: string;
+    barangay_name: string;
+  }>({ 
+    region_code: '', 
+    province_code: '', 
+    citymun_code: '', 
+    barangay_code: '', 
+    region_name: '', 
+    province_name: '', 
+    citymun_name: '', 
+    barangay_name: '' 
+  });
 
-  const [open, setOpen] = useState(false);
-  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-
+console.log("Companies:", companies);
+  
   useEffect(() => {
-    axios.get("/companies")
+    // Fetch companies
+
+    // Fetch applied company IDs
+    axios.get("/api/applied-company-ids")
     .then((res) => {
-      setCompanies(res.data);
+      setApplied(res.data);
     })
     .catch((err) => {
-      console.error("Error fetching companies:", err);
+      console.error("Error fetching applied company IDs:", err);
     });
   }, []);
 
@@ -89,48 +165,106 @@ const FranchiseForm = () => {
   }, [bulkModal.open]);
 
   const onApplyRegionChange = (regionCode: string) => {
-    setApplyAddressCodes({ region_code: regionCode, province_code: '', citymun_code: '', barangay_code: '' });
+  const region = applyRegions.find((r) => r.code === regionCode);
+    setApplyAddressCodes({
+    region_code: regionCode,
+    region_name: region?.name || '',
+    province_code: '',
+    province_name: '',
+    citymun_code: '',
+    citymun_name: '',
+    barangay_code: '',
+    barangay_name: '',
+   });
     setApplyProvinces([]); setApplyCities([]); setApplyBarangays([]);
     if (regionCode) {
       fetch(`/psgc/regions/${regionCode}/provinces`).then(r => r.json()).then(setApplyProvinces).catch(() => {});
     }
   };
   const onApplyProvinceChange = (provinceCode: string) => {
-    setApplyAddressCodes((prev) => ({ ...prev, province_code: provinceCode, citymun_code: '', barangay_code: '' }));
+    
+  const province = applyProvinces.find((p) => p.code === provinceCode);
+    setApplyAddressCodes((prev) => ({ 
+      ...prev,
+      province_code: provinceCode,
+      province_name: province?.name || '',
+      citymun_code: '',
+      citymun_name: '',
+      barangay_code: '',
+      barangay_name: '',
+    }));
     setApplyCities([]); setApplyBarangays([]);
     if (provinceCode) {
       fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`).then(r => r.json()).then(setApplyCities).catch(() => {});
     }
   };
   const onApplyCityChange = (cityCode: string) => {
-    setApplyAddressCodes((prev) => ({ ...prev, citymun_code: cityCode, barangay_code: '' }));
+    const city = applyCities.find((c) => c.code === cityCode);
+    setApplyAddressCodes((prev) => ({ 
+      ...prev,
+      citymun_code: cityCode,
+      citymun_name: city?.name || '',
+      barangay_code: '',
+      barangay_name: '',
+   }));
     setApplyBarangays([]);
     if (cityCode) {
       fetch(`/psgc/cities-municipalities/${cityCode}/barangays`).then(r => r.json()).then(setApplyBarangays).catch(() => {});
     }
   };
   const onApplyBarangayChange = (barangayCode: string) => {
-    setApplyAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
+    const barangay = applyBarangays.find((b) => b.code === barangayCode);
+    setApplyAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode, 
+    barangay_name: barangay?.name || '', }));
   };
 
   // Bulk PSGC handlers
   const onBulkRegionChange = (regionCode: string) => {
-    setBulkAddressCodes({ region_code: regionCode, province_code: '', citymun_code: '', barangay_code: '' });
+  const region = applyRegions.find((r) => r.code === regionCode);
+    setBulkAddressCodes({ 
+    region_code: regionCode,
+    region_name: region?.name || '',
+    province_code: '',
+    province_name: '', 
+    citymun_code: '', 
+    citymun_name: '', 
+    barangay_code: '', 
+    barangay_name: '' });
     setBulkProvinces([]); setBulkCities([]); setBulkBarangays([]);
     if (regionCode) fetch(`/psgc/regions/${regionCode}/provinces`).then(r=>r.json()).then(setBulkProvinces).catch(()=>{});
   };
   const onBulkProvinceChange = (provinceCode: string) => {
-    setBulkAddressCodes((prev) => ({ ...prev, province_code: provinceCode, citymun_code: '', barangay_code: '' }));
+    const province = applyProvinces.find((p) => p.code === provinceCode);
+    setBulkAddressCodes((prev) => ({ 
+      ...prev, province_code: provinceCode, 
+    province_name: province?.name || '',
+    citymun_code: '', 
+    citymun_name: '',
+    barangay_code: '',  
+    barangay_name: '', 
+  }));
+  
     setBulkCities([]); setBulkBarangays([]);
     if (provinceCode) fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`).then(r=>r.json()).then(setBulkCities).catch(()=>{});
   };
   const onBulkCityChange = (cityCode: string) => {
-    setBulkAddressCodes((prev) => ({ ...prev, citymun_code: cityCode, barangay_code: '' }));
+  const city = applyCities.find((c) => c.code === cityCode);
+    setBulkAddressCodes((prev) => ({ 
+      ...prev,
+    citymun_code: cityCode,
+    citymun_name: city?.name || '',
+    barangay_code: '',
+    barangay_name: '', }));
     setBulkBarangays([]);
     if (cityCode) fetch(`/psgc/cities-municipalities/${cityCode}/barangays`).then(r=>r.json()).then(setBulkBarangays).catch(()=>{});
   };
   const onBulkBarangayChange = (barangayCode: string) => {
-    setBulkAddressCodes((prev) => ({ ...prev, barangay_code: barangayCode }));
+  const barangay = applyBarangays.find((b) => b.code === barangayCode);
+    setBulkAddressCodes((prev) => ({ 
+      ...prev,
+       barangay_code: barangayCode,
+      barangay_name: barangay?.name || '',
+       }));
   };
 
   const handleCheck = (companyId: number) => {
@@ -144,7 +278,7 @@ const FranchiseForm = () => {
 // Start with all companies
 let filtered = companies;
 
-filtered = filtered.filter((c) => c.status === 'approved');
+// filtered = filtered.filter((c) => c.status === 'approved');
 
 // Filter by type
 if (type !== 'all') {
@@ -183,22 +317,24 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
       setApplying(null);
     });
 };
-  const { auth } = usePage().props as any;
-  const users = auth?.user;
 
-  const handleViewDetails = (e: React.MouseEvent, companyId: number) => {
-    if (!users) {
-      e.preventDefault();
-      setRedirectUrl(`/companies/${companyId}`);
-      setOpen(true);
-    }
+  const handleViewDetails = (e: React.MouseEvent, company: Company) => {
+    e.preventDefault();
+    setSelectedCompany(company);
+    setIsModalOpen(true);
+  };
+
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCompany(null);
   };
   return (
     <PermissionGate permission="apply_for_franchises" fallback={<div className="p-6">You don't have permission to access franchise applications.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Franchise Application" />
 
-        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md list-page">
+        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
           <section className="hero">
         <h1 className="text-2xl font-bold text-white dark:text-neutral-100 mb-4">
           Looking for a Company to Franchise?
@@ -255,12 +391,18 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
             <div className="company-grid">            
               {filtered.map((company) => (
               
-                  <div className="company-card" key={company.id} >
+                  <div className={`company-card ${applied.includes(company.id) ? 'applied-card' : ''}`} key={company.id} >
+                    {applied.includes(company.id) && (
+                      <div className="applied-badge">
+                        <span className="applied-text">✓ Applied</span>
+                      </div>
+                    )}
                     <div className="company-header">
                       <input
                         type="checkbox"
                         checked={checked.includes(company.id)}
                         onChange={() => handleCheck(company.id)}
+                        disabled={applied.includes(company.id)}
                       />
                       <img
                         src={"/favicon.svg"}
@@ -277,27 +419,24 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       <p className="company-description"><strong>Description:</strong> {company.description}</p>
                     </div>
 
-                    <div className="company-actions">
-                      <a
-                        href={`/companies/${company.id}`}
-                        className="view-details-link"
-                        onClick={(e) => handleViewDetails(e, company.id)}
-                      >
-                        View Details
-                      </a>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!applied.includes(company.id)) {
-                            setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
-                          }
-                        }}
-                        disabled={applied.includes(company.id) || applying === company.id}
-                        className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
-                      >
-                        {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
-                      </button>
-                    </div>
+                    <button
+                      className={`view-details-link ${applied.includes(company.id) ? 'applied-link' : ''}`}
+                      onClick={(e) => handleViewDetails(e, company)}
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!applied.includes(company.id)) {
+                          setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
+                        }
+                      }}
+                      disabled={applied.includes(company.id) || applying === company.id}
+                      className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
+                    >
+                      {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
+                    </button>
                   </div>
                    ))}
                   </div>
@@ -393,8 +532,8 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
                       onClick={() => {
                         if (applyModal.companyId) {
-                          const { region_code, province_code, citymun_code, barangay_code } = applyAddressCodes;
-                          const locationStr = [region_code, province_code, citymun_code, barangay_code].filter(Boolean).join('-');
+                          const { region_name, province_name, citymun_name, barangay_name } = applyAddressCodes;
+                          const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join('-');
                           handleApplySingle(applyModal.companyId, locationStr, applyModal.deadline_date);
                         }
                       }}
@@ -454,8 +593,8 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                     <button className="px-4 py-2 rounded-md bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600" onClick={()=>setBulkModal({ open: false, desired_location: '', deadline_date: '' })}>Cancel</button>
                     <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" onClick={()=>{
                       if (checked.length > 0) {
-                        const { region_code, province_code, citymun_code, barangay_code } = bulkAddressCodes;
-                        const locationStr = [region_code, province_code, citymun_code, barangay_code].filter(Boolean).join('-');
+                        const { region_name, province_name, citymun_name, barangay_name } = bulkAddressCodes;
+                        const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join('-');
                         axios.post('/applicant/applications', { companyIds: checked, desired_location: locationStr, deadline_date: bulkModal.deadline_date })
                           .then(()=>{
                             setApplied((prev)=> Array.from(new Set([...prev, ...checked])));
@@ -471,6 +610,11 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
           </div>
         </div>
 
+        <CompanyDetailsModal
+          company={selectedCompany}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </AppLayout>
     </PermissionGate>
   );

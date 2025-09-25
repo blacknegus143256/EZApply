@@ -26,6 +26,9 @@ class Application extends Model
     {
         return $this->belongsTo(User::class,'user_id');
     }
+    public function basicinfo() {
+        return $this->hasOne(BasicInfo::class);
+    }
 
     public function company()
     {

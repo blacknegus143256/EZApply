@@ -23,6 +23,10 @@ class Company extends Model
         'status',
         'user_id', 
     ];
+    
+    protected $attributes = [
+        'status' => 'pending',
+    ];
 
     // Relationships (1–1)
     public function opportunity() { return $this->hasOne(CompanyOpportunity::class); }

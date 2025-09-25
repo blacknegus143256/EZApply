@@ -21,8 +21,6 @@ class CompanyController extends Controller
 {
     public function store(Request $request)
 {
-    
-
     // Validate ONLY the fields for the 5 tables we kept.
     $v = $request->validate([
         // Step 1 — companies
@@ -94,27 +92,29 @@ class CompanyController extends Controller
                 'user_id'                 => Auth::id(),
             ]);
 
-            // Opportunity
-            $company->opportunity()->create([
-                'franchise_type'        => $v['franchise_type'],
-                'min_investment'        => $v['min_investment'],
-                'franchise_fee'         => $v['franchise_fee'],
-                'royalty_fee_structure' => $v['royalty_fee_structure'],
-                'avg_annual_revenue'    => $v['avg_annual_revenue'] ?? null,
-                'target_markets'        => $v['target_markets'],
-                'training_support'      => $v['training_support'] ?? null,
-                'franchise_term'        => $v['franchise_term'],
-                'unique_selling_points' => $v['unique_selling_points'] ?? null,
-            ]);
+                // 2) Opportunity
+                $company->opportunity()->create([
+                    'franchise_type'        => $v['franchise_type'],
+                    'min_investment'        => $v['min_investment'],
+                    'franchise_fee'         => $v['franchise_fee'],
+                    'royalty_fee'           => $v['royalty_fee'],
+                    'avg_annual_revenue'    => $v['avg_annual_revenue'] ?? null,
+                    'target_markets'        => $v['target_markets'],
+                    'training_support'      => $v['training_support'] ?? null,
+                    'franchise_term'        => $v['franchise_term'],
+                    'unique_selling_points' => $v['unique_selling_points'] ?? null,
+                ]);
+                Log::info('Company opportunity created'); // Debugging log
 
-            // Background
-            $company->background()->create([
-                'industry_sector'    => $v['industry_sector'],
-                'years_in_operation' => $v['years_in_operation'],
-                'total_revenue'      => $v['total_revenue'] ?? null,
-                'awards'             => $v['awards'] ?? null,
-                'company_history'    => $v['company_history'] ?? null,
-            ]);
+                // 3) Background
+                $company->background()->create([
+                    'industry_sector'    => $v['industry_sector'],
+                    'date_started'       => $v['date_started'], // Renamed from years_in_operation
+                    'total_revenue'      => $v['total_revenue'] ?? null,
+                    'awards'             => $v['awards'] ?? null,
+                    'company_history'    => $v['company_history'] ?? null,
+                ]);
+                Log::info('Company background created'); // Debugging log
 
             // Requirements
             $company->requirements()->create([
@@ -147,7 +147,6 @@ class CompanyController extends Controller
         ]);
     }
 }
-
     public function show($id)
     {
         // Load company + all related data
@@ -186,49 +185,4 @@ class CompanyController extends Controller
 
         return back()->with('success', 'Company status updated successfully.');
     }
-
-    public function myCompanies()
-{
-    $companies = Company::where('user_id', Auth::id())->get(['id', 'company_name', 'status']);
-    return inertia('Company/CompanyRegistered', compact('companies'));
-}
-
-   public function companyApplicants()
-{
-    $companyId = auth()->user()->company->id ?? null;
-
-    if (!$companyId) {
-        abort(403, 'You do not have a company assigned.');
-    }
-
-    // Get applicants that applied to this company
-    $applicants = Application::with('user')
-        ->whereIn('company_id', auth()->user()->companies()->pluck('id'))
-    ->get();
-
-return Inertia::render('Company/CompanyApplicants', [
-    'applicants' => $applicants,
-    ]);
-}
-
-
-public function updateApplicantStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|in:pending,approved,rejected,interested',
-    ]);
-
-    $companyIds = auth()->user()->companies()->pluck('id');
-
-    $application = Application::where('id', $id)
-        ->whereIn('company_id', $companyIds) 
-        ->firstOrFail();
-
-    $application->update(['status' => $request->status]);
-
-    return back()->with('success', 'Applicant status updated.');
-}
-
-
-
 }
