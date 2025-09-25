@@ -10,9 +10,9 @@ use App\Models\{
     CompanyRequirement,
     CompanyMarketing
 };
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Models\Application;
 use Inertia\Inertia;
 
@@ -185,4 +185,53 @@ class CompanyController extends Controller
 
         return back()->with('success', 'Company status updated successfully.');
     }
+
+    public function myCompanies()
+{
+    $companies = Company::where('user_id', Auth::id())->get(['id', 'company_name', 'status']);
+    return inertia('Company/CompanyRegistered', compact('companies'));
+}
+
+   public function companyApplicants()
+{
+    $companyIds = auth()->user()->companies()->pluck ('id') ?? null;
+
+    if (!$companyIds) {
+        abort(403, 'You do not have a company assigned.');
+    }
+
+    // Get applicants that applied to this company
+    $applicants = Application::with([
+        'user',
+        'user.basicinfo',
+        'company'
+        ])
+        ->whereIn('company_id',$companyIds)
+    ->get();
+
+return Inertia::render('Company/CompanyApplicants', [
+    'applicants' => $applicants,
+    ]);
+}
+
+
+public function updateApplicantStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|in:pending,approved,rejected,interested',
+    ]);
+
+    $companyIds = auth()->user()->companies()->pluck('id');
+
+    $application = Application::where('id', $id)
+        ->whereIn('company_id', $companyIds) 
+        ->firstOrFail();
+
+    $application->update(['status' => $request->status]);
+
+    return back()->with('success', 'Applicant status updated.');
+}
+
+
+
 }
