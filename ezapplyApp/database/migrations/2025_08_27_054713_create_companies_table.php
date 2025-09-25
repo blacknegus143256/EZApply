@@ -22,6 +22,9 @@ return new class extends Migration {
             $table->unsignedInteger('num_franchise_locations')->nullable();
 
             $table->timestamps();
+
+            // enforce InnoDB for foreign key support
+            $table->engine = 'InnoDB';
         });
     }
 

@@ -20,9 +20,13 @@ class PermissionsTableSeeder extends Seeder
             'view_permissions', 'create_permissions', 'edit_permissions', 'delete_permissions',
             'view_companies', 'create_companies', 'edit_companies', 'delete_companies', 'manage_own_companies',
             'view_franchises', 'create_franchises', 'edit_franchises', 'delete_franchises', 'apply_for_franchises',
-            'view_customer_dashboard', 'view_company_dashboard', 'view_admin_dashboard',
+            'view_dashboard', 'view_admin_dashboard',
             'view_settings', 'edit_settings','view_request_companies','view_chats','view_applications','view_my_companies',
             'view_balance',
+            // additional permissions referenced in UI
+            'view_home_page',
+            'view_customer_dashboard',
+            'view_company_dashboard',
         ];
 
         foreach ($permissions as $permission) {
@@ -37,14 +41,16 @@ class PermissionsTableSeeder extends Seeder
         $company->givePermissionTo([
             'view_companies', 'create_companies', 'edit_companies', 'manage_own_companies',
             'view_franchises', 'create_franchises', 'edit_franchises',
-            'view_company_dashboard', 'view_settings', 'edit_settings','view_applications','view_chats','view_my_companies',
+            'view_dashboard', 'view_settings', 'edit_settings','view_applications','view_chats','view_my_companies',
             'view_balance',
+            'view_company_dashboard',
         ]);
 
         $customer = Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
         $customer->givePermissionTo([
             'view_companies', 'view_franchises', 'apply_for_franchises',
-            'view_customer_dashboard', 'view_settings', 'edit_settings','view_chats',
+            'view_dashboard', 'view_settings', 'edit_settings','view_chats',
+            'view_customer_dashboard', 'view_home_page',
         ]);
     }
 }

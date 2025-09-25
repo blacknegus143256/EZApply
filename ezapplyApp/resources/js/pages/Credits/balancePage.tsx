@@ -28,7 +28,7 @@ export default function BalancePage() {
 
 
   return (
-    <PermissionGate role="company">
+    <PermissionGate role="company" permission="view_balance">
         <AppLayout breadcrumbs={breadcrumbs}>
         <div className="flex flex-col min-h-screen bg-gray-50 p-6">
 

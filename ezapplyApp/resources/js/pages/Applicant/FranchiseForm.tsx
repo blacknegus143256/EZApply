@@ -278,7 +278,7 @@ console.log("Companies:", companies);
 // Start with all companies
 let filtered = companies;
 
-// filtered = filtered.filter((c) => c.status === 'approved');
+filtered = filtered.filter((c) => c.status === 'approved');
 
 // Filter by type
 if (type !== 'all') {

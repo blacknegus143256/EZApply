@@ -5,30 +5,27 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
-    {
+    public function up(): void {
         Schema::create('company_documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+
+            // Foreign key to companies.id
+            $table->foreignId('company_id')
+                  ->constrained('companies')
+                  ->cascadeOnDelete();
+
             $table->string('dti_sbc_path')->nullable();
             $table->string('bir_2303_path')->nullable();
             $table->string('ipo_registration_path')->nullable();
+
             $table->timestamps();
+
+            // enforce InnoDB for foreign key support
+            $table->engine = 'InnoDB';
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
-    {
+    public function down(): void {
         Schema::dropIfExists('company_documents');
     }
 };

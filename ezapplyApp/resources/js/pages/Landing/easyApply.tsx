@@ -41,35 +41,12 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
   
   filtered = filtered.filter((c) => c.status === "approved");
 
-
-// Filter by investment amount
-if (amount !== 'all') {
-  filtered = filtered.filter((c) => {
-    const value = parseInt(c.minimumInvestment?.replace(/[₱,~USD\s]/g, '') || '0', 10);
-    if (amount === '10m') return value <= 10000000;
-    if (amount === '35m') return value <= 35000000;
-    if (amount === '1m') return value <= 1000000;
-    return true;
-  });
-}
-
-// Search filter
-filtered = filtered.filter((c) =>
-  (c.name ?? '').toLowerCase().includes(search.toLowerCase())
-);
-// const handleCheck = (id: number) => {
-//   setChecked((prev) =>
-//     prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-//   );
-// };
-  // Filter by type
   if (type !== "all") {
     filtered = filtered.filter(
       (c) => c.opportunity?.franchise_type === type
     );
   }
 
-  // Filter by investment amount
   if (amount !== "all") {
     filtered = filtered.filter((c) => {
       const value = parseInt(
@@ -84,7 +61,6 @@ filtered = filtered.filter((c) =>
     });
   }
 
-  // Search filter (use company_name)
   filtered = filtered.filter((c) =>
     (c.company_name ?? "").toLowerCase().includes(search.toLowerCase())
   );

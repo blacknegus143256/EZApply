@@ -100,13 +100,8 @@ Route::get('/api/applied-company-ids', [ApplicationController::class, 'getApplie
     })->name('company.register');
 
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
-    Route::get('/companies/{company}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
-    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
-
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
-    Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
-    Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');

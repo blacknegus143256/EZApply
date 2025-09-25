@@ -9,6 +9,7 @@ import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, M
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar'
 import CompanyApplicants from '@/pages/Company/CompanyApplicants';
+import PermissionGate from './PermissionGate';
 
 
 const mainNavItems: NavItem[] = [
@@ -17,15 +18,8 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-        permission: 'view_customer_dashboard',
+        permission: 'view_dashboard',
     },
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-        permission: 'view_company_dashboard',
-    },
-
     {
         title: 'Customer Profile',
         href: '/applicant/profile',
@@ -51,12 +45,6 @@ const mainNavItems: NavItem[] = [
         permission: 'view_company_dashboard',
     },
     {
-        title: 'Company Applicants',
-        href: '/company-applicants',
-        icon: Folder,
-        permission: 'view_company_dashboard',
-    },
-    {
         title: 'Applicants',
         href: '/company-applicants',
         icon: UserIcon,
@@ -72,7 +60,7 @@ const mainNavItems: NavItem[] = [
         title: 'Credit Balance',
         href: '/credit-balance',
         icon: Banknote,
-        permission: 'view_applications',
+        permission: 'view_balance',
 
     },
 
@@ -135,11 +123,14 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} role={page.props.role} url={url} />
+                <NavMain items={mainNavItems} />
+            <PermissionGate role='customer'>
+
                 <div className="mt-4">
                     <div className="px-4 text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                     Franchise Application
                     </div>
+
                            <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
@@ -152,6 +143,7 @@ export function AppSidebar() {
 
       </SidebarMenu>
                 </div>
+            </PermissionGate>
             </SidebarContent>
 
             <SidebarFooter>
