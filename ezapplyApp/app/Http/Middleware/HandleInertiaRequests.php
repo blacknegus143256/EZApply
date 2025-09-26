@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'first_name' => $request->user()->first_name,
                     'last_name' => $request->user()->last_name,
+                    'credits' => optional($request->user()->credit)->balance ?? 0,
                     'roles' => $request->user()->roles->map(function ($role) {
                         return [
                             'id' => $role->id,

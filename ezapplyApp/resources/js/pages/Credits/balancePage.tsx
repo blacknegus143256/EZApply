@@ -7,6 +7,8 @@ import { Wallet, History, PlusCircle } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from '@/components/PermissionGate';
+import { usePage } from "@inertiajs/react";
+import { SharedData, Transactions } from "@/types";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -21,12 +23,15 @@ const tabs = [
 
 export default function BalancePage() {
   const [activeTab, setActiveTab] = useState("balance");
+  const { props } = usePage<SharedData>();
+  const creditsDisplay = props.balance ?? 0;
+
 
   return (
-    <PermissionGate role="company">
+    <PermissionGate role="company" permission="view_balance">
         <AppLayout breadcrumbs={breadcrumbs}>
         <div className="flex flex-col min-h-screen bg-gray-50 p-6">
-      {/* Top Nav Tabs */}
+
       <div className="flex justify-around relative border-b">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -57,13 +62,13 @@ export default function BalancePage() {
         })}
       </div>
 
-      {/* Content */}
+      
       <div className="flex-1 flex items-center justify-center">
         {activeTab === "balance" && (
           <Card className="w-full max-w-md shadow-lg">
             <CardContent className="p-6 text-center">
               <h2 className="text-lg font-semibold text-gray-600 mb-2">Current Balance</h2>
-              <p className="text-4xl font-bold text-green-600 mb-6">₱ 1,200.00</p>
+              <p className="text-4xl font-bold text-green-600 mb-6">ez {creditsDisplay}</p>
               <Button className="w-full" variant="default">
                 <PlusCircle className="w-4 h-4 mr-2" /> Add Credits
               </Button>
@@ -76,18 +81,7 @@ export default function BalancePage() {
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold text-gray-600 mb-4">Transaction History</h2>
               <ul className="space-y-3 text-sm">
-                <li className="flex justify-between border-b pb-2">
-                  <span>Top Up ₱500</span>
-                  <span className="text-green-600">+₱500</span>
-                </li>
-                <li className="flex justify-between border-b pb-2">
-                  <span>Purchase Service</span>
-                  <span className="text-red-600">-₱300</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Top Up ₱1000</span>
-                  <span className="text-green-600">+₱1000</span>
-                </li>
+                
               </ul>
             </CardContent>
           </Card>

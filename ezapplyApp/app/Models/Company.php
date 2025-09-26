@@ -34,6 +34,7 @@ class Company extends Model
     public function requirements(){ return $this->hasOne(CompanyRequirement::class); }
     public function marketing()   { return $this->hasOne(CompanyMarketing::class); }
     public function user()        { return $this->belongsTo(User::class); }
+    public function documents()   { return $this->hasOne(CompanyDocument::class); }
 
     public function applications()
 {

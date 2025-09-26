@@ -6,6 +6,10 @@ import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import PermissionGate from "@/components/PermissionGate";
+import DisplayBalance from '@/components/balance-display';
+
+
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -28,6 +32,8 @@ type PageProps = InertiaPageProps & CustomProps;
 export default function ChatList() {
   const { props } = usePage<PageProps>();
   const { chats } = props;
+  const { auth } = usePage().props as any;
+    const role = auth?.user.role;
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -37,9 +43,14 @@ export default function ChatList() {
       chat.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [chats, searchTerm]);
+  console.log(role)
 
   return (
-    <AppLayout breadcrumbs={breadcrumbs}>
+    <PermissionGate permission="view_chats" roles={[role]}>
+    <AppLayout breadcrumbs={breadcrumbs} >
+      <div className="absolute top-3 right-4">
+    <DisplayBalance />
+  </div>
       <div className="w-full p-6">
         <h1 className="text-2xl font-bold mb-4">Your Chats</h1>
 
@@ -81,5 +92,6 @@ export default function ChatList() {
 
 
     </AppLayout>
+    </PermissionGate>
   );
 }

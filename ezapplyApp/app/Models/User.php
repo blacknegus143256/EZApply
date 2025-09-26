@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'email',
         'password',
+        'credits',
     ];
 
     /**
@@ -43,6 +44,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'credits' => 'integer',
         ];
     }
 
@@ -107,4 +109,16 @@ public function attachments()
     {
         return $this->roles()->first();
     }
+
+
+    public function credit()
+{
+    return $this->hasOne(UserCredit::class);
+}
+
+public function creditTransactions()
+{
+    return $this->hasMany(CreditTransaction::class);
+}
+
 }

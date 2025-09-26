@@ -1,34 +1,25 @@
+// resources/js/pages/dashboard.tsx
 // resources/js/Pages/Dashboard.tsx
 import React from 'react';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { usePermissions } from '@/hooks/use-permissions';
 import PermissionGate from '@/components/PermissionGate';
-
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import '../../css/easyApply.css';
-
-console.log(dashboard());
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
 ];
 
-
 export default function Dashboard() {
-  const { can } = usePermissions();
-  const { auth } = usePage().props as any;
-  const role = auth?.user?.role;
     return (
-        <PermissionGate role={role}>
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    {/* Company Dashboard - Register Company/Franchise */}
-                    <PermissionGate permission="view_company_dashboard"> 
+                    <PermissionGate role="company">
                         <Link
                             href="/company/register"
                             className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border hover:shadow-lg transition-shadow duration-200 flex items-center justify-center"
@@ -40,8 +31,7 @@ export default function Dashboard() {
                         </Link>
                     </PermissionGate>
 
-                    {/* Customer Dashboard - Franchise Application */}
-                    <PermissionGate permission="view_customer_dashboard">
+                    <PermissionGate role="customer">
                         <Link
                             href="/applicant/franchise"
                             className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border hover:shadow-lg transition-shadow duration-200 flex items-center justify-center"
@@ -53,8 +43,7 @@ export default function Dashboard() {
                         </Link>
                     </PermissionGate>
 
-                    {/* Admin Dashboard - User Management */}
-                    <PermissionGate permission="view_admin_dashboard">
+                    <PermissionGate role="admin">
                         <Link
                             href="/users"
                             className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border hover:shadow-lg transition-shadow duration-200 flex items-center justify-center"
@@ -65,21 +54,11 @@ export default function Dashboard() {
                             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                         </Link>
                     </PermissionGate>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
                 </div>
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
                     <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
                 </div>
             </div>
         </AppLayout>
-        </PermissionGate>
     );
 }

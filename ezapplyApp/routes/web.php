@@ -21,11 +21,9 @@ use App\Http\Controllers\AffiliationController;
 use App\Http\Controllers\BasicInfoController;
 use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\CustomerAttachmentController;
-
-use App\Http\Controllers\CustomerProfileController;
-
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
+use App\Http\Controllers\CustomerProfileController;
 
 
 
@@ -47,12 +45,24 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
 
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/companies/{company}/status', [CompanyController::class, 'updateStatus'])
     ->name('companies.update-status');
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+    // update company
+    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    // edit company
+    Route::get('/companies/{company}/edit',[CompanyController::class,'edit'])->name('companies.edit');
+    
+    Route::get('/my-companies', [CompanyController::class, 'myCompanies'])
+    ->name('companies.my');
+
+
+    Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+
     Route::get('applicant/basicinfo', [BasicInfoController::class, 'index'])->name('applicant.basicinfo');
     Route::post('applicant/basicinfo', [BasicInfoController::class, 'store'])->name('applicant.basicinfo.store');
     
@@ -90,12 +100,8 @@ Route::get('/api/applied-company-ids', [ApplicationController::class, 'getApplie
     })->name('company.register');
 
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
-    Route::get('/companies/{company}/edit', [CompanyController::class, 'edit'])->name('companies.edit');
-    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
-
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
-    Route::get('//my-registered-companies', [CompanyController::class, 'myCompanies'])->name('companies.my');
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');
@@ -118,7 +124,10 @@ Route::prefix('psgc')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     //Credit Display
     Route::get('/credit-balance',[CreditController::class,'creditDisplay'])->name('credit.display');
-
+    Route::put('/company/deduct-balance', [CreditController::class, 'deductBalance'])->name('company.deduct-balance');
+    Route::post('/company/view-applicant', [CreditController::class, 'viewApplicant'])->name('company.view-applicant');
+    Route::get('/company/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView'])->name('company.check-applicant-view');
+    Route::get('/credit-transaction-history', [CreditController::class, 'transactionHistory'])->name('credit.transaction-history');
 
     //Chatbox
     Route::get('/chat/{user}', [MessageController::class, 'index'])->name('chat.index');

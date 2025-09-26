@@ -43,6 +43,7 @@ export default function ChatPage() {
   const { data, setData, post, reset } = useForm({
     message: "",
   });
+    const users = auth?.user;
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();

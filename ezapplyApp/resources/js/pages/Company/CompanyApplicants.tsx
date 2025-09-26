@@ -135,7 +135,7 @@ export default function CompanyApplicants() {
 
   return (
     <PermissionGate
-      permission="view_company_dashboard"
+      permission="view_dashboard" role="company"
       fallback={<div className="p-6">You don't have permission to access this page.</div>}
     >
       <AppLayout breadcrumbs={breadcrumbs}>
@@ -214,7 +214,7 @@ export default function CompanyApplicants() {
                             <Badge variant="secondary">Pending 🟡</Badge>
                           )}
                           {a.status === "approved" && (
-                            <Badge variant="success">Approved 🟢</Badge>
+                            <Badge variant="secondary">Approved 🟢</Badge>
                           )}
                           {a.status === "rejected" && (
                             <Badge variant="destructive">Rejected 🔴</Badge>

@@ -31,5 +31,6 @@ class UsersTableSeeder extends Seeder
         ]);
         $company->markEmailAsVerified();
         $company->assignRole('company');
+        $company->credit()->create(['balance' => 200]);
     }
 }

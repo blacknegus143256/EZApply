@@ -13,7 +13,7 @@ export default function CompanyDetails({ company }: { company: Company }) {
     <div className="space-y-4">
       <p><strong>ID:</strong> {company.id}</p>
       <p><strong>Name:</strong> {company.company_name}</p>
-      <p><strong>Description:</strong> {company.description || "No description available."}</p>
+      <p><strong>Description:</strong> {company.description || "No description available."} </p>
       <p><strong>Created At:</strong> {new Date(company.created_at).toLocaleDateString()}</p>
     </div>
   );
