@@ -32,15 +32,30 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 		existing_loans: financial?.existing_loans ?? "",
 	});
 
-	const formatNumber = (value: string) => {
-		const cleaned = value.replace(/[^0-9.]/g, "");
-		const parts = cleaned.split(".");
-		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-		
-		return parts.join(".");
-	};
+const [editingField, setEditingField] = React.useState<string | null>(null);
 
-	const parseNumber = (value: string) => value.replace(/,/g, "");
+type FormatType = "number" | "currency";
+
+const formatValue = (value: string | number, type: FormatType = "number") => {
+  if (type === "currency") {
+    const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
+    if (isNaN(num)) return "";
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP", // change to "PHP" if you want pesos
+      minimumFractionDigits: 2,
+    }).format(num);
+  }
+
+  // default: number formatting
+  const strValue = String(value);
+  const cleaned = strValue.replace(/[^0-9.]/g, "");
+  const parts = cleaned.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+};
+
+	const parseNumber = (value: string) => value.replace(/[^0-9.]/g, "");
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -73,8 +88,14 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 						<Input
 							type="text"
 							inputMode="numeric"
-							value={formatNumber(String(data.monthly_income))}
+							value={
+								editingField === "monthly_income"
+									? formatValue(data.monthly_income, "number") // while typing → just number with commas
+									: formatValue(data.monthly_income, "currency") // on blur → currency with 2 decimals
+								}
 							onChange={(e) => setData("monthly_income", parseNumber(e.target.value))}
+							    onFocus={() => setEditingField("monthly_income")}
+    							onBlur={() => setEditingField(null)}
 							placeholder="e.g., 1,000,000"
 						/>
 						{errors.monthly_income && <p className="text-red-600 text-sm mt-1">{errors.monthly_income}</p>}
@@ -103,10 +124,16 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 						<Input
 							type="text"
 							inputMode="numeric"
-							value={formatNumber(String(data.monthly_expenses))}
+							value={
+							editingField === "monthly_expenses"
+								? formatValue(data.monthly_expenses, "number") // while typing → just number with commas
+								: formatValue(data.monthly_expenses, "currency") // on blur → currency with 2 decimals
+								}
 							onChange={(e) =>
 							setData("monthly_expenses", parseNumber(e.target.value))
 							}
+							onFocus={() => setEditingField("monthly_expenses")}
+    						onBlur={() => setEditingField(null)}
 							placeholder="e.g., 20,000"
 						/>
 						{errors.monthly_expenses && (
@@ -124,16 +151,22 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 						<Input
 							type="text"
 							inputMode="numeric"
-							value={formatNumber(String(data.existing_loans))}
+							value={
+						editingField === "existing_loans"
+							? formatValue(data.existing_loans, "number") // while typing → just number with commas
+							: formatValue(data.existing_loans, "currency") // on blur → currency with 2 decimals
+							}
 							onChange={(e) =>
 							setData("existing_loans", parseNumber(e.target.value))
 							}
+							    onFocus={() => setEditingField("existing_loans")}
+ 							   onBlur={() => setEditingField(null)}
 							placeholder="e.g., 100,000"
 						/>
 						{errors.existing_loans && (
 							<p className="text-red-600 text-sm mt-1">{errors.existing_loans}</p>
 						)}
-						</div>
+						</div> 
 
 					<div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
 						<Button type="submit" disabled={processing} className="px-8">

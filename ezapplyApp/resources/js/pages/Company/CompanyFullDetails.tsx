@@ -1,7 +1,24 @@
 import React from 'react';
 import type { CompanyDetails } from '@/types/company';
+  type FormatType = "number" | "currency";
 
-const formatCurrency = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+      const formatValue = (value: string | number, type: FormatType = "number") => {
+        if (type === "currency") {
+          const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
+          if (isNaN(num)) return "";
+          return new Intl.NumberFormat("en-PH", {
+            style: "currency",
+            currency: "PHP",
+          }).format(num);
+        }
+
+        // default: number formatting
+        const strValue = String(value);
+        const cleaned = strValue.replace(/[^0-9.]/g, "");
+        const parts = cleaned.split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts.join(".");
+      };
 
 interface CompanyFullDetailsProps {
   company: CompanyDetails;
@@ -29,10 +46,10 @@ const CompanyFullDetails: React.FC<CompanyFullDetailsProps> = ({ company, onBack
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">Franchise Opportunity</h2>
         <p><strong>Franchise Type:</strong> {company.opportunity?.franchise_type}</p>
-        <p><strong>Minimum Investment:</strong> {company.opportunity?.min_investment != null ? formatCurrency(company.opportunity.min_investment) : 'Not specified'}</p>
-        <p><strong>Franchise Fee:</strong> {company.opportunity?.franchise_fee != null ? formatCurrency(company.opportunity.franchise_fee) : 'Not specified'}</p>
+        <p><strong>Minimum Investment:</strong> {company.opportunity?.min_investment != null ? formatValue(company.opportunity.min_investment, "currency") : 'Not specified'}</p>
+        <p><strong>Franchise Fee:</strong> {company.opportunity?.franchise_fee != null ? formatValue(company.opportunity.franchise_fee, "currency") : 'Not specified'}</p>
         <p><strong>Royalty Fee Structure:</strong> {company.opportunity?.royalty_fee_structure}</p>
-        <p><strong>Average Annual Revenue:</strong> {company.opportunity?.avg_annual_revenue != null ? formatCurrency(company.opportunity.avg_annual_revenue) : 'Not specified'}</p>
+        <p><strong>Average Annual Revenue:</strong> {company.opportunity?.avg_annual_revenue != null ? formatValue(company.opportunity.avg_annual_revenue, "currency") : 'Not specified'}</p>
         <p><strong>Target Markets:</strong> {company.opportunity?.target_markets}</p>
         <p><strong>Training Support:</strong> {company.opportunity?.training_support}</p>
         <p><strong>Franchise Term:</strong> {company.opportunity?.franchise_term}</p>
@@ -43,15 +60,15 @@ const CompanyFullDetails: React.FC<CompanyFullDetailsProps> = ({ company, onBack
         <h2 className="text-lg font-semibold mb-2">Company Background</h2>
         <p><strong>Industry Sector:</strong> {company.background?.industry_sector}</p>
         <p><strong>Years in Operation:</strong> {company.background?.years_in_operation}</p>
-        <p><strong>Total Revenue:</strong> {formatCurrency(company.background?.total_revenue || 0)}</p>
+        <p><strong>Total Revenue:</strong> {formatValue(company.background?.total_revenue || 0, "currency")}</p>
         <p><strong>Awards:</strong> {company.background?.awards}</p>
         <p><strong>Company History:</strong> {company.background?.company_history}</p>
       </section>
 
       <section className="mb-6">
         <h2 className="text-lg font-semibold mb-2">Requirements</h2>
-        <p><strong>Minimum Net Worth:</strong> {company.requirements?.min_net_worth != null ? formatCurrency(company.requirements.min_net_worth) : 'Not specified'}</p>
-        <p><strong>Minimum Liquid Assets:</strong> {company.requirements?.min_liquid_assets != null ? formatCurrency(company.requirements.min_liquid_assets) : 'Not specified'}</p>
+        <p><strong>Minimum Net Worth:</strong> {company.requirements?.min_net_worth != null ? formatValue(company.requirements.min_net_worth, "currency") : 'Not specified'}</p>
+        <p><strong>Minimum Liquid Assets:</strong> {company.requirements?.min_liquid_assets != null ? formatValue(company.requirements.min_liquid_assets, "currency") : 'Not specified'}</p>
         <p><strong>Prior Experience:</strong> {company.requirements?.prior_experience ? 'Yes' : 'No'}</p>
         <p><strong>Experience Type:</strong> {company.requirements?.experience_type}</p>
         <p><strong>Other Qualifications:</strong> {company.requirements?.other_qualifications}</p>
