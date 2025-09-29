@@ -68,7 +68,7 @@ class User extends Authenticatable
 // applications as customer
 public function applications()
 {
-    return $this->hasMany(Application::class);
+    return $this->hasMany(Application::class, 'user_id');
 }
 
 // companies this user owns (if role=company)
@@ -80,25 +80,25 @@ public function companies()
 // affiliations
 public function affiliations()
 {
-    return $this->hasMany(\App\Models\Affiliation::class);
+    return $this->hasMany(\App\Models\Affiliation::class, 'user_id');
 }
 
 // basic info
 public function basicInfo()
 {
-    return $this->hasOne(BasicInfo::class);
+    return $this->hasOne(BasicInfo::class, 'user_id');
 }
 
 // financial info
 public function financial()
 {
-    return $this->hasOne(Financial::class);
+    return $this->hasOne(Financial::class, 'user_id');
 }
 
 // customer attachments
 public function attachments()
 {
-    return $this->hasMany(CustomerAttachment::class);
+    return $this->hasMany(CustomerAttachment::class, 'user_id');
 }
 
 

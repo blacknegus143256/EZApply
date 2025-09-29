@@ -24,7 +24,7 @@ use App\Http\Controllers\CustomerAttachmentController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomerProfileController;
-
+use App\Http\Controllers\CompanyApplicantController;
 
 
 
@@ -137,6 +137,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     //Company
+        Route::get('/company/applicants', [CompanyApplicantController::class, 'index'])
+        ->name('company.applicants.index');
+
+    Route::get('/company/applicants/{id}/profile', [CompanyApplicantController::class, 'show'])
+        ->name('company.applicants.show');
     Route::get('/company-applicants', [CompanyController::class, 'companyApplicants'])->name('company.applicants');
     Route::put('/company/applicants/{id}/status', [CompanyController::class, 'updateApplicantStatus']);
 

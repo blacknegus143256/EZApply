@@ -8,7 +8,7 @@ import { Link,usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar'
-import CompanyApplicants from '@/pages/Company/CompanyApplicants';
+import CompanyApplicants from '@/pages/Company/Applicants/CompanyApplicants';
 import PermissionGate from './PermissionGate';
 
 

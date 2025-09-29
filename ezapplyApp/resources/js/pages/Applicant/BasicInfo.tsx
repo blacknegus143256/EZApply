@@ -67,8 +67,9 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   const [cities, setCities] = useState<any[]>([]);
   const [barangays, setBarangays] = useState<any[]>([]);
   const [saved, setSaved] = useState(false);
-  const [isEditing, setIsEditing] = useState(!basicInfo);
-
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const isNewUser = !basicInfo;
 
   useEffect(() => {
   fetch("/psgc/regions")
@@ -262,12 +263,30 @@ console.log("Initial address prop:", address);
   };
   const birthDatePretty = formatDate(data.birth_date);
 
-  const SummaryRow = ({ label, value }: { label: string; value?: string }) => (
+type PrimitiveFields = Exclude<
+  keyof FormData,
+  "users_address"
+>;
+
+  const SummaryRow = ({ label, field, type = "text" }: { label: string; field: PrimitiveFields; type?: string }) => {
+  const value = data[field] as string | number | undefined; 
+  return(
     <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
       <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+      {isEditing && !isNewUser ? (
+      <Input
+        type={type}
+        name={field}
+        value={value ?? ""}
+        onChange={(e) => setData(field, e.target.value)}
+        className="max-w-xs"
+      />
+    ) : (
       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value || '-'}</span>
+    )}
     </div>
   );
+  };
   return (
       <div className="p-4">
         {saved && (
@@ -276,23 +295,88 @@ console.log("Initial address prop:", address);
           </div>
         )}
 
-        {!isEditing ? (
+        {!isNewUser ? (
+          isEditing ? (
+      <form onSubmit={handleSubmit}>
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-4">
-            <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100 hero">Your Basic Information</h2>
+            <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Your Basic Information</h2>
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              <SummaryRow label="First Name" value={data.first_name} />
-              <SummaryRow label="Last Name" value={data.last_name} />
-              <SummaryRow label="Birth Date" value={birthDatePretty} />
-              <SummaryRow label="Phone" value={data.phone} />
-              <SummaryRow label="Facebook" value={data.Facebook} />
-              <SummaryRow label="LinkedIn" value={data.LinkedIn} />
-              <SummaryRow label="Viber" value={data.Viber} />
-              <SummaryRow label="Region" value={data.users_address.region_name} />
-              <SummaryRow label="Province" value={data.users_address.province_name} />
-              <SummaryRow label="City/Municipality" value={data.users_address.citymun_name} />
-              <SummaryRow label="Barangay" value={data.users_address.barangay_name} />
+              <SummaryRow label="First Name" field="first_name"/>
+              <SummaryRow label="Last Name" field="last_name" />
+              <SummaryRow label="Birth Date" field="birth_date" type="date"/>
+              <SummaryRow label="Phone" field="phone" />
+              <SummaryRow label="Facebook" field="Facebook" />
+              <SummaryRow label="LinkedIn" field="LinkedIn" />
+              <SummaryRow label="Viber" field="Viber" />
+                <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Region</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {data.users_address.region_name || "-"}
+              </span>
+                </div>
+            <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Province</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {data.users_address.province_name || "-"}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+              <span className="text-sm text-gray-600 dark:text-gray-400">City/Municipality</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {data.users_address.citymun_name || "-"}
+              </span>
+            </div>
+            <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Barangay</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {data.users_address.barangay_name || "-"}
+              </span>
+            </div>
             </div>
             <div className="flex justify-end mt-4">
+                <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="ml-2 px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+            ) : (
+              <div className="rounded-lg border p-4">
+              <h2 className="text-lg font-semibold mb-3">Your Basic Information</h2>
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                <SummaryRow label="First Name" field="first_name" />
+                <SummaryRow label="Last Name" field="last_name" />
+                <SummaryRow label="Birth Date" field="birth_date" />
+                <SummaryRow label="Phone" field="phone" />
+                <SummaryRow label="Facebook" field="Facebook" />
+                <SummaryRow label="LinkedIn" field="LinkedIn" />
+                <SummaryRow label="Viber" field="Viber" />
+                {/* static address display */}
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-gray-600">Region</span>
+                  <span>{data.users_address.region_name || "-"}</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-gray-600">Province</span>
+                  <span>{data.users_address.province_name || "-"}</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-gray-600">City/Municipality</span>
+                  <span>{data.users_address.citymun_name || "-"}</span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-sm text-gray-600">Barangay</span>
+                  <span>{data.users_address.barangay_name || "-"}</span>
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
@@ -302,6 +386,8 @@ console.log("Initial address prop:", address);
               </button>
             </div>
           </div>
+              
+            )
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-3">
             <div className="flex gap-4">

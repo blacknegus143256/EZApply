@@ -78,7 +78,7 @@ export default function CompanyDetailsModal({ company, isOpen, onClose }: Compan
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-6xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="w-[85vw] max-w-[85vw] !max-w-[85vw] max-h-[95vh] overflow-y-auto">
         <DialogHeader className="relative">
           <DialogTitle className="text-2xl font-bold pr-8">
             {company.company_name}

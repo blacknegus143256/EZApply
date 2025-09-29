@@ -97,10 +97,8 @@ export default function AppliedCompanies() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCompanyClick = (company: CompanyDetails, status: string) => {
-    if (status === 'pending') {
       setSelectedCompany(company);
       setIsModalOpen(true);
-    }
   };
 
   const handleCloseModal = () => {

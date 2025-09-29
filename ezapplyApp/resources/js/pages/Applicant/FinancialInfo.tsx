@@ -48,9 +48,8 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 
 	return (
 			<div className="p-4">
-				<div className="mb-6 hero">
-					<h1 className="text-2xl font-bold text-white dark:text-white">Financial Information</h1>
-					<p className="text-white dark:text-gray-400 mt-2">Provide your current income details.</p>
+				<div className="mb-6">
+					<h1 className="text-2xl font-bold text-black dark:text-white">Financial Information</h1>
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">

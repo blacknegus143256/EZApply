@@ -76,6 +76,12 @@ const FranchiseForm = () => {
 
   
   // const [companies, setCompanies] = useState<Company[]>([]);
+  const [anywhere, setAnywhere] = useState(false);
+  const [anytime, setAnytime] = useState(false);
+  const [bulkAnywhere, setBulkAnywhere] = useState(false);
+  const [bulkAnytime, setBulkAnytime] = useState(false);
+  
+
   const [search] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
@@ -453,6 +459,29 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Desired Location</label>
+                        <label className="flex items-center gap-2 mb-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={anywhere}
+                            onChange={(e) => {
+                              setAnywhere(e.target.checked);
+                              if (e.target.checked) {
+                                setApplyAddressCodes({
+                                  region_code: "",
+                                  province_code: "",
+                                  citymun_code: "",
+                                  barangay_code: "",
+                                  region_name: "",
+                                  province_name: "",
+                                  citymun_name: "",
+                                  barangay_name: "",
+                                });
+                              }
+                            }}
+                          />
+                          Anywhere
+                        </label>
+                   {!anywhere && (
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs text-neutral-500 mb-1">Region</label>
@@ -510,15 +539,31 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                           </select>
                         </div>
                       </div>
+                   )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium">Deadline Date</label>
+                      <label className="flex items-center gap-2 mb-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={anytime}
+                          onChange={(e) => {
+                            setAnytime(e.target.checked);
+                            if (e.target.checked) {
+                              setApplyModal((s) => ({ ...s, deadline_date: "" }));
+                            }
+                          }}
+                        />
+                        Anytime
+                      </label>
+                {!anytime && (
                       <input
                         type="date"
                         className="mt-1 block w-full rounded-lg border px-3 py-2"
                         value={applyModal.deadline_date}
                         onChange={(e) => setApplyModal((s) => ({ ...s, deadline_date: e.target.value }))}
                       />
+                )}
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-2">
@@ -533,8 +578,10 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       onClick={() => {
                         if (applyModal.companyId) {
                           const { region_name, province_name, citymun_name, barangay_name } = applyAddressCodes;
+
                           const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join(' - ');
                           handleApplySingle(applyModal.companyId, locationStr, applyModal.deadline_date);
+
                         }
                       }}
                     >
@@ -544,7 +591,6 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                 </div>
               </div>
             )}
-
             {/* Bulk Apply modal */}
             {bulkModal.open && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setBulkModal({ open: false, desired_location: '', deadline_date: '' })}>
@@ -553,8 +599,32 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Desired Location</label>
-                      <div className="space-y-3">
+                      <label className="flex items-center gap-2 mb-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={anywhere}
+                            onChange={(e) => {
+                              setAnywhere(e.target.checked);
+                              if (e.target.checked) {
+                                setBulkAddressCodes({
+                                  region_code: "",
+                                  province_code: "",
+                                  citymun_code: "",
+                                  barangay_code: "",
+                                  region_name: "",
+                                  province_name: "",
+                                  citymun_name: "",
+                                  barangay_name: "",
+                                });
+                              }
+                            }}
+                          />
+                          Anywhere
+                        </label>
+                {!anywhere && (   
+                        <div className="space-y-3">
                         <div>
+                          
                           <label className="block text-xs text-neutral-500 mb-1">Region</label>
                           <select className="w-full rounded-lg border px-3 py-2" value={bulkAddressCodes.region_code} onChange={(e)=>onBulkRegionChange(e.target.value)}>
                             <option value="">Select Region</option>
@@ -583,10 +653,28 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                           </select>
                         </div>
                       </div>
+                      )}
                     </div>
+
                     <div>
                       <label className="block text-sm font-medium">Deadline Date</label>
+                      <label className="flex items-center gap-2 mb-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={anytime}
+                        onChange={(e) => {
+                          setAnytime(e.target.checked);
+                          if (e.target.checked) {
+                            setApplyModal((s) => ({ ...s, deadline_date: "" }));
+                          }
+                        }}
+                      />
+                      Anytime
+                    </label>
+                {!anytime && (
                       <input type="date" className="mt-1 block w-full rounded-lg border px-3 py-2" value={bulkModal.deadline_date} onChange={(e)=>setBulkModal((s)=>({...s, deadline_date: e.target.value}))} />
+                      
+                )}
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-2">

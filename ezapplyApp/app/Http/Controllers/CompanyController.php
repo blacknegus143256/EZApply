@@ -211,7 +211,7 @@ class CompanyController extends Controller
         ->whereIn('company_id',$companyIds)
     ->get();
 
-return Inertia::render('Company/CompanyApplicants', [
+return Inertia::render('Company/Applicants/CompanyApplicants', [
     'applicants' => $applicants,
     ]);
 }

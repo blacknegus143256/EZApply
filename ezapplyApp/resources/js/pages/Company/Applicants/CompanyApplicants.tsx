@@ -127,10 +127,9 @@ export default function CompanyApplicants() {
     router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
   };
 
-  const handleCustomerClick = (customer: CustomerDetails, status: string ) => {
-  console.log("Clicked Applicant:", customer, status);
-    setSelectedApplicant(customer);
-    setIsModalOpen(true);
+  const handleCustomerClick = (id: number ) => {
+  const url = `/company/applicants/${id}/profile`;
+    window.open(url, '_blank'); 
   }
 
   return (
@@ -227,7 +226,7 @@ export default function CompanyApplicants() {
                       <TableCell>
                         
                       <div className="flex items-center gap-2">
-                        <Button onClick={() => handleCustomerClick(a.customer, a.status)} className="view-btn btn-2 cursor-pointer">
+                        <Button onClick={() => handleCustomerClick(a.id)} className="view-btn btn-2 cursor-pointer">
                           Applicant Profile
                         </Button>
 
