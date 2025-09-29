@@ -169,7 +169,7 @@ export default function CompanyApplicants() {
                           Applicant Profile
                         </Button>
 
-                        <ChatButton status={a.status} userId={a.customer?.user?.id} />
+                        <ChatButton status={a.status} userId={a.user?.id} />
                       </div>
                       </TableCell>
                     </TableRow>
