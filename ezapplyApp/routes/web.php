@@ -32,7 +32,7 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
  //Landing Page Routes
  Route::get('/', function () {
-    return Inertia::render('Landing/easyApply');
+    return Inertia::render('Landing/improved-easyApply');
 })->name('home');
  Route::get('/list-companies', function (){
     return Inertia::render('Landing/all-companies');
@@ -137,8 +137,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     //Company
-        Route::get('/company/applicants', [CompanyApplicantController::class, 'index'])
-        ->name('company.applicants.index');
 
     Route::get('/company/applicants/{id}/profile', [CompanyApplicantController::class, 'show'])
         ->name('company.applicants.show');

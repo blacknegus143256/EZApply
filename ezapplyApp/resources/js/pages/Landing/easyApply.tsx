@@ -43,7 +43,7 @@ export default function EasyApplyLanding({ user }: { user?: any }) {
 
   if (type !== "all") {
     filtered = filtered.filter(
-      (c) => c.opportunity?.franchise_type === type
+      (c) => c.opportunity?.franchise_type === type 
     );
   }
 
