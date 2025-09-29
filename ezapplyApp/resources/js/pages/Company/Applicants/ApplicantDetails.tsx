@@ -4,6 +4,7 @@ import AppLayout from "@/layouts/app-layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BreadcrumbItem } from "@/types";
+import { Button } from "@/components/ui/button";
 
 interface ApplicantDetailsProps {
   applicant: {
@@ -149,9 +150,15 @@ export default function ApplicantDetails() {
                 {applicant.user.attachments.map((att, i) => (
                   <li
                     key={i}
-                    className="p-2 border rounded-lg shadow-sm bg-gray-50"
+                    className="p-2 border rounded-lg shadow-sm bg-gray-50 flex items-center justify-between"
                   >
                     {att.attachment_type}
+                    <Button className="view-btn btn-2 cursor-pointer ml-auto text-white bg-blue-600"
+										variant="secondary"
+										onClick={() => window.open(`/storage/${att.attachment_path}`, "_blank")}
+										>
+										View File
+										</Button>
                   </li>
                 ))}
               </ul>

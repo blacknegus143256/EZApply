@@ -21,76 +21,19 @@ import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
-import CustomerDetailsModal from "@/components/CustomerDetailsModal";
 import { Link } from "@inertiajs/react";
 import ChatButton from "@/components/ui/chat-button";
+import ViewProfileDialog from "@/components/ViewProfileDialog"; 
+import { Application } from "@/types/applicants";
+
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Company Applicants", href: "/company/applicants" },
 ];
-const placeholderCustomer = {
-  id: 1,
-  email: "placeholder@example.com",
-  basicinfo: {
-    first_name: "John",
-    last_name: "Doe",
-    birth_date: new Date("1990-01-01"),
-    phone: 1234567890,
-    Facebook: "john.doe",
-    LinkedIn: "john-linkedin",
-    Viber: "john-viber",
-  },
-  affiliations: {
-    institution: "ABC Corp",
-    position: "Software Engineer",
-  },
-  financials: {
-    annual_income: 50000,
-    salary: 4000,
-  },
-  customer_attachments: {
-    attachment_type: "ID Card",
-  },
-};
-type CustomerDetails = {
-
-user?: {
-  id: number;
-  email: string;
-};
-  basicinfo?: {
-    first_name: string;
-    last_name: string;
-    birth_date: string;
-    phone: number;
-    Facebook?: string;
-    LinkedIn?: string;
-    Viber?: string;
-  };
-  affiliations?: {
-    institution: string;
-    position: string;
-  }[];
-  financials?: {
-    annual_income?: number;
-    salary?: number;
-  };
-  customer_attachments?: {
-    attachment_type?: string;
-  }[];
-};
 
 
-type Applicant = {
-  id: number;
-  status: string;
-  customer: CustomerDetails;
-};
 
-type PageProps = {
-  applicants?: Applicant[];
-};
 
 const statusOptions = ["pending", "approved", "rejected", "interested"];
 
@@ -101,13 +44,9 @@ export default function CompanyApplicants() {
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
   // Modal states
-  const [selectedApplicant, setSelectedApplicant] = useState<CustomerDetails | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedApplicant, setSelectedApplicant] = useState<Application | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedApplicant(null);
-  };
 
   // Filter logic
   const filteredApplicants = useMemo(() => {
@@ -127,9 +66,9 @@ export default function CompanyApplicants() {
     router.put(`/company/applicants/${id}/status`, { status }, { preserveScroll: true });
   };
 
-  const handleCustomerClick = (id: number ) => {
-  const url = `/company/applicants/${id}/profile`;
-    window.open(url, '_blank'); 
+  const handleCustomerClick = (application : Application) => {
+  setSelectedApplicant(application);
+  setIsDialogOpen(true);
   }
 
   return (
@@ -226,7 +165,7 @@ export default function CompanyApplicants() {
                       <TableCell>
                         
                       <div className="flex items-center gap-2">
-                        <Button onClick={() => handleCustomerClick(a.id)} className="view-btn btn-2 cursor-pointer">
+                        <Button onClick={() => handleCustomerClick(a as unknown as Application)} className="view-btn btn-2 cursor-pointer">
                           Applicant Profile
                         </Button>
 
@@ -243,10 +182,10 @@ export default function CompanyApplicants() {
         </Card>
 
         {/* Modal */}
-        <CustomerDetailsModal
-          customer={selectedApplicant}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+        <ViewProfileDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        application={selectedApplicant}
         />
       </AppLayout>
     </PermissionGate>
