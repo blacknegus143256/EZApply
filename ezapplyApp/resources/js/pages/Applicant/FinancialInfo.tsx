@@ -36,6 +36,7 @@ export default function FinancialInfo({ financial }: FinancialInfoProps) {
 		const cleaned = value.replace(/[^0-9.]/g, "");
 		const parts = cleaned.split(".");
 		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		
 		return parts.join(".");
 	};
 

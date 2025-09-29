@@ -73,7 +73,7 @@ export default function CompanyDetailsModal({ company, isOpen, onClose }: Compan
 
   const formatNumber = (num: number | undefined) => {
     if (!num) return 'Not specified';
-    return new Intl.NumberFormat('en-US').format(num);
+    return new Intl.NumberFormat('en-PH').format(num);
   };
 
   return (

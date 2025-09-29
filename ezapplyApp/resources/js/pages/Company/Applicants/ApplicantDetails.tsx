@@ -51,6 +51,12 @@ export default function ApplicantDetails() {
     const { props } = usePage<{ application: any }>();
     console.log("Applicant props:", props);
 
+    	const formatNumber = (value: string) => {
+        const cleaned = value.replace(/[^0-9.]/g, "");
+        const parts = cleaned.split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts.join(".");
+      };
 //   const { props } = usePage<{ applicant: ApplicantDetailsProps["applicant"] }>();
   const applicant = props.application;
 
@@ -85,10 +91,10 @@ export default function ApplicantDetails() {
           <CardHeader><CardTitle>Financial Information</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             <p><strong>Income Source:</strong> {applicant.user?.financial?.income_source}</p>
-            <p><strong>Monthly Income:</strong> {applicant.user?.financial?.monthly_income}</p>
+            <p><strong>Monthly Income:</strong> {formatNumber(String(applicant.user?.financial?.monthly_income))}</p>
             <p><strong>Other Income:</strong> {applicant.user?.financial?.other_income}</p>
-            <p><strong>Monthly Expenses:</strong> {applicant.user?.financial?.monthly_expenses}</p>
-            <p><strong>Existing Loans:</strong> {applicant.user?.financial?.existing_loans}</p>
+            <p><strong>Monthly Expenses:</strong> {formatNumber(String(applicant.user?.financial?.monthly_expenses))}</p>
+            <p><strong>Existing Loans:</strong> {formatNumber(String(applicant.user?.financial?.existing_loans))}</p>
           </CardContent>
         </Card>
 
