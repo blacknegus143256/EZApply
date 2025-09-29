@@ -51,8 +51,21 @@ export default function ApplicantDetails() {
     const { props } = usePage<{ application: any }>();
     console.log("Applicant props:", props);
 
-    	const formatNumber = (value: string) => {
-        const cleaned = value.replace(/[^0-9.]/g, "");
+  type FormatType = "number" | "currency";
+
+      const formatValue = (value: string | number, type: FormatType = "number") => {
+        if (type === "currency") {
+          const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
+          if (isNaN(num)) return "";
+          return new Intl.NumberFormat("en-PH", {
+            style: "currency",
+            currency: "PHP",
+          }).format(num);
+        }
+
+        // default: number formatting
+        const strValue = String(value);
+        const cleaned = strValue.replace(/[^0-9.]/g, "");
         const parts = cleaned.split(".");
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return parts.join(".");
@@ -67,7 +80,7 @@ export default function ApplicantDetails() {
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Basic Infodabwdhadjhsaw */}
+        {/* Basic Info */}
         <Card>
           <CardHeader>
             <CardTitle>
@@ -91,10 +104,10 @@ export default function ApplicantDetails() {
           <CardHeader><CardTitle>Financial Information</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             <p><strong>Income Source:</strong> {applicant.user?.financial?.income_source}</p>
-            <p><strong>Monthly Income:</strong> {formatNumber(String(applicant.user?.financial?.monthly_income))}</p>
+            <p><strong>Monthly Income:</strong> {formatValue(applicant.user?.financial?.monthly_income, "currency")}</p>
             <p><strong>Other Income:</strong> {applicant.user?.financial?.other_income}</p>
-            <p><strong>Monthly Expenses:</strong> {formatNumber(String(applicant.user?.financial?.monthly_expenses))}</p>
-            <p><strong>Existing Loans:</strong> {formatNumber(String(applicant.user?.financial?.existing_loans))}</p>
+            <p><strong>Monthly Expenses:</strong> {formatValue(applicant.user?.financial?.monthly_expenses, "currency")}</p>
+            <p><strong>Existing Loans:</strong> {formatValue(applicant.user?.financial?.existing_loans, "currency")}</p>
           </CardContent>
         </Card>
 
