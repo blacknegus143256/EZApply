@@ -67,7 +67,7 @@ export default function ApplicantDetails() {
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        {/* Basic Info */}
+        {/* Basic Infodabwdhadjhsaw */}
         <Card>
           <CardHeader>
             <CardTitle>
