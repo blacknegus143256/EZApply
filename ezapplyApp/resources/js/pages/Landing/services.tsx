@@ -3,7 +3,7 @@
     const services = () => {
     return (
     <>
-    <div id="services">
+    <div id="services" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-100 to-green-10 border border-black-600 inset-shadow-sm">
     <div className="services-container">
         <h1 className="services-header text-3xl font-bold underline">Our Services</h1>
         <p className="services-subheader">

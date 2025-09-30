@@ -83,6 +83,7 @@ user?: {
 
 
 type Applicant = {
+  user: any;
   id: number;
   status: string;
   customer: CustomerDetails;

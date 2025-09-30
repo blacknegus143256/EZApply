@@ -96,7 +96,7 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Home Page',
-        href: `/easy-apply`,
+        href: `/`,
         icon: BookOpen,
         permission: 'view home page',
     }

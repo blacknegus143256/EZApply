@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from '@inertiajs/react';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
@@ -6,6 +6,15 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+// import { Progress } from '@/components/ui/progress';
+import { CheckCircle, ChevronRight, ChevronLeft, Building2, DollarSign, Users, FileText, Upload, AlertCircle } from 'lucide-react';
 
 // Steps definition
 export const STEPS = [
@@ -80,25 +89,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  const { className = '', ...rest } = props;
-  return (
-    <input
-      {...rest}
-      className={`w-full rounded-md border border-gray-700 bg-gray-800 p-2 text-gray-100 ${className}`}
-    />
-  );
-}
-
-function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { className = '', ...rest } = props;
-  return (
-    <textarea
-      {...rest}
-      className={`w-full rounded-md border border-gray-700 bg-gray-800 p-2 text-gray-100 ${className}`}
-    />
-  );
-}
 
 function ErrorText({ message }: { message?: string }) {
   if (!message) return null;
@@ -154,6 +144,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   
 
   useEffect(() => {
@@ -167,23 +158,33 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
     const requiredFields: Record<number, (keyof typeof data)[]> = {
       0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
-      2: ['industry_sector', 'years_in_operation'], // Changed from years_in_operation
+      2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
-      5: ['dti_sbc', 'bir_2303', 'ipo_registration'], // Add validation for documents step
+      5: ['dti_sbc', 'bir_2303', 'ipo_registration'],
     };
 
-   for (const field of requiredFields[step] || []) {
-    if (!data[field] && data[field] !== 0) return false;
+    for (const field of requiredFields[step] || []) {
+      if (!data[field] && data[field] !== 0) return false;
+    }
+    return true;
   }
-  return true;
-}
 
   function next() {
-    if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    if (validateStep(step)) {
+      setCompletedSteps(prev => [...prev, step]);
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    }
   }
+  
   function back() {
     setStep((s) => Math.max(s - 1, 0));
+  }
+
+  function goToStep(targetStep: number) {
+    if (targetStep <= step || completedSteps.includes(targetStep - 1)) {
+      setStep(targetStep);
+    }
   }
 
 function doSubmit() {
@@ -232,59 +233,102 @@ function doSubmit() {
 }
 
 
+  const stepIcons = [Building2, DollarSign, Users, FileText, Upload, FileText];
+  const stepDescriptions = [
+    "Basic company information and location",
+    "Franchise opportunity details and investment requirements",
+    "Company background and industry information",
+    "Franchisee requirements and qualifications",
+    "Marketing materials and listing information",
+    "Required business documents and certifications"
+  ];
+
   return (
     <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
-        <Head title="Dashboard" />
+        <Head title="Company Registration" />
 
-        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          {/* Card 1: click to expand to full width */}
-          <div
-            ref={containerRef}
-            onClick={() => { if (!open) setOpen(true); }}
-            className={`relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border ${
-              open ? 'md:col-span-3' : 'aspect-video cursor-pointer'
-            }`}
-          >
-            <div className="absolute inset-0 pointer-events-none">
-              <PlaceholderPattern className="size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <div className="max-w-4xl mx-auto p-6">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {companyId ? 'Edit Company Registration' : 'Register Your Company'}
+              </h1>
+              <p className="text-gray-600 ">
+                Complete the registration process to list your franchise opportunity
+              </p>
             </div>
 
-            {!open ? (
-              <div className="relative z-10 flex h-full w-full items-center justify-between p-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-black">Register your Company/Franchise</h3>
-                  <p className="text-xs text-black">Click to start the {STEPS.length}-step setup</p>
-                </div>
-                <svg className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
-                </svg>
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-gray-700">
+                  Step {step + 1} of {STEPS.length}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(((step + 1) / STEPS.length) * 100)}% Complete
+                </span>
               </div>
-            ) : (
-              <div className="relative z-10 px-4 pb-4 max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="mb-4 flex items-center justify-between pt-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-black">Register your Company/Franchise</h3>
-                    <p className="text-xs text-black">Step {step + 1} of {STEPS.length}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="rounded-md border border-gray-600 px-2 py-1 text-xs text-gray-200 hover:bg-gray-700"
-                  >
-                    Collapse
-                  </button>
-                </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+                />
+              </div>
+            </div>
 
-                {/* chips */}
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {STEPS.map((label, i) => (
-                    <span key={i} className={`px-2 py-1 rounded-full text-[11px] ${i <= step ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'}`}>
-                      {i + 1}. {label}
-                    </span>
-                  ))}
-                </div>
+            {/* Step Navigation */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                {STEPS.map((stepName, index) => {
+                  const Icon = stepIcons[index];
+                  const isCompleted = completedSteps.includes(index);
+                  const isCurrent = index === step;
+                  const isAccessible = index <= step || completedSteps.includes(index - 1);
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center">
+                      <button
+                        onClick={() => goToStep(index)}
+                        disabled={!isAccessible}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                          isCompleted
+                            ? 'bg-green-500 text-white'
+                            : isCurrent
+                            ? 'bg-blue-500 text-white'
+                            : isAccessible
+                            ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="w-6 h-6" />
+                        ) : (
+                          <Icon className="w-6 h-6" />
+                        )}
+                      </button>
+                      <span className={`text-xs mt-2 text-center ${
+                        isCurrent ? 'text-blue-600 font-medium' : 'text-gray-500'
+                      }`}>
+                        {stepName}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Form Content */}
+            <Card className="shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardTitle className="flex items-center gap-3">
+                  {React.createElement(stepIcons[step], { className: "w-6 h-6 text-blue-600" })}
+                  {STEPS[step]}
+                </CardTitle>
+                <p className="text-gray-600 ml-12"> {stepDescriptions[step]}</p>
+              </CardHeader>
+              <CardContent className="p-6">
 
                 {/* FORM */}
                 <form
@@ -303,30 +347,101 @@ function doSubmit() {
                 >
                   {/* Step 1: Company */}
                   {step === 0 && (
-                    <div className="grid gap-3">
-                      <Field label="Company Name *">
-                        <Input id="company_name" name="company_name" value={data.company_name} onChange={(e) => setData('company_name', e.target.value)} required />
-                        <ErrorText message={(errors as any).company_name} />
-                      </Field>
-                      <Field label="Brand Name *">
-                        <Input name="brand_name" value={data.brand_name ?? ''} onChange={(e) => setData('brand_name', e.target.value)} required/>
-                        <ErrorText message={(errors as any).brand_name} />
-                      </Field>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_name">Company Name *</Label>
+                          <Input
+                            id="company_name"
+                            name="company_name"
+                            value={data.company_name}
+                            onChange={(e) => setData('company_name', e.target.value)}
+                            placeholder="Enter your company name"
+                            required
+                          />
+                          <ErrorText message={(errors as any).company_name} />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="brand_name">Brand Name</Label>
+                          <Input
+                            name="brand_name"
+                            value={data.brand_name ?? ''}
+                            onChange={(e) => setData('brand_name', e.target.value)}
+                            placeholder="Enter your brand name"
+                          />
+                          <ErrorText message={(errors as any).brand_name} />
+                        </div>
+                      </div>
                       
-                      <h3 className="text-md font-semibold mt-4">Headquarters Address</h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        <Field label="City *"><Input name="city" value={data.city} onChange={(e) => setData('city', e.target.value)} required /> <ErrorText message={(errors as any).city} /></Field>
-                        <Field label="State/Province *"><Input name="state_province" value={data.state_province} onChange={(e) => setData('state_province', e.target.value)} required /> <ErrorText message={(errors as any).state_province} /></Field>
-                        <Field label="ZIP/Postal Code *"><Input name="zip_code" value={data.zip_code} onChange={(e) => setData('zip_code', e.target.value)} required /> <ErrorText message={(errors as any).zip_code} /></Field>
-                        <Field label="Country *"><Input name="country" value={data.country} onChange={(e) => setData('country', e.target.value)} required /> <ErrorText message={(errors as any).country} /></Field>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Headquarters Address</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="city">City *</Label>
+                            <Input
+                              name="city"
+                              value={data.city}
+                              onChange={(e) => setData('city', e.target.value)}
+                              placeholder="Enter city"
+                              required
+                            />
+                            <ErrorText message={(errors as any).city} />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="state_province">State/Province *</Label>
+                            <Input
+                              name="state_province"
+                              value={data.state_province}
+                              onChange={(e) => setData('state_province', e.target.value)}
+                              placeholder="Enter state/province"
+                              required
+                            />
+                            <ErrorText message={(errors as any).state_province} />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="zip_code">ZIP/Postal Code *</Label>
+                            <Input
+                              name="zip_code"
+                              value={data.zip_code}
+                              onChange={(e) => setData('zip_code', e.target.value)}
+                              placeholder="Enter ZIP code"
+                              required
+                            />
+                            <ErrorText message={(errors as any).zip_code} />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="country">Country *</Label>
+                            <Input
+                              name="country"
+                              value={data.country}
+                              onChange={(e) => setData('country', e.target.value)}
+                              placeholder="Enter country"
+                              required
+                            />
+                            <ErrorText message={(errors as any).country} />
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <Field label="Company Website (optional)">
-                          <Input name="company_website" value={data.company_website ?? ''} onChange={(e) => setData('company_website', e.target.value)} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_website">Company Website</Label>
+                          <Input
+                            name="company_website"
+                            value={data.company_website ?? ''}
+                            onChange={(e) => setData('company_website', e.target.value)}
+                            placeholder="https://yourcompany.com"
+                            type="url"
+                          />
                           <ErrorText message={(errors as any).company_website} />
-                        </Field>
-                        <Field label="Year Founded *">
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="year_founded">Year Founded *</Label>
                           <Input
                             name="year_founded"
                             type="number"
@@ -334,31 +449,39 @@ function doSubmit() {
                             max={new Date().getFullYear()}
                             value={data.year_founded}
                             onChange={(e) => setData('year_founded', Number(e.target.value) || '')}
+                            placeholder="2020"
                             required
                           />
                           <ErrorText message={(errors as any).year_founded} />
-                        </Field>
+                        </div>
                       </div>
 
-                      <Field label="Description *">
-                        <Textarea name="description" rows={2} value={data.description} onChange={(e) => setData('description', e.target.value)} required />
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Company Description *</Label>
+                        <Textarea
+                          name="description"
+                          rows={4}
+                          value={data.description}
+                          onChange={(e) => setData('description', e.target.value)}
+                          placeholder="Describe your company and what makes it unique..."
+                          required
+                        />
                         <ErrorText message={(errors as any).description} />
-                      </Field>
+                      </div>
 
-                      <Field label="Number of Existing Franchise Locations (optional)">
+                      <div className="space-y-2">
+                        <Label htmlFor="num_franchise_locations">Number of Existing Franchise Locations</Label>
                         <Input
                           name="num_franchise_locations"
                           type="number"
                           min={0}
                           value={data.num_franchise_locations}
                           onChange={(e) => setData('num_franchise_locations', Number(e.target.value) || '')}
+                          placeholder="0"
                         />
                         <ErrorText message={(errors as any).num_franchise_locations} />
-                      </Field>
-                      
-
+                      </div>
                     </div>
-                    
                   )}
 
                   {/* Step 2: Opportunity */}
@@ -517,59 +640,64 @@ function doSubmit() {
                     </div>
                   )}
 
-                  {/* controls */}
-                  <div className="mt-4 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={back}
-                      className="rounded-lg border border-gray-600 px-3 py-2 text-black disabled:opacity-40"
-                      disabled={step === 0 || processing}
-                    >
-                      Back
-                    </button>
+                </form>
 
+                {/* Form Controls */}
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={back}
+                    disabled={step === 0 || processing}
+                    className="flex items-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back
+                  </Button>
+
+                  <div className="flex items-center gap-4">
+                    {Object.keys(errors).length > 0 && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        Please fix the errors above
+                      </div>
+                    )}
+                    
                     {step < STEPS.length - 1 ? (
-                      <button
+                      <Button
                         type="button"
                         onClick={next}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                         disabled={!validateStep(step) || processing}
+                        className="flex items-center gap-2"
                       >
                         Next
-                      </button>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         type="button"
                         onClick={doSubmit}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                        disabled={processing}>
-                        {companyId ? 'Resubmit' : 'Submit'}
-                      </button>
+                        disabled={processing}
+                        className="flex items-center gap-2"
+                      >
+                        {processing ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            {companyId ? 'Updating...' : 'Submitting...'}
+                          </>
+                        ) : (
+                          <>
+                            {companyId ? 'Update Company' : 'Submit Registration'}
+                            <CheckCircle className="w-4 h-4" />
+                          </>
+                        )}
+                      </Button>
                     )}
                   </div>
-
-                  {Object.keys(errors).length > 0 && (
-                    <div className="mt-3 rounded-md bg-red-600/20 p-3 text-sm text-red-300">
-                      Please fix the highlighted errors and submit again.
-                    </div>
-                  )}
-                </form>
-              </div>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          {/* two placeholder cards when closed */}
-          {!open && (
-            <>
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-              </div>
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-              </div>
-            </>
-          )}
-        </div>
         </div>
       </AppLayout>
     </PermissionGate>
