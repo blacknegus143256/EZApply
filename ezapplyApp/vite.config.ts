@@ -20,4 +20,8 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    server: {
+        // Allows ngrok tunnels to connect
+        allowedHosts: ['*.ngrok-free.app'],
+    },
 });

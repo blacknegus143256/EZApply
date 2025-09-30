@@ -2,6 +2,11 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
+import { DataTable, type Column } from '@/components/ui/data-table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Building2, Edit, Eye, Trash2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 type Company = {
   id: number;
@@ -13,7 +18,7 @@ type Company = {
   year_founded?: number | null;
   country?: string | null;
   logo_url?: string | null;
-  status?: string | null; // Added status field
+  status?: string | null;
 };
 
 type Props = {
@@ -26,83 +31,130 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 function Index({ companies = [] }: Props) {
-  const hasCompanies = companies.length > 0;
-
-  function renderTableRow(company: Company) {
-    return (
-      <tr key={company.id}>
-        <td className="p-4">
-          {company.logo_url ? (
+  const columns: Column<Company>[] = [
+    {
+      key: 'logo',
+      title: 'Logo',
+      dataIndex: 'logo_url',
+      width: '80px',
+      render: (value, record) => (
+        <div className="flex items-center justify-center">
+          {value ? (
             <img
-              src={company.logo_url}
-              className="h-16 w-16 rounded-xl object-cover border"
-              alt={`${company.company_name} Logo`}
+              src={value}
+              className="h-12 w-12 rounded-lg object-cover border"
+              alt={`${record.company_name} Logo`}
             />
           ) : (
-            <div className="h-16 w-16 rounded-xl bg-neutral-200 flex items-center justify-center text-neutral-500">
-              Logo
+            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+              <Building2 className="h-6 w-6 text-muted-foreground" />
             </div>
           )}
-        </td>
-        <td className="p-4">{company.company_name}</td>
-        <td className="p-4">{company.brand_name || '—'}</td>
-        <td className="p-4">{company.opportunity?.franchise_type || '—'}</td>
-        <td className="p-4">{company.year_founded || '—'}</td>
-        <td className="p-4">{company.country || '—'}</td>
-        <td className="p-4">{company.status || '—'}</td> {}
-        <td className="p-4">
-          <Link
-            href={`/companies/${company.id}/edit`}
-            className="text-blue-500 hover:underline"
+        </div>
+      ),
+    },
+    {
+      key: 'company_name',
+      title: 'Company Name',
+      dataIndex: 'company_name',
+      sortable: true,
+      render: (value, record) => (
+        <div>
+          <div className="font-medium">{value}</div>
+          {record.brand_name && (
+            <div className="text-sm text-muted-foreground">{record.brand_name}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'franchise_type',
+      title: 'Franchise Type',
+      dataIndex: 'opportunity.franchise_type',
+      sortable: true,
+      render: (value) => value || '—',
+    },
+    {
+      key: 'year_founded',
+      title: 'Founded',
+      dataIndex: 'year_founded',
+      sortable: true,
+      render: (value) => value || '—',
+    },
+    {
+      key: 'country',
+      title: 'Country',
+      dataIndex: 'country',
+      sortable: true,
+      render: (value) => value || '—',
+    },
+    {
+      key: 'status',
+      title: 'Status',
+      dataIndex: 'status',
+      sortable: true,
+      render: (value) => {
+        if (!value) return '—';
+        return (
+          <Badge 
+            variant={value === 'approved' ? 'success' : value === 'pending' ? 'warning' : 'destructive'}
           >
-            Edit
-          </Link>
-        </td>
-      </tr>
-    );
-  }
+            {value}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      title: 'Actions',
+      dataIndex: 'id',
+      width: '120px',
+      render: (value, record) => (
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/companies/${value}`}>
+              <Eye className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/companies/${value}/edit`}>
+              <Edit className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <>
+    <ErrorBoundary>
       <Head title="Companies" />
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Companies</h1>
-          {/* <Link href="/Company/FranchiseRegister" className="rounded-lg border px-4 py-2 hover:bg-neutral-50">
-            Register Company
-          </Link> */}
-        </div>
-
-        {hasCompanies ? (
-          <div className="rounded-xl border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-neutral-100">
-                <tr>
-                  <th className="p-4 text-left">Logo</th>
-                  <th className="p-4 text-left">Company Name</th>
-                  <th className="p-4 text-left">Brand Name</th>
-                  <th className="p-4 text-left">Franchise Type</th>
-                  <th className="p-4 text-left">Year Founded</th>
-                  <th className="p-4 text-left">Country</th>
-                  <th className="p-4 text-left">Status</th>
-                  <th className="p-4 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="[&>tr:nth-child(even)]:bg-neutral-50">
-                {companies.map(renderTableRow)}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="rounded-xl border p-6 text-neutral-700">
-            <p>No companies registered yet.</p>
-            <p className="mt-2">
-              Click <Link className="underline" href="/company/register">here</Link> to add a company.
+          <div>
+            <h1 className="text-2xl font-bold">Companies</h1>
+            <p className="text-muted-foreground">
+              Manage and view all registered companies
             </p>
           </div>
-        )}
+          <Button asChild>
+            <Link href="/company/register">
+              <Building2 className="mr-2 h-4 w-4" />
+              Register Company
+            </Link>
+          </Button>
+        </div>
+
+        <DataTable
+          data={companies}
+          columns={columns}
+          searchable={true}
+          searchPlaceholder="Search companies..."
+          emptyMessage="No companies registered yet. Click 'Register Company' to add one."
+          className="w-full"
+        />
       </div>
-    </>
+    </ErrorBoundary>
   );
 }
 

@@ -372,6 +372,101 @@ public function updateApplicantStatus(Request $request, $id)
     return back()->with('success', 'Applicant status updated.');
 }
 
+public function update(Request $request, Company $company)
+{
+    abort_unless($company->user_id === Auth::id(), 403);
+
+    // $company = Company::with(['opportunity','background','requirements','marketing'])
+    //     ->where('user_id', Auth::id()) // ensure owner
+    //     ->findOrFail($id);
+
+    $v = $request->validate([
+        // same rules as store() …
+    ]);
+
+    $logoPath = optional($company->marketing)->logo_path;
+    if ($request->hasFile('logo')) {
+        $logoPath = $request->file('logo')->store('logos', 'public');
+    }
+
+    DB::transaction(function () use ($company, $v, $logoPath) {
+        // Update parent
+        $company->update([
+            'company_name'            => $v['company_name'],
+            'brand_name'              => $v['brand_name'] ?? null,
+            'city'                    => $v['city'],
+            'state_province'          => $v['state_province'],
+            'zip_code'                => $v['zip_code'],
+            'country'                 => $v['country'],
+            'company_website'         => $v['company_website'] ?? null,
+            'description'             => $v['description'],
+            'year_founded'            => $v['year_founded'],
+            'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
+        ]);
+
+        // Update related rows (if null yet, create them)
+        $company->opportunity()->updateOrCreate(
+            ['company_id'=>$company->id],
+            [
+                'franchise_type'        => $v['franchise_type'],
+                'min_investment'        => $v['min_investment'],
+                'franchise_fee'         => $v['franchise_fee'],
+                'royalty_fee_structure' => $v['royalty_fee_structure'],
+                'avg_annual_revenue'    => $v['avg_annual_revenue'] ?? null,
+                'target_markets'        => $v['target_markets'],
+                'training_support'      => $v['training_support'] ?? null,
+                'franchise_term'        => $v['franchise_term'],
+                'unique_selling_points' => $v['unique_selling_points'] ?? null,
+            ]
+        );
+
+        $company->background()->updateOrCreate(
+            ['company_id'=>$company->id],
+            [
+                'industry_sector'    => $v['industry_sector'],
+                'years_in_operation' => $v['years_in_operation'],
+                'total_revenue'      => $v['total_revenue'] ?? null,
+                'awards'             => $v['awards'] ?? null,
+                'company_history'    => $v['company_history'] ?? null,
+            ]
+        );
+
+        $company->requirements()->updateOrCreate(
+            ['company_id'=>$company->id],
+            [
+                'min_net_worth'        => $v['min_net_worth'],
+                'min_liquid_assets'    => $v['min_liquid_assets'],
+                'prior_experience'     => $v['prior_experience'] ?? false,
+                'experience_type'      => $v['experience_type'] ?? null,
+                'other_qualifications' => $v['other_qualifications'] ?? null,
+            ]
+        );
+
+        $company->marketing()->updateOrCreate(
+            ['company_id'=>$company->id],
+            [
+                'listing_title'            => $v['listing_title'] ?? null,
+                'listing_description'      => $v['listing_description'] ?? null,
+                'logo_path'                => $logoPath,
+                'target_profile'           => $v['target_profile'] ?? null,
+                'preferred_contact_method' => $v['preferred_contact_method'] ?? null,
+            ]
+        );
+    });
+
+    return back()->with('success','Company updated successfully.');
+}
+
+
+    public function edit(Company $company)
+{
+    $company = Company::where('user_id', Auth::id())->findOrFail($company->id);
+    $company->load(['opportunity','background','requirements','marketing']);
+    return Inertia::render('Company/CompanyEdit', [
+        'company' => $company ,
+    ]);
+}
+
 public function destroy(Company $company)
     {
         abort_unless($company->user_id === Auth::id(), 403);
