@@ -1,4 +1,3 @@
-// resources/js/Pages/Company/CompanyEditWrapper.tsx
 import { usePage } from '@inertiajs/react';
 import FranchiseRegister from './FranchiseRegister';
 
@@ -20,6 +19,17 @@ export default function CompanyEditWrapper() {
         description: company.description || '',
         year_founded: company.year_founded || '',
         num_franchise_locations: company.num_franchise_locations || '',
+
+        // PSGC Address Fields (added)
+        region_code: company.region_code || '',
+        region_name: company.region_name || '',
+        province_code: company.province_code || '',
+        province_name: company.province_name || '',
+        citymun_code: company.citymun_code || '',
+        citymun_name: company.citymun_name || '',
+        barangay_code: company.barangay_code || '',
+        barangay_name: company.barangay_name || '',
+        postal_code: company.postal_code || '',
 
         // Opportunity
         franchise_type: company.opportunity?.franchise_type || '',
@@ -59,7 +69,6 @@ export default function CompanyEditWrapper() {
         ipo_registration: null as File | null, // existing: company.documents?.ipo_registration_path
       }}
       companyId={company.id}
-      // mode="edit" // can be used inside FranchiseRegister to differentiate between create & edit
     />
   );
 }
