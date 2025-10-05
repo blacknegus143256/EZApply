@@ -41,29 +41,8 @@ const CompanyRegistered = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [companyToDelete, setCompanyToDelete] = useState<number | null>(null);
 
-  const handleDelete = (id: number) => {
-    setCompanyToDelete(id);
-    setDeleteDialogOpen(true);
-  };
 
-  const confirmDelete = () => {
-    if (companyToDelete !== null) {
-      router.delete(`/companies/${companyToDelete}`, {
-        onSuccess: () => {
-          setDeleteDialogOpen(false);
-          setCompanyToDelete(null);
-          // Inertia.js will automatically refresh the page data
-        },
-        onError: (errors) => {
-          console.error('Delete failed:', errors);
-          // Keep dialog open to show error or add toast notification
-        }
-      });
-    }
-  };
 
   // Filter logic
   const filteredCompanies = useMemo(() => {
@@ -76,6 +55,76 @@ const CompanyRegistered = () => {
     { title: "Dashboard", href: "/dashboard" },
     { title: "Company Request", href: "/my-companies" },
   ];
+
+  const rows = [];
+  if (loading) {
+    rows.push(
+      <TableRow key="loading">
+        <TableCell colSpan={8} className="text-center">
+          <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />{" "}
+          Loading companies...
+        </TableCell>
+      </TableRow>
+    );
+  } else if (error) {
+    rows.push(
+      <TableRow key="error">
+        <TableCell colSpan={8} className="text-center text-red-500">
+          {error}
+        </TableCell>
+      </TableRow>
+    );
+  } else if (filteredCompanies.length === 0) {
+    rows.push(
+      <TableRow key="no-companies">
+        <TableCell colSpan={8} className="text-center">
+          No companies registered yet.
+        </TableCell>
+      </TableRow>
+    );
+  } else {
+    filteredCompanies.forEach((company) => {
+      rows.push(
+        <TableRow key={company.id}>
+          {/* <TableCell>{company.id}</TableCell> */}
+          <TableCell>{company?.company_name || "—"}</TableCell>
+          <TableCell>{company.brand_name || "—"}</TableCell>
+          <TableCell>
+            {company.opportunity?.franchise_type || "—"}
+          </TableCell>
+          <TableCell>{company.year_founded || "—"}</TableCell>
+          <TableCell>{company.country || "—"}</TableCell>
+          <TableCell>
+            {company.status === "pending" && (
+              <Badge variant="secondary">Pending 🟡</Badge>
+            )}
+            {company.status === "approved" && (
+              <Badge variant="secondary">Approved 🟢</Badge>
+            )}
+            {company.status === "rejected" && (
+              <Badge variant="destructive">Rejected 🔴</Badge>
+            )}
+          </TableCell>
+          <TableCell>
+            {company.created_at
+              ? new Date(company.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })
+              : "—"}
+          </TableCell>
+          <TableCell>
+            <div className="flex gap-2">
+              <Button asChild variant="default">
+                <Link href={`/companies/${company.id}/edit`}>Edit</Link>
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    });
+  }
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -102,7 +151,6 @@ const CompanyRegistered = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Brand Name</TableHead>
                 <TableHead>Franchise Type</TableHead>
@@ -114,91 +162,12 @@ const CompanyRegistered = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center">
-                    <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />{" "}
-                    Loading companies...
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-red-500">
-                    {error}
-                  </TableCell>
-                </TableRow>
-              ) : filteredCompanies.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center">
-                    No companies registered yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredCompanies.map((company) => (
-                  <TableRow key={company.id}>
-                    <TableCell>{company.id}</TableCell>
-                    <TableCell>{company?.company_name || "—"}</TableCell>
-                    <TableCell>{company.brand_name || "—"}</TableCell>
-                    <TableCell>
-                      {company.opportunity?.franchise_type || "—"}
-                    </TableCell>
-                    <TableCell>{company.year_founded || "—"}</TableCell>
-                    <TableCell>{company.country || "—"}</TableCell>
-                    <TableCell>
-                      {company.status === "pending" && (
-                        <Badge variant="secondary">Pending 🟡</Badge>
-                      )}
-                      {company.status === "approved" && (
-                        <Badge variant="secondary">Approved 🟢</Badge>
-                      )}
-                      {company.status === "rejected" && (
-                        <Badge variant="destructive">Rejected 🔴</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {company.created_at
-                        ? new Date(company.created_at).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button asChild variant="default">
-                          <Link href={`/companies/${company.id}/edit`}>Edit</Link>
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => handleDelete(company.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              {rows}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>Confirm Delete</DialogHeader>
-          <p>Are you sure you want to delete this company?</p>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 };
