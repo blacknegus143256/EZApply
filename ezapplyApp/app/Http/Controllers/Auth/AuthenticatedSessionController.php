@@ -63,6 +63,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/easy-apply');
+        return redirect('/');
     }
 }

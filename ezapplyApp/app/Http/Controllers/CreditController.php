@@ -5,82 +5,157 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\UserCredit;
 use App\Models\ApplicantView;
-use Inertia\Inertia;
 use App\Models\CreditTransaction;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\DB; // CRITICAL ADDITION: Import DB facade
 
 class CreditController extends Controller
 {
-
+    /**
+     * Display user credit balance
+     */
     public function creditDisplay()
     {
         $user = auth()->user();
         $credits = $user?->credit?->balance ?? 0;
 
-        return inertia('Credits/balancePage', [
+        return Inertia::render('Credits/balancePage', [
             'balance' => $credits,
         ]);
     }
 
+    /**
+     * Deduct credits when user views an applicant
+     */
     public function viewApplicant(Request $request)
     {
         $user = auth()->user();
-        $applicationId = $request->input('application_id');
-        $cost = 50;
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated.',
+            ], 401);
+        }
 
+        $applicationId = $request->input('application_id');
+        $fieldKey = $request->input('field_key'); // CRITICAL CHANGE: Changed 'field' to 'field_key'
+        $cost = 5; // cost per field view
+
+        if (!$applicationId || !$fieldKey) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Missing application ID or field key.',
+            ], 400);
+        }
+
+        // Check if already paid for this specific applicant + field
+        $alreadyViewed = ApplicantView::where('user_id', $user->id)
+            ->where('application_id', $applicationId)
+            ->where('field_key', $fieldKey)
+            ->exists();
+
+        if ($alreadyViewed) {
+            return response()->json([
+                'status' => 'success',
+                'already_paid' => true,
+                'message' => 'You already paid to view this field.',
+                'new_balance' => $user->credit?->balance ?? 0, // Return current balance
+            ]);
+        }
+
+        // Retrieve or create user's credit record
         $userCredit = UserCredit::firstOrCreate(
             ['user_id' => $user->id],
             ['balance' => 0]
         );
 
         if ($userCredit->balance < $cost) {
-            return back()->withErrors(['balance' => 'Insufficient credits']);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Insufficient credits.',
+                'balance' => 'Insufficient credits.', // Provide a 'balance' key for frontend onError
+            ], 400);
         }
-     
-        $userCredit->balance -= $cost;
-        $userCredit->save();
 
-        ApplicantView::create(attributes: [
-            'user_id'       => $user->id,
-            'application_id'=> $applicationId,
-            'paid'          => true,
-        ]);
-        $type = 'usage'; 
-        $description = 'Viewed applicant profile for application ID: ' . $applicationId;
-        $metadata = ['application_id' => $applicationId];
+        // CRITICAL CHANGE: Wrap in a database transaction for atomicity
+        try {
+            DB::transaction(function () use ($userCredit, $cost, $user, $applicationId, $fieldKey) {
+                // Deduct credits
+                $userCredit->balance -= $cost;
+                $userCredit->save();
 
-        CreditTransaction::create(attributes: [
-            'user_id'       => $user->id,
-            'amount'        => $cost,
-            'type'          => $type,
-            'description'   => $description,
-            'metadata'      => $metadata,
-            ]);
+                // Log per-field payment
+                ApplicantView::create([
+                    'user_id' => $user->id,
+                    'application_id' => $applicationId,
+                    'field_key' => $fieldKey,
+                    'paid' => true,
+                ]);
+
+                CreditTransaction::create([
+                    'user_id' => $user->id,
+                    'amount' => $cost,
+                    'type' => 'usage',
+                    'description' => "Viewed {$fieldKey} of applicant ID: {$applicationId}",
+                    'metadata' => [
+                        'application_id' => $applicationId,
+                        'field_key' => $fieldKey,
+                    ],
+                ]);
+            });
+        } catch (\Exception $e) {
+            \Log::error("Credit transaction failed for user {$user->id}, applicant {$applicationId}, field {$fieldKey}: " . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to process payment. Please try again.',
+            ], 500);
+        }
 
 
-        return back()->with([
-            'message' => 'Payment successful',
-            'auth.user.credits' => $userCredit->balance, 
+        // After successful transaction, return success
+       return back()->with('success', 'Payment successful.')->with('new_balance', $userCredit->balance);
+    }
+
+    /**
+     * Check if user has already viewed fields for an applicant
+     */
+    public function checkApplicantView($applicationId)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not authenticated.',
+            ], 401);
+        }
+
+        $views = ApplicantView::where('user_id', $user->id)
+            ->where('application_id', $applicationId)
+            ->pluck('field_key')
+            ->toArray(); // Ensure it's an array for JSON response
+
+        return response()->json([
+            'paid_fields' => $views,
         ]);
     }
-    public function checkApplicantView($applicationId)
-{
-    $user = auth()->user();
 
-    $alreadyViewed = ApplicantView::where('user_id', $user->id)
-        ->where('application_id', $applicationId)
-        ->exists();
+    /**
+     * Display user’s transaction history
+     */
+    public function transactionHistory(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            // Handle unauthenticated user or redirect
+            return redirect()->route('login'); // Or return an error page/JSON
+        }
 
-    return response()->json(['already_viewed' => $alreadyViewed]);
-}
+        $credit_transactions = CreditTransaction::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-public function transactionHistory(Request $request){
-    $user = auth()->user();
-    $credit_transactions = CreditTransaction::where('user_id', $user->id)
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    return inertia('Credits/balancePage', [
-        'credit_transactions' => $credit_transactions,
-    ]);
-}
+        return Inertia::render('Credits/balancePage', [
+            'credit_transactions' => $credit_transactions,
+        ]);
+    }
 }

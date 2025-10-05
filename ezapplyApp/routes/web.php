@@ -125,9 +125,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Credit Display
     Route::get('/credit-balance',[CreditController::class,'creditDisplay'])->name('credit.display');
     Route::put('/company/deduct-balance', [CreditController::class, 'deductBalance'])->name('company.deduct-balance');
-    Route::post('/company/view-applicant', [CreditController::class, 'viewApplicant'])->name('company.view-applicant');
-    Route::get('/company/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView'])->name('company.check-applicant-view');
-    Route::get('/credit-transaction-history', [CreditController::class, 'transactionHistory'])->name('credit.transaction-history');
+    Route::get('/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView']);
+    Route::post('/view-applicant', [CreditController::class, 'viewApplicant']);
+
+    // Show transaction history
+    Route::get('/credits/transactions', [CreditController::class, 'transactionHistory'])
+        ->name('credits.transactionHistory');
+
 
     //Chatbox
     Route::get('/chat/{user}', [MessageController::class, 'index'])->name('chat.index');

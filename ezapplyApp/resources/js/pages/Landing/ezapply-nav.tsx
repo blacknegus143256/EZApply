@@ -21,7 +21,9 @@ const ezapplyNav = ({ user }: { user?: any }) => {
           <div className="ezapply-navlink">
             <a href="#about">About</a>
           </div>
-          <div className="ezapply-navlink">Contact</div>
+          <div className="ezapply-navlink">
+            <a href="#contact">Contact</a>
+          </div>
         </div>
         <div className="ezapply-login-container">
           {!isVerified ? (

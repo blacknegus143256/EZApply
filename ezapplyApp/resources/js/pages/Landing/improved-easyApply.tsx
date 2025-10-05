@@ -11,6 +11,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import Services from "./services";
 import About from "./about";
+import Contact from "./contact";
 import EzNav from "./ezapply-nav";
 
 interface Company {
@@ -53,9 +54,14 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
     );
   };
 
-  const handleApplySelected = () => {
+  const handleApplySelected = ({ user }: { user?: any }) => {
+    const isVerified =
+    !!user && typeof user === "object" && Object.keys(user).length > 0;
     if (checked.length === 0) return;
     console.log("Applying to companies:", checked);
+    if(!isVerified){
+      window.location.href = '/login';
+    }
   };
 
   useEffect(() => {
@@ -414,12 +420,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
                 
                 {filtered.length > visibleCount && (
                   <div className="text-center mt-8">
-                    <Button
-                      variant="outline"
-                      onClick={() => setVisibleCount(prev => prev + 6)}
-                    >
-                      Load More Companies
-                    </Button>
+                    <Link href={'/list-companies'} className="text-blue-600 hover:underline">More Companies</Link>
                   </div>
                 )}
               </>
@@ -429,6 +430,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
 
         <Services />
         <About />
+        <Contact />
       </div>
     </ErrorBoundary>
   );
