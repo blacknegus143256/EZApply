@@ -913,3 +913,7 @@
   border-radius: 2px;
   opacity: 0.8;
 }
+.cancel-button {
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}z

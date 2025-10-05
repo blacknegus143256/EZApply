@@ -75,4 +75,20 @@ class ApplicationController extends Controller
 
         return response()->json($appliedCompanyIds);
     }
+    public function destroy($companyId)
+{
+    $userId = auth()->id();
+
+    $application = Application::where('user_id', $userId)
+        ->where('company_id', $companyId)
+        ->first();
+
+    if (!$application) {
+        return response()->json(['error' => 'Application not found'], 404);
+    }
+
+    $application->delete();
+
+    return response()->json(['message' => 'Application cancelled successfully']);
+}
 }

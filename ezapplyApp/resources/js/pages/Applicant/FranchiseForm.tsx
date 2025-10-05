@@ -431,6 +431,8 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                     >
                       View Details
                     </button>
+                    <div className="flex flex-wrap gap-2 justify-center items-center">
+        {!applied.includes(company.id) ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -439,10 +441,36 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                         }
                       }}
                       disabled={applied.includes(company.id) || applying === company.id}
-                      className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
+                      className={`apply-button px-4 py-2 rounded-md text-white font-medium transition ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
                     >
                       {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
                     </button>
+                     ) : (
+                        <>
+                          <button
+                            disabled
+                            className="apply-button applied bg-green-600 text-white px-4 py-2 rounded-md cursor-default"
+                          >
+                            Applied
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await axios.delete(`/applicant/applications/${company.id}`);
+                                setApplied((prev) => prev.filter((id) => id !== company.id));
+                              } catch (err) {
+                                console.error('Cancel application failed', err);
+                                alert('Failed to cancel application. Please try again.');
+                              }
+                            }}
+                            className="cancel-button bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+                          >
+                            Cancel Apply
+                          </button>
+                        </>
+                        )}
+                      </div>
                   </div>
                    ))}
                   </div>
