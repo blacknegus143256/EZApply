@@ -13,6 +13,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import axios from 'axios';
 import { useState } from 'react';
 import { useEffect } from 'react'; 
+import LoginSlideshow from '@/components/LoginSlideshow';
 
 type PSGCItem = { code: string; name: string };
 interface RegisterProps {
@@ -44,11 +45,28 @@ const { data, setData, post, processing, errors } = useForm({
     };
 
     return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-sky-100">
+                    <div className="flex justify-center">
+                    <h1 className="text-5xl font-extrabold text-blue-700 tracking-wide drop-shadow-md relative z-10 mt-10 mb-6">
+                        <span className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 bg-clip-text text-transparent">
+                        EZ Apply
+                        </span>
+                    </h1>
+                    </div>
+                    {/* <div className=" hidden md:flex w-1/2 relative h-[500px] bg-gray-200 m-15">
+                <LoginSlideshow />
+              </div> */}
+              
+              <div className="w-full md:w-auto *:flex items-center justify-center">
+            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300">
+                <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-md">
+                <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
+                </div>
         <AuthLayout title="Create an account" description="Enter your details below to create your account">
             <Head title="Register" />
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                <div className="grid gap-6">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+                <div className="grid gap-2">
 
 
                     {/* Role */}
@@ -58,7 +76,7 @@ const { data, setData, post, processing, errors } = useForm({
                             id="role"
                             name="role"
                             required
-                            className="border rounded-md px-3 py-2"
+                            className="border rounded-md px-3 py-2 h-11 border-gray-300 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                             value={(data as any).role}
                             onChange={(e) => setData('role' as any, e.target.value)}
                             tabIndex={3}
@@ -91,6 +109,7 @@ const { data, setData, post, processing, errors } = useForm({
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
                             placeholder="email@example.com"
+                            className="h-11 rounded-lg border border-gray-300 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                         />
                         <InputError message={errors.email} />
                     </div>
@@ -111,6 +130,7 @@ const { data, setData, post, processing, errors } = useForm({
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             placeholder="Password"
+                            className="h-11 rounded-lg border border-gray-300 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                         />
                         <InputError message={errors.password} />
                     </div>
@@ -128,11 +148,12 @@ const { data, setData, post, processing, errors } = useForm({
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             placeholder="Confirm password"
-                        />
+                            className="ezapply-input"
+                            />
                         <InputError message={errors.password_confirmation} />
                     </div>
                     {/* Submit Button */}
-                    <Button type="submit" className="mt-2 w-full" tabIndex={9}>
+                    <Button type="submit" className="w-full bg-gradient-to-tr from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
@@ -141,11 +162,14 @@ const { data, setData, post, processing, errors } = useForm({
                 {/* Already have account */}
                 <div className="text-center text-sm text-muted-foreground">
                     Already have an account?{' '}
-                    <TextLink href={login()} tabIndex={10}>
+                    <TextLink href={login()} tabIndex={10} className="text-blue-600 hover:text-blue-800 font-medium">
                         Log in
                     </TextLink>
                 </div>
             </form>
         </AuthLayout>
+                            </div>
+                            </div>
+                            </div>
     );
 }
