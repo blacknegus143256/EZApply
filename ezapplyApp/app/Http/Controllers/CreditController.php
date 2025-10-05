@@ -14,19 +14,26 @@ class CreditController extends Controller
     /**
      * Display user credit balance
      */
-    public function creditDisplay()
+     public function creditDisplay(Request $request) 
     {
         $user = auth()->user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         $credits = $user?->credit?->balance ?? 0;
+
+        $credit_transactions = CreditTransaction::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get(); 
 
         return Inertia::render('Credits/balancePage', [
             'balance' => $credits,
+            'credit_transactions' => $credit_transactions, 
         ]);
     }
 
-    /**
-     * Deduct credits when user views an applicant
-     */
     public function viewApplicant(Request $request)
     {
         $user = auth()->user();
@@ -38,8 +45,8 @@ class CreditController extends Controller
         }
 
         $applicationId = $request->input('application_id');
-        $fieldKey = $request->input('field_key'); // CRITICAL CHANGE: Changed 'field' to 'field_key'
-        $cost = 5; // cost per field view
+        $fieldKey = $request->input('field_key'); 
+        $cost = 5; 
 
         if (!$applicationId || !$fieldKey) {
             return response()->json([
@@ -48,7 +55,7 @@ class CreditController extends Controller
             ], 400);
         }
 
-        // Check if already paid for this specific applicant + field
+        
         $alreadyViewed = ApplicantView::where('user_id', $user->id)
             ->where('application_id', $applicationId)
             ->where('field_key', $fieldKey)
@@ -59,11 +66,10 @@ class CreditController extends Controller
                 'status' => 'success',
                 'already_paid' => true,
                 'message' => 'You already paid to view this field.',
-                'new_balance' => $user->credit?->balance ?? 0, // Return current balance
+                'new_balance' => $user->credit?->balance ?? 0, 
             ]);
         }
 
-        // Retrieve or create user's credit record
         $userCredit = UserCredit::firstOrCreate(
             ['user_id' => $user->id],
             ['balance' => 0]
@@ -73,14 +79,13 @@ class CreditController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Insufficient credits.',
-                'balance' => 'Insufficient credits.', // Provide a 'balance' key for frontend onError
+                'balance' => 'Insufficient credits.', 
             ], 400);
         }
 
-        // CRITICAL CHANGE: Wrap in a database transaction for atomicity
         try {
             DB::transaction(function () use ($userCredit, $cost, $user, $applicationId, $fieldKey) {
-                // Deduct credits
+
                 $userCredit->balance -= $cost;
                 $userCredit->save();
 
@@ -112,7 +117,6 @@ class CreditController extends Controller
         }
 
 
-        // After successful transaction, return success
        return back()->with('success', 'Payment successful.')->with('new_balance', $userCredit->balance);
     }
 
@@ -132,30 +136,12 @@ class CreditController extends Controller
         $views = ApplicantView::where('user_id', $user->id)
             ->where('application_id', $applicationId)
             ->pluck('field_key')
-            ->toArray(); // Ensure it's an array for JSON response
+            ->toArray();
 
         return response()->json([
             'paid_fields' => $views,
         ]);
     }
 
-    /**
-     * Display user’s transaction history
-     */
-    public function transactionHistory(Request $request)
-    {
-        $user = auth()->user();
-        if (!$user) {
-            // Handle unauthenticated user or redirect
-            return redirect()->route('login'); // Or return an error page/JSON
-        }
-
-        $credit_transactions = CreditTransaction::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return Inertia::render('Credits/balancePage', [
-            'credit_transactions' => $credit_transactions,
-        ]);
-    }
+    
 }

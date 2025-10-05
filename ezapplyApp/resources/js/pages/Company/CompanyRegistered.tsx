@@ -55,17 +55,14 @@ const CompanyRegistered = () => {
         onSuccess: () => {
           setDeleteDialogOpen(false);
           setCompanyToDelete(null);
-          // Inertia.js will automatically refresh the page data
         },
         onError: (errors) => {
           console.error('Delete failed:', errors);
-          // Keep dialog open to show error or add toast notification
         }
       });
     }
   };
 
-  // Filter logic
   const filteredCompanies = useMemo(() => {
     return (companies || []).filter((c) =>
       c.company_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -85,7 +82,6 @@ const CompanyRegistered = () => {
         <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
           <CardTitle>My Registered Companies</CardTitle>
           <div className="flex gap-2 w-full md:w-auto">
-            {/* Search filter */}
             <Input
               type="text"
               placeholder="Search Company..."
@@ -93,6 +89,11 @@ const CompanyRegistered = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+          </div>
+          <div className="gap-2 w-full md:w-auto">
+              <Button variant="default" size="sm">
+                 <Link href={'/company/register'}>Add Company</Link>
+              </Button>
           </div>
         </CardHeader>
 
