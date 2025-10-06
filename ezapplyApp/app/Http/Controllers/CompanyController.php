@@ -8,7 +8,8 @@ use App\Models\{
     CompanyOpportunity,
     CompanyBackground,
     CompanyRequirement,
-    CompanyMarketing
+    CompanyMarketing,
+    CompanyDocument
 };
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -26,9 +27,18 @@ class CompanyController extends Controller
             // Step 1 — companies
             'company_name'             => 'required|string|max:255',
             'brand_name'               => 'nullable|string|max:255',
-            'city'                     => 'required|string|max:255',
-            'state_province'           => 'required|string|max:255',
-            'zip_code'                 => 'required|string|max:50',
+            'city'                     => 'nullable|string|max:255',
+            'state_province'           => 'nullable|string|max:255',
+            'zip_code'                 => 'nullable|string|max:50',
+            'region_code'              => 'nullable|string|max:50',
+            'region_name'              => 'nullable|string|max:255',
+            'province_code'            => 'nullable|string|max:50',
+            'province_name'            => 'nullable|string|max:255',
+            'citymun_code'             => 'nullable|string|max:50',
+            'citymun_name'             => 'nullable|string|max:255',
+            'barangay_code'            => 'nullable|string|max:50',
+            'barangay_name'            => 'nullable|string|max:255',
+            'postal_code'              => 'nullable|string|max:20',
             'country'                  => 'required|string|max:100',
             'company_website'          => 'nullable|string|max:255',
             'description'              => 'required|string',
@@ -66,6 +76,11 @@ class CompanyController extends Controller
             'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'target_profile'           => 'nullable|string|max:255',
             'preferred_contact_method' => 'nullable|string|max:50',
+
+             // Step 6 — required documents
+            'dti_sbc'           => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'bir_2303'          => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'ipo_registration'  => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', 
         ]);
 
         // Handle optional file upload
@@ -74,23 +89,44 @@ class CompanyController extends Controller
             $logoPath = $request->file('logo')->store('logos', 'public');
         }
 
+         // Handle required document uploads
+        $dtiSbcPath = $request->file('dti_sbc')->store('documents', 'public');
+        $bir2303Path = $request->file('bir_2303')->store('documents', 'public');
+        $ipoRegistrationPath = $request->file('ipo_registration')->store('documents', 'public');
+        Log::info('Documents uploaded', [
+            'dti_sbc_path' => $dtiSbcPath,
+            'bir_2303_path' => $bir2303Path,
+            'ipo_registration_path' => $ipoRegistrationPath,
+        ]); // Debugging log
+
+        $createdCompanyId = null;
+
         try {
-            DB::transaction(function () use ($v, $logoPath) {
+            DB::transaction(function () use ($v, $logoPath, $dtiSbcPath, $bir2303Path, $ipoRegistrationPath) {
                 // Parent Company
-                $company = Company::create([
-                    'company_name'            => $v['company_name'],
-                    'brand_name'              => $v['brand_name'] ?? null,
-                    'city'                    => $v['city'],
-                    'state_province'          => $v['state_province'],
-                    'zip_code'                => $v['zip_code'],
-                    'country'                 => $v['country'],
-                    'company_website'         => $v['company_website'] ?? null,
-                    'description'             => $v['description'],
-                    'year_founded'            => $v['year_founded'],
-                    'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
-                    'status'                  => 'pending',
-                    'user_id'                 => Auth::id(),
-                ]);
+        $company = Company::create([
+            'company_name'            => $v['company_name'],
+            'brand_name'              => $v['brand_name'] ?? null,
+            'city'                    => $v['citymun_name'] ?? $v['city'],
+            'state_province'          => $v['province_name'] ?? $v['state_province'],
+            'zip_code'                => $v['zip_code'] ?? '',
+            'region_code'             => $v['region_code'] ?? null,
+            'region_name'             => $v['region_name'] ?? null,
+            'province_code'           => $v['province_code'] ?? null,
+            'province_name'           => $v['province_name'] ?? null,
+            'citymun_code'            => $v['citymun_code'] ?? null,
+            'citymun_name'            => $v['citymun_name'] ?? null,
+            'barangay_code'           => $v['barangay_code'] ?? null,
+            'barangay_name'           => $v['barangay_name'] ?? null,
+            'postal_code'             => $v['postal_code'] ?? null,
+            'country'                 => $v['country'],
+            'company_website'         => $v['company_website'] ?? null,
+            'description'             => $v['description'],
+            'year_founded'            => $v['year_founded'],
+            'num_franchise_locations' => $v['num_franchise_locations'] ?? null,
+            'status'                  => 'pending',
+            'user_id'                 => Auth::id(),
+        ]);
 
                 // Opportunity
                 $company->opportunity()->create([
@@ -133,6 +169,14 @@ class CompanyController extends Controller
                     'target_profile'           => $v['target_profile'] ?? null,
                     'preferred_contact_method' => $v['preferred_contact_method'] ?? null,
                 ]);
+
+                 // 6) Documents
+                $company->documents()->create([
+                    'dti_sbc_path'          => $dtiSbcPath,
+                    'bir_2303_path'         => $bir2303Path,
+                    'ipo_registration_path' => $ipoRegistrationPath,
+                ]);
+                Log::info('Company documents created'); // Debugging log
             });
 
             return back()->with('success', 'Company saved successfully. Pending approval.');
@@ -155,6 +199,7 @@ class CompanyController extends Controller
             'background',
             'requirements',
             'marketing',
+            'documents',
         ])->findOrFail($id);
 
         return response()->json($company);
@@ -168,6 +213,7 @@ class CompanyController extends Controller
             'background',
             'requirements',
             'marketing',
+            'documents',
             'user',
         ])->get();
 
@@ -189,8 +235,8 @@ class CompanyController extends Controller
     public function myCompanies()
 {
     $companies = Company::where('user_id', Auth::id())
-    ->with(['opportunity','background','requirements','marketing'])
-    ->get(['id', 'company_name', 'brand_name', 'year_founded', 'country','status', 'created_at']);
+    ->with(['opportunity','background','requirements','marketing', 'documents'])
+    ->get(['id', 'company_name', 'brand_name', 'year_founded', 'country','status', 'created_at', 'user_id']);
     return inertia('Company/CompanyRegistered', compact('companies'));
 }
 
@@ -243,7 +289,63 @@ public function update(Request $request, Company $company)
     //     ->findOrFail($id);
 
     $v = $request->validate([
-        // same rules as store() …
+        // Step 1 — companies
+        'company_name'             => 'required|string|max:255',
+        'brand_name'               => 'nullable|string|max:255',
+        'city'                     => 'nullable|string|max:255',
+        'state_province'           => 'nullable|string|max:255',
+        'zip_code'                 => 'nullable|string|max:50',
+        'region_code'              => 'nullable|string|max:50',
+        'region_name'              => 'nullable|string|max:255',
+        'province_code'            => 'nullable|string|max:50',
+        'province_name'            => 'nullable|string|max:255',
+        'citymun_code'             => 'nullable|string|max:50',
+        'citymun_name'             => 'nullable|string|max:255',
+        'barangay_code'            => 'nullable|string|max:50',
+        'barangay_name'            => 'nullable|string|max:255',
+        'postal_code'              => 'nullable|string|max:20',
+        'country'                  => 'required|string|max:100',
+        'company_website'          => 'nullable|string|max:255',
+        'description'              => 'required|string',
+        'year_founded'             => 'required|integer|between:1800,' . date('Y'),
+        'num_franchise_locations'  => 'nullable|integer|min:0',
+
+        // Step 2 — company_opportunities
+        'franchise_type'           => 'required|string|max:255',
+        'min_investment'           => 'required|numeric|min:0',
+        'franchise_fee'            => 'required|numeric|min:0',
+        'royalty_fee_structure'    => 'required|string|max:255',
+        'avg_annual_revenue'       => 'nullable|numeric|min:0',
+        'target_markets'           => 'required|string|max:255',
+        'training_support'         => 'nullable|string',
+        'franchise_term'           => 'required|string|max:255',
+        'unique_selling_points'    => 'nullable|string',
+
+        // Step 3 — company_backgrounds
+        'industry_sector'          => 'required|string|max:255',
+        'years_in_operation'       => 'required|integer|min:0',
+        'total_revenue'            => 'nullable|numeric|min:0',
+        'awards'                   => 'nullable|string|max:255',
+        'company_history'          => 'nullable|string',
+
+        // Step 4 — company_requirements
+        'min_net_worth'            => 'required|numeric|min:0',
+        'min_liquid_assets'        => 'required|numeric|min:0',
+        'prior_experience'         => 'sometimes|boolean',
+        'experience_type'          => 'nullable|string|max:255',
+        'other_qualifications'    => 'nullable|string',
+
+        // Step 5 — company_marketings
+        'listing_title'            => 'nullable|string|max:255',
+        'listing_description'      => 'nullable|string',
+        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'target_profile'           => 'nullable|string|max:255',
+        'preferred_contact_method' => 'nullable|string|max:50',
+
+         // Step 6 — optional documents for update
+        'dti_sbc'           => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        'bir_2303'          => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        'ipo_registration'  => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
     ]);
 
     $logoPath = optional($company->marketing)->logo_path;
@@ -251,14 +353,38 @@ public function update(Request $request, Company $company)
         $logoPath = $request->file('logo')->store('logos', 'public');
     }
 
-    DB::transaction(function () use ($company, $v, $logoPath) {
+    $dtiSbcPath = optional($company->documents)->dti_sbc_path;
+    if ($request->hasFile('dti_sbc')) {
+        $dtiSbcPath = $request->file('dti_sbc')->store('documents','public');
+    }
+
+    $bir2303Path = optional($company->documents)->bir_2303_path;
+    if ($request->hasFile('bir_2303')) {
+        $bir2303Path = $request->file('bir_2303')->store('documents','public');
+    }
+
+    $ipoRegistrationPath = optional($company->documents)->ipo_registration_path;
+    if ($request->hasFile('ipo_registration')) {
+        $ipoRegistrationPath = $request->file('ipo_registration')->store('documents','public');
+    }
+
+    DB::transaction(function () use ($company, $v, $logoPath, $dtiSbcPath, $bir2303Path, $ipoRegistrationPath) {
         // Update parent
         $company->update([
             'company_name'            => $v['company_name'],
             'brand_name'              => $v['brand_name'] ?? null,
-            'city'                    => $v['city'],
-            'state_province'          => $v['state_province'],
-            'zip_code'                => $v['zip_code'],
+            'city'                    => $v['citymun_name'] ?? $v['city'],
+            'state_province'          => $v['province_name'] ?? $v['state_province'],
+            'zip_code'                => $v['zip_code'] ?? $v['postal_code'] ?? '',
+            'region_code'             => $v['region_code'] ?? null,
+            'region_name'             => $v['region_name'] ?? null,
+            'province_code'           => $v['province_code'] ?? null,
+            'province_name'           => $v['province_name'] ?? null,
+            'citymun_code'            => $v['citymun_code'] ?? null,
+            'citymun_name'            => $v['citymun_name'] ?? null,
+            'barangay_code'           => $v['barangay_code'] ?? null,
+            'barangay_name'           => $v['barangay_name'] ?? null,
+            'postal_code'             => $v['postal_code'] ?? null,
             'country'                 => $v['country'],
             'company_website'         => $v['company_website'] ?? null,
             'description'             => $v['description'],
@@ -314,6 +440,15 @@ public function update(Request $request, Company $company)
                 'preferred_contact_method' => $v['preferred_contact_method'] ?? null,
             ]
         );
+
+        $company->documents()->updateOrCreate(
+            ['company_id'=>$company->id],
+            [
+                'dti_sbc_path'          => $dtiSbcPath,
+                'bir_2303_path'         => $bir2303Path,
+                'ipo_registration_path' => $ipoRegistrationPath,
+            ]
+        );
     });
 
     return back()->with('success','Company updated successfully.');
@@ -323,34 +458,9 @@ public function update(Request $request, Company $company)
     public function edit(Company $company)
 {
     $company = Company::where('user_id', Auth::id())->findOrFail($company->id);
-    $company->load(['opportunity','background','requirements','marketing']);
+    $company->load(['opportunity','background','requirements','marketing','documents']);
     return Inertia::render('Company/CompanyEdit', [
         'company' => $company ,
     ]);
 }
-
-public function destroy(Company $company)
-    {
-        abort_unless($company->user_id === Auth::id(), 403);
-
-        try {
-            DB::transaction(function () use ($company) {
-                $company->opportunity()?->delete();
-                $company->background()?->delete();
-                $company->requirements()?->delete();
-                $company->marketing()?->delete();
-                $company->documents()?->delete();
-                $company->applications()->delete();
-                $company->delete();
-            });
-
-            return redirect('/my-companies')->with('success', 'Company deleted successfully.');
-        } catch (\Throwable $e) {
-            Log::error('Failed to delete company: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->withErrors(['error' => 'Failed to delete company. Please try again later.']);
-        }
-    }
 }

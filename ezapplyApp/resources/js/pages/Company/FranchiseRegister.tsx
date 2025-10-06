@@ -6,6 +6,7 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
+import AddressForm from '@/components/AddressForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,48 +37,115 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface CompanyForm {
   company_name: string;
-  brand_name: string | null;
-
+  brand_name: string;
+  region_code: string;
+  region_name: string;
+  province_code: string;
+  province_name: string;
+  citymun_code: string;
+  citymun_name: string;
+  barangay_code: string;
+  barangay_name: string;
+  postal_code: string;
+  country: string;
   city: string;
   state_province: string;
   zip_code: string;
-  country: string;
-  company_website: string | null;
+  company_website: string;
+
   description: string;
-  year_founded: number | '';
-  num_franchise_locations: number | '';
+  year_founded: string | null;
+  num_franchise_locations: string | null;
 
   franchise_type: string;
-  min_investment: number | '';
-  franchise_fee: number | '';
+  min_investment: string | null;
+  franchise_fee: string | null;
   royalty_fee_structure: string;
-  avg_annual_revenue: number | '';
+  avg_annual_revenue: string | null;
   target_markets: string;
-  training_support: string | null;
+  training_support: string;
   franchise_term: string;
-  unique_selling_points: string | null;
+  unique_selling_points: string;
 
   industry_sector: string;
-  years_in_operation: string; // Changed from years_in_operation
-  total_revenue: number | '';
-  awards: string | null;
-  company_history: string | null;
+  years_in_operation: string | null;
+  total_revenue: string | null;
+  awards: string;
+  company_history: string;
 
-  min_net_worth: number | '';
-  min_liquid_assets: number | '';
+  min_net_worth: string | null;
+  min_liquid_assets: string | null;
   prior_experience: boolean;
-  experience_type: string | null;
-  other_qualifications: string | null;
+  experience_type: string;
+  other_qualifications: string;
 
-  listing_title: string | null;
-  listing_description: string | null;
+  listing_title: string;
+  listing_description: string;
+
+  target_profile: string;
   logo: File | null;
-  target_profile: string | null;
-  preferred_contact_method: string | null;
-  // documents (required on create, optional on edit)
-  dti_sbc?: File | null;
-  bir_2303?: File | null;
-  ipo_registration?: File | null;
+  preferred_contact_method: string;
+  dti_sbc: File | null;
+  bir_2303: File | null;
+  ipo_registration: File | null;
+}
+
+// Ensure hydrateAddressData outputs strictly string values
+function hydrateAddressData(initialData: Partial<CompanyForm>): CompanyForm {
+  return {
+    company_name: initialData.company_name || '',
+    brand_name: initialData.brand_name || '',
+    region_code: initialData.region_code || '',
+    region_name: initialData.region_name || '',
+    province_code: initialData.province_code || '',
+    province_name: initialData.province_name || '',
+    citymun_code: initialData.citymun_code || '',
+    citymun_name: initialData.citymun_name || '',
+    barangay_code: initialData.barangay_code || '',
+    barangay_name: initialData.barangay_name || '',
+    postal_code: initialData.postal_code || '',
+    country: initialData.country || 'Philippines',
+    city: initialData.city || '',
+    state_province: initialData.state_province || '',
+    zip_code: initialData.zip_code || '',
+    company_website: initialData.company_website || '',
+
+    description: initialData.description || '',
+    year_founded: initialData.year_founded || '',
+    num_franchise_locations: initialData.num_franchise_locations || '',
+
+    franchise_type: initialData.franchise_type || '',
+    min_investment: initialData.min_investment || '',
+    franchise_fee: initialData.franchise_fee || '',
+    royalty_fee_structure: initialData.royalty_fee_structure || '',
+    avg_annual_revenue: initialData.avg_annual_revenue || '',
+    target_markets: initialData.target_markets || '',
+    training_support: initialData.training_support || '',
+    franchise_term: initialData.franchise_term || '',
+    unique_selling_points: initialData.unique_selling_points || '',
+
+    industry_sector: initialData.industry_sector || '',
+    years_in_operation: initialData.years_in_operation || '',
+    total_revenue: initialData.total_revenue || '',
+    awards: initialData.awards || '',
+    company_history: initialData.company_history || '',
+
+    min_net_worth: initialData.min_net_worth || '',
+    min_liquid_assets: initialData.min_liquid_assets || '',
+    prior_experience: initialData.prior_experience || false,
+    experience_type: initialData.experience_type || '',
+    other_qualifications: initialData.other_qualifications || '',
+
+    listing_title: initialData.listing_title || '',
+    listing_description: initialData.listing_description || '',
+
+    target_profile: initialData.target_profile || '',
+    logo: initialData.logo || null,
+    preferred_contact_method: initialData.preferred_contact_method || '',
+    dti_sbc: initialData.dti_sbc || null,
+    bir_2303: initialData.bir_2303 || null,
+    ipo_registration: initialData.ipo_registration || null,
+  };
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -96,50 +164,9 @@ function ErrorText({ message }: { message?: string }) {
 }
 
 export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
-  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>({
-    company_name: initialData?.company_name || '',
-    brand_name: initialData?.brand_name || null,
-    city: initialData?.city || '',
-    state_province: initialData?.state_province || '',
-    zip_code: initialData?.zip_code || '',
-    country: initialData?.country || '',
-    company_website: initialData?.company_website || null,
-    description: initialData?.description || '',
-    year_founded: initialData?.year_founded || '',
-    num_franchise_locations: initialData?.num_franchise_locations || '',
+  const hydratedData = hydrateAddressData(initialData || {});
 
-    franchise_type: initialData?.franchise_type || '',
-    min_investment: initialData?.min_investment || '',
-    franchise_fee: initialData?.franchise_fee || '',
-    royalty_fee_structure: initialData?.royalty_fee_structure || '',
-    avg_annual_revenue: initialData?.avg_annual_revenue || '',
-    target_markets: initialData?.target_markets || '',
-    training_support: initialData?.training_support || null,
-    franchise_term: initialData?.franchise_term || '',
-    unique_selling_points: initialData?.unique_selling_points || null,
-
-    industry_sector: initialData?.industry_sector || '',
-    years_in_operation: initialData?.years_in_operation || '',
-    total_revenue: initialData?.total_revenue || '',
-    awards: initialData?.awards || null,
-    company_history: initialData?.company_history || null,
-
-    min_net_worth: initialData?.min_net_worth || '',
-    min_liquid_assets: initialData?.min_liquid_assets || '',
-    prior_experience: initialData?.prior_experience || false,
-    experience_type: initialData?.experience_type || null,
-    other_qualifications: initialData?.other_qualifications || null,
-
-    listing_title: initialData?.listing_title || null,
-    listing_description: initialData?.listing_description || null,
-    logo: null, // File inputs cannot be pre-filled
-    target_profile: initialData?.target_profile || null,
-    preferred_contact_method: initialData?.preferred_contact_method || null,
-
-    dti_sbc: null, // File inputs cannot be pre-filled
-    bir_2303: null, // File inputs cannot be pre-filled  
-    ipo_registration: null, // File inputs cannot be pre-filled
-  });
+  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>(hydratedData);
 
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
@@ -156,7 +183,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
 
   function validateStep(step: number) {
     const requiredFields: Record<number, (keyof typeof data)[]> = {
-      0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
+      0: ['company_name', 'region_code', 'province_code', 'citymun_code', 'barangay_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
@@ -165,7 +192,11 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
     };
 
     for (const field of requiredFields[step] || []) {
-      if (!data[field] && data[field] !== 0) return false;
+      if (field === 'zip_code') {
+        // postal_code (zip_code) can be nullable, so skip validation for it
+        continue;
+      }
+      if (data[field] === null || data[field] === '' || data[field] === undefined) return false;
     }
     return true;
   }
@@ -191,15 +222,15 @@ function doSubmit() {
   transform((d) => ({
     ...d,
     prior_experience: d.prior_experience,
-    year_founded: d.year_founded === '' ? null : d.year_founded,
-    num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
-    min_investment: d.min_investment === '' ? null : d.min_investment,
-    franchise_fee: d.franchise_fee === '' ? null : d.franchise_fee,
-    avg_annual_revenue: d.avg_annual_revenue === '' ? null : d.avg_annual_revenue,
-    years_in_operation: d.years_in_operation === '' ? null : d.years_in_operation,
-    total_revenue: d.total_revenue === '' ? null : d.total_revenue,
-    min_net_worth: d.min_net_worth === '' ? null : d.min_net_worth,
-    min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
+    year_founded: d.year_founded === '' ? null : parseInt(d.year_founded as string),
+    num_franchise_locations: d.num_franchise_locations === '' ? null : parseInt(d.num_franchise_locations as string),
+    min_investment: d.min_investment === '' ? null : parseFloat(d.min_investment as string),
+    franchise_fee: d.franchise_fee === '' ? null : parseFloat(d.franchise_fee as string),
+    avg_annual_revenue: d.avg_annual_revenue === '' ? null : parseFloat(d.avg_annual_revenue as string),
+    years_in_operation: d.years_in_operation === '' ? null : parseInt(d.years_in_operation as string),
+    total_revenue: d.total_revenue === '' ? null : parseFloat(d.total_revenue as string),
+    min_net_worth: d.min_net_worth === '' ? null : parseFloat(d.min_net_worth as string),
+    min_liquid_assets: d.min_liquid_assets === '' ? null : parseFloat(d.min_liquid_assets as string),
   }));
 
   if (companyId) {
@@ -376,55 +407,38 @@ function doSubmit() {
                       
                       <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Headquarters Address</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="city">City *</Label>
-                            <Input
-                              name="city"
-                              value={data.city}
-                              onChange={(e) => setData('city', e.target.value)}
-                              placeholder="Enter city"
-                              required
-                            />
-                            <ErrorText message={(errors as any).city} />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="state_province">State/Province *</Label>
-                            <Input
-                              name="state_province"
-                              value={data.state_province}
-                              onChange={(e) => setData('state_province', e.target.value)}
-                              placeholder="Enter state/province"
-                              required
-                            />
-                            <ErrorText message={(errors as any).state_province} />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="zip_code">ZIP/Postal Code *</Label>
-                            <Input
-                              name="zip_code"
-                              value={data.zip_code}
-                              onChange={(e) => setData('zip_code', e.target.value)}
-                              placeholder="Enter ZIP code"
-                              required
-                            />
-                            <ErrorText message={(errors as any).zip_code} />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="country">Country *</Label>
-                            <Input
-                              name="country"
-                              value={data.country}
-                              onChange={(e) => setData('country', e.target.value)}
-                              placeholder="Enter country"
-                              required
-                            />
-                            <ErrorText message={(errors as any).country} />
-                          </div>
-                        </div>
+                        <AddressForm
+                          value={{
+                            region_code: data.region_code,
+                            region_name: data.region_name,
+                            province_code: data.province_code,
+                            province_name: data.province_name,
+                            citymun_code: data.citymun_code,
+                            citymun_name: data.citymun_name,
+                            barangay_code: data.barangay_code,
+                            barangay_name: data.barangay_name,
+                            postal_code: data.zip_code,
+                            country: data.country,
+                          }}
+                          onChange={(address) => {
+                            setData('region_code', address.region_code);
+                            setData('region_name', address.region_name);
+                            setData('province_code', address.province_code);
+                            setData('province_name', address.province_name);
+                            setData('citymun_code', address.citymun_code);
+                            setData('citymun_name', address.citymun_name);
+                            setData('barangay_code', address.barangay_code);
+                            setData('barangay_name', address.barangay_name);
+                            setData('zip_code', address.postal_code);
+                            setData('country', address.country);
+                          }}
+                          errors={{
+                            region_code: (errors as any).region_code,
+                            province_code: (errors as any).province_code,
+                            citymun_code: (errors as any).citymun_code,
+                            barangay_code: (errors as any).barangay_code,
+                          }}
+                        />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -447,8 +461,8 @@ function doSubmit() {
                             type="number"
                             min={1800}
                             max={new Date().getFullYear()}
-                            value={data.year_founded}
-                            onChange={(e) => setData('year_founded', Number(e.target.value) || '')}
+                            value={data.year_founded ?? ''}
+                            onChange={(e) => setData('year_founded', e.target.value)}
                             placeholder="2020"
                             required
                           />
@@ -475,8 +489,8 @@ function doSubmit() {
                           name="num_franchise_locations"
                           type="number"
                           min={0}
-                          value={data.num_franchise_locations}
-                          onChange={(e) => setData('num_franchise_locations', Number(e.target.value) || '')}
+                          value={data.num_franchise_locations ?? ''}
+                          onChange={(e) => setData('num_franchise_locations', e.target.value)}
                           placeholder="0"
                         />
                         <ErrorText message={(errors as any).num_franchise_locations} />
@@ -490,20 +504,20 @@ function doSubmit() {
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
                         <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
-                        <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment} onChange={(e) => setData('min_investment', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee} onChange={(e) => setData('franchise_fee', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Royalty Fee Structure*">
-                          <Input
-                            name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
-                            value={data.royalty_fee_structure}
-                            onChange={(e) => setData("royalty_fee_structure", e.target.value)}
-                          />
-                          {errors.royalty_fee_structure && (
-                            <div className="text-red-500">{errors.royalty_fee_structure}</div>
-                          )}
-                        </Field>                        
-                        <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue} onChange={(e) => setData('avg_annual_revenue', Number(e.target.value) || '')} /></Field>
-                        <ErrorText message={(errors as any).avg_annual_revenue} />
+                      <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment ?? ''} onChange={(e) => setData('min_investment', e.target.value)} required /></Field>
+                      <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee ?? ''} onChange={(e) => setData('franchise_fee', e.target.value)} required /></Field>
+                      <Field label="Royalty Fee Structure*">
+                        <Input
+                          name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
+                          value={data.royalty_fee_structure}
+                          onChange={(e) => setData("royalty_fee_structure", e.target.value)}
+                        />
+                        {errors.royalty_fee_structure && (
+                          <div className="text-red-500">{errors.royalty_fee_structure}</div>
+                        )}
+                      </Field>                        
+                      <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue ?? ''} onChange={(e) => setData('avg_annual_revenue', e.target.value)} /></Field>
+                      <ErrorText message={(errors as any).avg_annual_revenue} />
                       </div>
                       <Field label="Target Markets/Regions for Expansion *"><Input name="target_markets" value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
                       <Field label="Training and Support Offered (optional)"><Textarea name="training_support" rows={2} value={data.training_support ?? ''} onChange={(e) => setData('training_support', e.target.value)} /></Field>
@@ -533,7 +547,7 @@ function doSubmit() {
                         <ErrorText message={(errors as any).years_in_operation} />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue} onChange={(e) => setData('total_revenue', Number(e.target.value) || '')} /></Field>
+                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue ?? ''} onChange={(e) => setData('total_revenue', e.target.value)} /></Field>
                         <Field label="Awards or Recognitions (optional)"><Input name="awards" value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
                         <ErrorText message={(errors as any).total_revenue} />
                       </div>
@@ -548,8 +562,8 @@ function doSubmit() {
                   {step === 3 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth} onChange={(e) => setData('min_net_worth', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets} onChange={(e) => setData('min_liquid_assets', Number(e.target.value) || '')} required /></Field>
+                        <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth ?? ''} onChange={(e) => setData('min_net_worth', e.target.value)} required /></Field>
+                        <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets ?? ''} onChange={(e) => setData('min_liquid_assets', e.target.value)} required /></Field>
                         <ErrorText message={(errors as any).min_net_worth} />
                         <ErrorText message={(errors as any).min_liquid_assets} />
                       </div>
