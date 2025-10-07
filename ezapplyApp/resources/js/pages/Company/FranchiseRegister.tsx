@@ -1,11 +1,21 @@
-import { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from '@inertiajs/react';
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
 import AddressForm from '@/components/AddressForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+// import { Progress } from '@/components/ui/progress';
+import { CheckCircle, ChevronRight, ChevronLeft, Building2, DollarSign, Users, FileText, Upload, AlertCircle } from 'lucide-react';
 
 // Steps definition
 export const STEPS = [
@@ -25,7 +35,6 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-// Update CompanyForm to remove duplicates and ensure all fields are strictly typed
 interface CompanyForm {
   company_name: string;
   brand_name: string;
@@ -79,42 +88,6 @@ interface CompanyForm {
   dti_sbc: File | null;
   bir_2303: File | null;
   ipo_registration: File | null;
-}
-
-
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block text-xs text-black">
-      {label}
-      <div className="mt-1">{children}</div>
-    </label>
-  );
-}
-
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  const { className = '', ...rest } = props;
-  return (
-    <input
-      {...rest}
-      className={`w-full rounded-md border border-gray-700 bg-gray-800 p-2 text-gray-100 ${className}`}
-    />
-  );
-}
-
-function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { className = '', ...rest } = props;
-  return (
-    <textarea
-      {...rest}
-      className={`w-full rounded-md border border-gray-700 bg-gray-800 p-2 text-gray-100 ${className}`}
-    />
-  );
-}
-
-function ErrorText({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="mt-1 text-xs text-red-400">{message}</p>;
 }
 
 // Ensure hydrateAddressData outputs strictly string values
@@ -175,119 +148,107 @@ function hydrateAddressData(initialData: Partial<CompanyForm>): CompanyForm {
   };
 }
 
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block text-xs text-black">
+      {label}
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+
+function ErrorText({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs text-red-400">{message}</p>;
+}
+
 export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
   const hydratedData = hydrateAddressData(initialData || {});
 
-  const { data, setData, post, put, processing, errors, reset } = useForm<CompanyForm>(() => ({
-    ...hydratedData,
-    company_name: initialData?.company_name || '',
-    brand_name: initialData?.brand_name || '',
-    region_code: initialData?.region_code || '',
-    province_code: initialData?.province_code || '',
-    citymun_code: initialData?.citymun_code || '',
-    barangay_code: initialData?.barangay_code || '',
-    city: initialData?.city || '',
-    state_province: initialData?.state_province || '',
-    zip_code: initialData?.zip_code || '',
-    country: initialData?.country || '',
-    company_website: initialData?.company_website || '',
-    description: initialData?.description || '',
-    year_founded: initialData?.year_founded || '',
-    num_franchise_locations: initialData?.num_franchise_locations || '',
-
-    franchise_type: initialData?.franchise_type || '',
-    min_investment: initialData?.min_investment || '',
-    franchise_fee: initialData?.franchise_fee || '',
-    royalty_fee_structure: initialData?.royalty_fee_structure || '',
-    avg_annual_revenue: initialData?.avg_annual_revenue || '',
-    target_markets: initialData?.target_markets || '',
-    training_support: initialData?.training_support || '',
-    franchise_term: initialData?.franchise_term || '',
-    unique_selling_points: initialData?.unique_selling_points || '',
-
-    industry_sector: initialData?.industry_sector || '',
-    years_in_operation: initialData?.years_in_operation || '',
-    total_revenue: initialData?.total_revenue || '',
-    awards: initialData?.awards || '',
-    company_history: initialData?.company_history || '',
-
-    min_net_worth: initialData?.min_net_worth || '',
-    min_liquid_assets: initialData?.min_liquid_assets || '',
-    prior_experience: initialData?.prior_experience || false,
-    experience_type: initialData?.experience_type || '',
-    other_qualifications: initialData?.other_qualifications || '',
-
-    listing_title: initialData?.listing_title || '',
-    listing_description: initialData?.listing_description || '',
-    target_profile: initialData?.target_profile || '',
-    logo: initialData?.logo || null,
-    preferred_contact_method: initialData?.preferred_contact_method || '',
-    dti_sbc: initialData?.dti_sbc || null,
-    bir_2303: initialData?.bir_2303 || null,
-    ipo_registration: initialData?.ipo_registration || null,
-  }));
-
+  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>(hydratedData);
 
   const [step, setStep] = useState(0);
+  const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
+
+  useEffect(() => {
+    if (open) {
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => document.getElementById('company_name')?.focus(), 200);
+    }
+  }, [open]);
 
   function validateStep(step: number) {
     const requiredFields: Record<number, (keyof typeof data)[]> = {
-      0: ['company_name', 'city', 'state_province', 'country', 'description', 'year_founded'], // removed zip_code since postal code is skipped
+      0: ['company_name', 'region_code', 'province_code', 'citymun_code', 'barangay_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
-      5: ['dti_sbc', 'bir_2303', 'ipo_registration'], // Add validation for documents step
+      5: ['dti_sbc', 'bir_2303', 'ipo_registration'],
     };
 
-   for (const field of requiredFields[step] || []) {
-    if (data[field] === null || data[field] === '' || data[field] === undefined) return false;
+    for (const field of requiredFields[step] || []) {
+      if (field === 'zip_code') {
+        // postal_code (zip_code) can be nullable, so skip validation for it
+        continue;
+      }
+      if (data[field] === null || data[field] === '' || data[field] === undefined) return false;
+    }
+    return true;
   }
-  return true;
-}
 
   function next() {
-    if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    if (validateStep(step)) {
+      setCompletedSteps(prev => [...prev, step]);
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    }
   }
+  
   function back() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
+  function goToStep(targetStep: number) {
+    if (targetStep <= step || completedSteps.includes(targetStep - 1)) {
+      setStep(targetStep);
+    }
+  }
 
-
-  function doSubmit() {
-    const transformedData = {
-      ...data,
-      prior_experience: data.prior_experience,
-      year_founded: data.year_founded === '' ? null : data.year_founded,
-      num_franchise_locations: data.num_franchise_locations === '' ? null : data.num_franchise_locations,
-      min_investment: data.min_investment === '' ? null : data.min_investment,
-      franchise_fee: data.franchise_fee === '' ? null : data.franchise_fee,
-      avg_annual_revenue: data.avg_annual_revenue === '' ? null : data.avg_annual_revenue,
-      years_in_operation: data.years_in_operation === '' ? null : data.years_in_operation,
-      total_revenue: data.total_revenue === '' ? null : data.total_revenue,
-      min_net_worth: data.min_net_worth === '' ? null : data.min_net_worth,
-      min_liquid_assets: data.min_liquid_assets === '' ? null : data.min_liquid_assets,
-    };
+function doSubmit() {
+  transform((d) => ({
+    ...d,
+    prior_experience: d.prior_experience,
+    year_founded: d.year_founded === '' ? null : parseInt(d.year_founded as string),
+    num_franchise_locations: d.num_franchise_locations === '' ? null : parseInt(d.num_franchise_locations as string),
+    min_investment: d.min_investment === '' ? null : parseFloat(d.min_investment as string),
+    franchise_fee: d.franchise_fee === '' ? null : parseFloat(d.franchise_fee as string),
+    avg_annual_revenue: d.avg_annual_revenue === '' ? null : parseFloat(d.avg_annual_revenue as string),
+    years_in_operation: d.years_in_operation === '' ? null : parseInt(d.years_in_operation as string),
+    total_revenue: d.total_revenue === '' ? null : parseFloat(d.total_revenue as string),
+    min_net_worth: d.min_net_worth === '' ? null : parseFloat(d.min_net_worth as string),
+    min_liquid_assets: d.min_liquid_assets === '' ? null : parseFloat(d.min_liquid_assets as string),
+  }));
 
    if (companyId) {
-      console.log(data.company_name, transformedData);
+      console.log(data.company_name, data);
       put(`/companies/${companyId}`, {
-        ...transformedData,
         onSuccess: () => {
           window.location.href = '/my-companies';
         },
         onError: (error: unknown) => {
           console.error('Update failed:', error);
-          console.error('Request data:', transformedData);
+          console.error('Request data:', data);
           console.error('Company ID:', companyId);
           alert('Update failed. Please check console for details.');
         },
       });
     } else {
       post('/companies', {
-        ...transformedData,
+        ...data,
         onSuccess: () => {
           reset();
           setStep(0);
@@ -295,7 +256,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
         },
         onError: (error: unknown) => {
           console.error('Submission failed:', error);
-          console.error('Request data:', transformedData);
+          console.error('Request data:', data);
           alert('Submission failed. Please check console for details.');
         },
       });
@@ -303,336 +264,457 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   }
 
 
+  const stepIcons = [Building2, DollarSign, Users, FileText, Upload, FileText];
+  const stepDescriptions = [
+    "Basic company information and location",
+    "Franchise opportunity details and investment requirements",
+    "Company background and industry information",
+    "Franchisee requirements and qualifications",
+    "Marketing materials and listing information",
+    "Required business documents and certifications"
+  ];
+
   return (
-      <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
-        <AppLayout breadcrumbs={breadcrumbs}>
-          <Head title="Dashboard" />
+    <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
+      <AppLayout breadcrumbs={breadcrumbs}>
+        <Head title="Company Registration" />
 
-          <div
-            ref={containerRef}
-            className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border md:col-span-3"
-          >
-            <div className="relative z-10 px-4 pb-4 max-h-[70vh] overflow-y-auto">
-              <div className="mb-4 flex items-center justify-between pt-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-black">Register your Company/Franchise</h3>
-                  <p className="text-xs text-black">Step {step + 1} of {STEPS.length}</p>
-                </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <div className="max-w-4xl mx-auto p-6">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {companyId ? 'Edit Company Registration' : 'Register Your Company'}
+              </h1>
+              <p className="text-gray-600 ">
+                Complete the registration process to list your franchise opportunity
+              </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-gray-700">
+                  Step {step + 1} of {STEPS.length}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(((step + 1) / STEPS.length) * 100)}% Complete
+                </span>
               </div>
-            
-                  {/* chips */}
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {STEPS.map((label, i) => (
-                      <span key={i} className={`px-2 py-1 rounded-full text-[11px] ${i <= step ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'}`}>
-                        {i + 1}. {label}
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Step Navigation */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                {STEPS.map((stepName, index) => {
+                  const Icon = stepIcons[index];
+                  const isCompleted = completedSteps.includes(index);
+                  const isCurrent = index === step;
+                  const isAccessible = index <= step || completedSteps.includes(index - 1);
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center">
+                      <button
+                        onClick={() => goToStep(index)}
+                        disabled={!isAccessible}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                          isCompleted
+                            ? 'bg-green-500 text-white'
+                            : isCurrent
+                            ? 'bg-blue-500 text-white'
+                            : isAccessible
+                            ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="w-6 h-6" />
+                        ) : (
+                          <Icon className="w-6 h-6" />
+                        )}
+                      </button>
+                      <span className={`text-xs mt-2 text-center ${
+                        isCurrent ? 'text-blue-600 font-medium' : 'text-gray-500'
+                      }`}>
+                        {stepName}
                       </span>
-                    ))}
-                  </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                  {/* FORM */}
-                  <form
-                    onSubmit={(e) => e.preventDefault()}
-                    onKeyDownCapture={(e) => {
-                      const last = STEPS.length - 1;
-                      if (e.key === 'Enter' && step < last) {
-                        e.preventDefault();
-                        if (validateStep(step)) next();
-                      }
-                    }}
-                    encType="multipart/form-data"
-                    className="space-y-4"
-                  >
-                    {/* Step 1: Company */}
-                    {step === 0 && (
-                      <div className="grid gap-3">
-                        <Field label="Company Name *">
-                          <Input id="company_name" name="company_name" value={data.company_name} onChange={(e) => setData('company_name', e.target.value)} required />
-                          <ErrorText message={errors?.company_name} />
-                        </Field>
-                        <Field label="Brand Name *">
-                          <Input name="brand_name" value={data.brand_name ?? ''} onChange={(e) => setData('brand_name', e.target.value)} required/>
-                          <ErrorText message={errors?.brand_name} />
-                        </Field>
-                        
-                        <h3 className="text-md font-semibold mt-4">Headquarters Address</h3>
-                      <AddressForm
-                            value={{
-                              region_code: data.region_code,
-                              region_name: data.region_name,
-                              province_code: data.province_code,
-                              province_name: data.province_name,
-                              citymun_code: data.citymun_code,
-                              citymun_name: data.citymun_name,
-                              barangay_code: data.barangay_code,
-                              barangay_name: data.barangay_name,
-                              postal_code: data.postal_code,
-                              country: data.country || 'Philippines',
-                            }}
-                            onChange={(val) => {
-                              setData((prev) => ({
-                                ...prev,
-                                region_code: val.region_code,
-                                region_name: val.region_name,
-                                province_code: val.province_code,
-                                province_name: val.province_name,
-                                citymun_code: val.citymun_code,
-                                citymun_name: val.citymun_name,
-                                barangay_code: val.barangay_code,
-                                barangay_name: val.barangay_name,
-                                postal_code: val.postal_code,
-                                zip_code: val.postal_code, // legacy compatibility
-                                city: val.citymun_name,
-                                state_province: val.province_name,
-                                country: val.country || 'Philippines',
-                              }));
-                            }}
-                            errors={{
-                              region_code: errors.region_code || '',
-                              province_code: errors.province_code || '',
-                              citymun_code: errors.citymun_code || '',
-                              barangay_code: errors.barangay_code || '',
-                              postal_code: errors.postal_code || '',
-                              country: errors.country || '',
-                            }}
-                            disabled={processing}
+            {/* Form Content */}
+            <Card className="shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardTitle className="flex items-center gap-3">
+                  {React.createElement(stepIcons[step], { className: "w-6 h-6 text-blue-600" })}
+                  {STEPS[step]}
+                </CardTitle>
+                <p className="text-gray-600 ml-12"> {stepDescriptions[step]}</p>
+              </CardHeader>
+              <CardContent className="p-6">
+
+                {/* FORM */}
+                <form
+                  // NEVER allow implicit submit
+                  onSubmit={(e) => e.preventDefault()}
+                  // Enter on steps 1–4 = Next
+                  onKeyDownCapture={(e) => {
+                    const last = STEPS.length - 1;
+                    if (e.key === 'Enter' && step < last) {
+                      e.preventDefault();
+                      if (validateStep(step)) next();
+                    }
+                  }}
+                  encType="multipart/form-data"
+                  className="space-y-4"
+                >
+                  {/* Step 1: Company */}
+                  {step === 0 && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_name">Company Name *</Label>
+                          <Input
+                            id="company_name"
+                            name="company_name"
+                            value={data.company_name}
+                            onChange={(e) => setData('company_name', e.target.value)}
+                            placeholder="Enter your company name"
+                            required
                           />
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <Field label="Company Website (optional)">
-                            <Input name="company_website" value={data.company_website ?? ''} onChange={(e) => setData('company_website', e.target.value)} />
-                            <ErrorText message={errors?.company_website} />
-                          </Field>
-  <Field label="Year Founded *">
-    <Input
-      name="year_founded"
-      type="number"
-      min={1800}
-      max={new Date().getFullYear()}
-      value={data.year_founded ?? ''}
-      onChange={(e) => setData('year_founded', e.target.value)}
-      required
-    />
-    <ErrorText message={errors?.year_founded} />
-  </Field>
+                          <ErrorText message={(errors as any).company_name} />
                         </div>
-
-                        <Field label="Description *">
-                          <Textarea name="description" rows={2} value={data.description} onChange={(e) => setData('description', e.target.value)} required />
-                          <ErrorText message={errors?.description} />
-                        </Field>
-
-  <Field label="Number of Existing Franchise Locations (optional)">
-    <Input
-      name="num_franchise_locations"
-      type="number"
-      min={0}
-      value={data.num_franchise_locations ?? ''}
-      onChange={(e) => setData('num_franchise_locations', e.target.value)}
-    />
-    <ErrorText message={errors?.num_franchise_locations} />
-  </Field>
                         
-
+                        <div className="space-y-2">
+                          <Label htmlFor="brand_name">Brand Name</Label>
+                          <Input
+                            name="brand_name"
+                            value={data.brand_name ?? ''}
+                            onChange={(e) => setData('brand_name', e.target.value)}
+                            placeholder="Enter your brand name"
+                          />
+                          <ErrorText message={(errors as any).brand_name} />
+                        </div>
                       </div>
                       
-                    )}
-
-                    {/* Step 2: Opportunity */}
-                    {step === 1 && (
-                      <div className="grid gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
-                          <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
-  <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment ?? ''} onChange={(e) => setData('min_investment', e.target.value)} required /></Field>
-  <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee ?? ''} onChange={(e) => setData('franchise_fee', e.target.value)} required /></Field>
-  <Field label="Royalty Fee Structure*">
-    <Input
-      name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
-      value={data.royalty_fee_structure}
-      onChange={(e) => setData("royalty_fee_structure", e.target.value)}
-    />
-    {errors.royalty_fee_structure && (
-      <div className="text-red-500">{errors.royalty_fee_structure}</div>
-    )}
-  </Field>                        
-  <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue ?? ''} onChange={(e) => setData('avg_annual_revenue', e.target.value)} /></Field>
-  <ErrorText message={errors?.avg_annual_revenue} />
-                        </div>
-                        <Field label="Target Markets/Regions for Expansion *"><Input name="target_markets" value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
-                        <Field label="Training and Support Offered (optional)"><Textarea name="training_support" rows={2} value={data.training_support ?? ''} onChange={(e) => setData('training_support', e.target.value)} /></Field>
-                        <Field label="Unique Selling Points (optional)"><Textarea name="unique_selling_points" rows={2} value={data.unique_selling_points ?? ''} onChange={(e) => setData('unique_selling_points', e.target.value)} /></Field>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Headquarters Address</h3>
+                        <AddressForm
+                          value={{
+                            region_code: data.region_code,
+                            region_name: data.region_name,
+                            province_code: data.province_code,
+                            province_name: data.province_name,
+                            citymun_code: data.citymun_code,
+                            citymun_name: data.citymun_name,
+                            barangay_code: data.barangay_code,
+                            barangay_name: data.barangay_name,
+                            postal_code: data.zip_code,
+                            country: data.country,
+                          }}
+                          onChange={(address) => {
+                            setData('region_code', address.region_code);
+                            setData('region_name', address.region_name);
+                            setData('province_code', address.province_code);
+                            setData('province_name', address.province_name);
+                            setData('citymun_code', address.citymun_code);
+                            setData('citymun_name', address.citymun_name);
+                            setData('barangay_code', address.barangay_code);
+                            setData('barangay_name', address.barangay_name);
+                            setData('zip_code', address.postal_code);
+                            setData('country', address.country);
+                          }}
+                          errors={{
+                            region_code: (errors as any).region_code,
+                            province_code: (errors as any).province_code,
+                            citymun_code: (errors as any).citymun_code,
+                            barangay_code: (errors as any).barangay_code,
+                          }}
+                        />
                       </div>
-                    )}
 
-                    {/* Step 3: Background */}
-                    {step === 2 && (
-                      <div className="grid gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <Field label="Industry Sector *">
-                            <Input name="industry_sector" value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required />
-                          </Field>
-  <Field label="Years in Operation*">
-  <Input
-    type="number"
-    name="years_in_operation"
-    value={data.years_in_operation ?? ''}
-    onChange={(e) => setData("years_in_operation", e.target.value)}
-  />
-  {errors.years_in_operation && (
-    <div className="text-red-500">{errors.years_in_operation}</div>
-  )}
-</Field>
-
-                          <ErrorText message={errors?.years_in_operation} />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-  <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue ?? ''} onChange={(e) => setData('total_revenue', e.target.value)} /></Field>
-  <Field label="Awards or Recognitions (optional)"><Input name="awards" value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
-  <ErrorText message={errors?.total_revenue} />
-                        </div>
-                        <Field label="Brief Company History/Description (optional)">
-                          <Textarea name="company_history" rows={3} value={data.company_history ?? ''} onChange={(e) => setData('company_history', e.target.value)} />
-                          <ErrorText message={errors?.company_history} />
-                        </Field>
-                      </div>
-                    )}
-
-                    {/* Step 4: Requirements */}
-                    {step === 3 && (
-                      <div className="grid gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-  <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth ?? ''} onChange={(e) => setData('min_net_worth', e.target.value)} required /></Field>
-  <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets ?? ''} onChange={(e) => setData('min_liquid_assets', e.target.value)} required /></Field>
-  <ErrorText message={errors?.min_net_worth} />
-  <ErrorText message={errors?.min_liquid_assets} />
-                        </div>
-
-                        <div className="flex items-center gap-2 text-gray-200">
-                          <input id="prior_experience" type="checkbox" checked={data.prior_experience} onChange={(e) => setData('prior_experience', e.target.checked)} />
-                          <label htmlFor="prior_experience">Prior Business Experience Preferred?</label>
-                        </div>
-
-                        <Field label="If Yes, specify Experience Type (optional)">
-                          <Input name="experience_type" value={data.experience_type ?? ''} onChange={(e) => setData('experience_type', e.target.value)} />
-                          <ErrorText message={errors?.experience_type} />
-                        </Field>
-                        <Field label="Other Qualifications (optional)">
-                          <Textarea name="other_qualifications" rows={2} value={data.other_qualifications ?? ''} onChange={(e) => setData('other_qualifications', e.target.value)} />
-                          <ErrorText message={errors?.other_qualifications} />
-                        </Field>
-                      </div>
-                    )}
-
-                    {/* Step 5: Marketing */}
-                    {step === 4 && (
-                      <div className="grid gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-  <Field label="Preferred Listing Title (optional)"><Input name="listing_title" value={data.listing_title ?? ''} onChange={(e) => setData('listing_title', e.target.value)} /></Field>
-  <Field label="Target Franchisee Profile (optional)"><Input name="target_profile" value={data.target_profile ?? ''} onChange={(e) => setData('target_profile', e.target.value)} /></Field>
-                        </div>
-                        <Field label="Short Description for Listing (optional)">
-                          <Textarea name="listing_description" rows={3} value={data.listing_description ?? ''} onChange={(e) => setData('listing_description', e.target.value)} />
-                          <ErrorText message={errors?.listing_description} />
-                        </Field>
-                        <div>
-                          <label className="block text-xs text-black">Upload Logo or Brand Images (optional)</label>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="mt-1 block w-full text-gray-200"
-                            name="logo"
-                            onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_website">Company Website</Label>
+                          <Input
+                            name="company_website"
+                            value={data.company_website ?? ''}
+                            onChange={(e) => setData('company_website', e.target.value)}
+                            placeholder="https://yourcompany.com"
+                            type="url"
                           />
-                          <ErrorText message={errors?.logo} />
+                          <ErrorText message={(errors as any).company_website} />
                         </div>
-                        <Field label="Preferred Contact Method for Inquiries (optional)">
-                          <Input name="preferred_contact_method" value={data.preferred_contact_method ?? ''} onChange={(e) => setData('preferred_contact_method', e.target.value)} />
-                          <ErrorText message={errors?.preferred_contact_method} />
-                        </Field>
-                      </div>
-                    )}
-
-
-                    {/* Step 6: Documents */}
-                    {step === 5 && (
-                      <div className="grid gap-3">
-                        <h3 className="text-md font-semibold">Required Business Documents</h3>
                         
-                        <Field label="DTI/SBC Certificate *">
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="mt-1 block w-full text-gray-200"
-                            onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
+                        <div className="space-y-2">
+                          <Label htmlFor="year_founded">Year Founded *</Label>
+                          <Input
+                            name="year_founded"
+                            type="number"
+                            min={1800}
+                            max={new Date().getFullYear()}
+                            value={data.year_founded ?? ''}
+                            onChange={(e) => setData('year_founded', e.target.value)}
+                            placeholder="2020"
                             required
                           />
-                          <ErrorText message={errors?.dti_sbc} />
-                        </Field>
-
-                        <Field label="BIR 2303 Form *">
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="mt-1 block w-full text-gray-200"
-                            onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
-                            required
-                          />
-                          <ErrorText message={errors?.bir_2303} />
-                        </Field>
-
-                        <Field label="IPO Registration *">
-                          <input
-                            type="file"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            className="mt-1 block w-full text-gray-200"
-                            onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
-                            required
-                          />
-                          <ErrorText message={errors?.ipo_registration} />
-                        </Field>
+                          <ErrorText message={(errors as any).year_founded} />
+                        </div>
                       </div>
-                    )}
 
-                    {/* controls */}
-                    <div className="mt-4 flex items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={back}
-                        className="rounded-lg border border-gray-600 px-3 py-2 text-black disabled:opacity-40"
-                        disabled={step === 0 || processing}
-                      >
-                        Back
-                      </button>
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Company Description *</Label>
+                        <Textarea
+                          name="description"
+                          rows={4}
+                          value={data.description}
+                          onChange={(e) => setData('description', e.target.value)}
+                          placeholder="Describe your company and what makes it unique..."
+                          required
+                        />
+                        <ErrorText message={(errors as any).description} />
+                      </div>
 
-                      {step < STEPS.length - 1 ? (
-                        <button
-                          type="button"
-                          onClick={next}
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                          disabled={!validateStep(step) || processing}
-                        >
-                          Next
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={doSubmit}
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                          disabled={processing}>
-                          {companyId ? 'Resubmit' : 'Submit'}
-                      </button>
-                    )}
-                  </div>
-
-                  {Object.keys(errors).length > 0 && (
-                    <div className="mt-3 rounded-md bg-red-600/20 p-3 text-sm text-red-300">
-                      Please fix the highlighted errors and submit again.
+                      <div className="space-y-2">
+                        <Label htmlFor="num_franchise_locations">Number of Existing Franchise Locations</Label>
+                        <Input
+                          name="num_franchise_locations"
+                          type="number"
+                          min={0}
+                          value={data.num_franchise_locations ?? ''}
+                          onChange={(e) => setData('num_franchise_locations', e.target.value)}
+                          placeholder="0"
+                        />
+                        <ErrorText message={(errors as any).num_franchise_locations} />
+                      </div>
                     </div>
                   )}
+
+                  {/* Step 2: Opportunity */}
+                  {step === 1 && (
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
+                        <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
+                      <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment ?? ''} onChange={(e) => setData('min_investment', e.target.value)} required /></Field>
+                      <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee ?? ''} onChange={(e) => setData('franchise_fee', e.target.value)} required /></Field>
+                      <Field label="Royalty Fee Structure*">
+                        <Input
+                          name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
+                          value={data.royalty_fee_structure}
+                          onChange={(e) => setData("royalty_fee_structure", e.target.value)}
+                        />
+                        {errors.royalty_fee_structure && (
+                          <div className="text-red-500">{errors.royalty_fee_structure}</div>
+                        )}
+                      </Field>                        
+                      <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue ?? ''} onChange={(e) => setData('avg_annual_revenue', e.target.value)} /></Field>
+                      <ErrorText message={(errors as any).avg_annual_revenue} />
+                      </div>
+                      <Field label="Target Markets/Regions for Expansion *"><Input name="target_markets" value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
+                      <Field label="Training and Support Offered (optional)"><Textarea name="training_support" rows={2} value={data.training_support ?? ''} onChange={(e) => setData('training_support', e.target.value)} /></Field>
+                      <Field label="Unique Selling Points (optional)"><Textarea name="unique_selling_points" rows={2} value={data.unique_selling_points ?? ''} onChange={(e) => setData('unique_selling_points', e.target.value)} /></Field>
+                    </div>
+                  )}
+
+                  {/* Step 3: Background */}
+                  {step === 2 && (
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Industry Sector *">
+                          <Input name="industry_sector" value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required />
+                        </Field>
+                        <Field label="Years in Operation*">
+                        <Input
+                          type="number"
+                          name="years_in_operation"
+                          value={data.years_in_operation}
+                          onChange={(e) => setData("years_in_operation", e.target.value)}
+                        />
+                        {errors.years_in_operation && (
+                          <div className="text-red-500">{errors.years_in_operation}
+                          </div>
+                        )}
+                      </Field>
+                        <ErrorText message={(errors as any).years_in_operation} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue ?? ''} onChange={(e) => setData('total_revenue', e.target.value)} /></Field>
+                        <Field label="Awards or Recognitions (optional)"><Input name="awards" value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
+                        <ErrorText message={(errors as any).total_revenue} />
+                      </div>
+                      <Field label="Brief Company History/Description (optional)">
+                        <Textarea name="company_history" rows={3} value={data.company_history ?? ''} onChange={(e) => setData('company_history', e.target.value)} />
+                        <ErrorText message={(errors as any).company_history} />
+                      </Field>
+                    </div>
+                  )}
+
+                  {/* Step 4: Requirements */}
+                  {step === 3 && (
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth ?? ''} onChange={(e) => setData('min_net_worth', e.target.value)} required /></Field>
+                        <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets ?? ''} onChange={(e) => setData('min_liquid_assets', e.target.value)} required /></Field>
+                        <ErrorText message={(errors as any).min_net_worth} />
+                        <ErrorText message={(errors as any).min_liquid_assets} />
+                      </div>
+
+                      <div className="flex items-center gap-2 text-gray-200">
+                        <input id="prior_experience" type="checkbox" checked={data.prior_experience} onChange={(e) => setData('prior_experience', e.target.checked)} />
+                        <label htmlFor="prior_experience">Prior Business Experience Preferred?</label>
+                      </div>
+
+                      <Field label="If Yes, specify Experience Type (optional)">
+                        <Input name="experience_type" value={data.experience_type ?? ''} onChange={(e) => setData('experience_type', e.target.value)} />
+                        <ErrorText message={(errors as any).experience_type} />
+                      </Field>
+                      <Field label="Other Qualifications (optional)">
+                        <Textarea name="other_qualifications" rows={2} value={data.other_qualifications ?? ''} onChange={(e) => setData('other_qualifications', e.target.value)} />
+                        <ErrorText message={(errors as any).other_qualifications} />
+                      </Field>
+                    </div>
+                  )}
+
+                  {/* Step 5: Marketing */}
+                  {step === 4 && (
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Preferred Listing Title (optional)"><Input name="listing_title" value={data.listing_title ?? ''} onChange={(e) => setData('listing_title', e.target.value)} /></Field>
+                        <Field label="Target Franchisee Profile (optional)"><Input name="target_profile" value={data.target_profile ?? ''} onChange={(e) => setData('target_profile', e.target.value)} /></Field>
+                      </div>
+                      <Field label="Short Description for Listing (optional)">
+                        <Textarea name="listing_description" rows={3} value={data.listing_description ?? ''} onChange={(e) => setData('listing_description', e.target.value)} />
+                        <ErrorText message={(errors as any).listing_description} />
+                      </Field>
+                      <div>
+                        <label className="block text-xs text-black">Upload Logo or Brand Images (optional)</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="mt-1 block w-full text-gray-200"
+                          name="logo"
+                          onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                        />
+                        <ErrorText message={(errors as any).logo} />
+                      </div>
+                      <Field label="Preferred Contact Method for Inquiries (optional)">
+                        <Input name="preferred_contact_method" value={data.preferred_contact_method ?? ''} onChange={(e) => setData('preferred_contact_method', e.target.value)} />
+                        <ErrorText message={(errors as any).preferred_contact_method} />
+                      </Field>
+                    </div>
+                  )}
+
+
+                  {/* Step 6: Documents */}
+                  {step === 5 && (
+                    <div className="grid gap-3">
+                      <h3 className="text-md font-semibold">Required Business Documents</h3>
+                      
+                      <Field label="DTI/SBC Certificate *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).dti_sbc} />
+                      </Field>
+
+                      <Field label="BIR 2303 Form *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).bir_2303} />
+                      </Field>
+
+                      <Field label="IPO Registration *">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="mt-1 block w-full text-gray-200"
+                          onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
+                          required
+                        />
+                        <ErrorText message={(errors as any).ipo_registration} />
+                      </Field>
+                    </div>
+                  )}
+
                 </form>
-              </div>
+
+                {/* Form Controls */}
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={back}
+                    disabled={step === 0 || processing}
+                    className="flex items-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back
+                  </Button>
+
+                  <div className="flex items-center gap-4">
+                    {Object.keys(errors).length > 0 && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        Please fix the errors above
+                      </div>
+                    )}
+                    
+                    {step < STEPS.length - 1 ? (
+                      <Button
+                        type="button"
+                        onClick={next}
+                        disabled={!validateStep(step) || processing}
+                        className="flex items-center gap-2"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        onClick={doSubmit}
+                        disabled={processing}
+                        className="flex items-center gap-2"
+                      >
+                        {processing ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            {companyId ? 'Updating...' : 'Submitting...'}
+                          </>
+                        ) : (
+                          <>
+                            {companyId ? 'Update Company' : 'Submit Registration'}
+                            <CheckCircle className="w-4 h-4" />
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+        </div>
       </AppLayout>
     </PermissionGate>
   );
 }
+

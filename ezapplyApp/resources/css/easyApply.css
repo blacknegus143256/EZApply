@@ -614,21 +614,25 @@
 .services-container {
   width: 100%;
   padding: 4rem 2rem;
-  background: linear-gradient(180deg, #074035, #074035);
-  color: #fff;
+}
+.contact-header{
+  color: #14213c;
+
 }
 
-.services-header {
+.services-header{
   text-align: center;
   font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 700;
+  color: #14213c;
   margin-bottom: 1rem;
 }
+
 
 .services-subheader {
   text-align: center;
   font-size: 1rem;
-  color: #e5e7eb;
+  color: #14213c;
   margin-bottom: 2rem;
 }
 
@@ -666,7 +670,7 @@
 .about-container {
   width: 100%;
   padding: 4rem 2rem;
-  background: #f3f4f6;
+  background: #ffffff;
 }
 
 .about-header {

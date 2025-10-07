@@ -143,6 +143,11 @@ const CompanyRegistered = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <div className="gap-2 w-full md:w-auto">
+              <Button variant="default" size="sm">
+                 <Link href={'/company/register'}>Add Company</Link>
+              </Button>
+          </div>
         </CardHeader>
 
         <hr />

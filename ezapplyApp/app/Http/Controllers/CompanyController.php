@@ -27,8 +27,8 @@ class CompanyController extends Controller
             // Step 1 — companies
             'company_name'             => 'required|string|max:255',
             'brand_name'               => 'nullable|string|max:255',
-            'city'                     => 'required|string|max:255',
-            'state_province'           => 'required|string|max:255',
+            'city'                     => 'nullable|string|max:255',
+            'state_province'           => 'nullable|string|max:255',
             'zip_code'                 => 'nullable|string|max:50',
             'region_code'              => 'nullable|string|max:50',
             'region_name'              => 'nullable|string|max:255',
@@ -293,8 +293,8 @@ public function update(Request $request, Company $company)
         // Step 1 — companies
         'company_name'             => 'required|string|max:255',
         'brand_name'               => 'nullable|string|max:255',
-        'city'                     => 'required|string|max:255',
-        'state_province'           => 'required|string|max:255',
+        'city'                     => 'nullable|string|max:255',
+        'state_province'           => 'nullable|string|max:255',
         'zip_code'                 => 'nullable|string|max:50',
         'region_code'              => 'nullable|string|max:50',
         'region_name'              => 'nullable|string|max:255',

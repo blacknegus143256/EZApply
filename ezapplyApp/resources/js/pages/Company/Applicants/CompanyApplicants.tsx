@@ -33,6 +33,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 
+type Applicant = {
+  user: any;
+  id: number;
+  status: string;
+  customer: CustomerDetails;
+};
 
 
 const statusOptions = ["pending", "approved", "rejected", "interested"];

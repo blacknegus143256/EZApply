@@ -45,10 +45,10 @@ const { data, setData, post, processing, errors } = useForm({
     };
 
     return (
-                <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-sky-100">
+                <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-200 via-white to-blue-200">
                     <div className="flex justify-center">
                     <h1 className="text-5xl font-extrabold text-green-700 tracking-wide drop-shadow-md relative z-10 mb-6">
-                        <span className="bg-gradient-to-r from-green-950 via-blue-600 to-blue-300 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-green-600 to-indigo-500 bg-clip-text text-transparent">
                         EZ Apply
                         </span>
                     </h1>

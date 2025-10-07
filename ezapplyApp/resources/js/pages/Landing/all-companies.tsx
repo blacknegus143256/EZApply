@@ -5,15 +5,127 @@ import { usePage } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 
-const AllCompanies = ({ user }: { user?: any }) => {
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, DollarSign, Building2 } from "lucide-react";
 
+const formatInvestment = (amount?: number) => {
+  if (amount == null || isNaN(amount)) return "N/A";
+  try {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `₱${amount.toLocaleString()}`;
+  }
+};
+
+const CompanyCard = ({
+  company,
+  checked,
+  onCheck,
+  onViewDetails,
+}: {
+  company: any;
+  checked: boolean;
+  onCheck: () => void;
+  onViewDetails: (e: React.MouseEvent) => void;
+}) => {
+  return (
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md hover:-translate-y-1 bg-white/80 backdrop-blur-sm p-0">
+      <CardHeader className="pb-4 px-4 pt-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3 w-full">
+            <Checkbox
+              checked={checked}
+              onCheckedChange={() => onCheck()}
+              className="mt-1 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            />
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                {company.company_name}
+              </CardTitle>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4 px-4 pb-4 pt-0">
+        <div className="grid grid-cols-1 gap-3 text-sm">
+          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+            {company.marketing?.listing_description ||
+              company.description ||
+              "No description available"}
+          </p>
+
+          <div className="flex items-center gap-3 text-gray-600">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <MapPin className="h-4 w-4 text-blue-600" />
+            </div>
+            <span className="truncate font-medium">
+              {[company.city, company.state_province, company.country]
+                .filter(Boolean)
+                .join(", ") || "Location not specified"}
+            </span>
+          </div>
+
+          {company.year_founded && (
+            <div className="flex items-center gap-3 text-gray-600">
+              <div className="p-2 bg-green-50 rounded-lg">
+                <Calendar className="h-4 w-4 text-green-600" />
+              </div>
+              <span className="font-medium">Est. {company.year_founded}</span>
+            </div>
+          )}
+
+          {company.opportunity?.min_investment !== undefined && (
+            <div className="flex items-center gap-3 text-gray-600">
+              <div className="p-2 bg-yellow-50 rounded-lg">
+                <DollarSign className="h-4 w-4 text-yellow-600" />
+              </div>
+              <span className="font-medium">
+                From {formatInvestment(company.opportunity.min_investment)}
+              </span>
+            </div>
+          )}
+
+          {company.opportunity?.franchise_type && (
+            <div className="flex items-center gap-3 text-gray-600">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <Building2 className="h-4 w-4 text-purple-600" />
+              </div>
+              <span className="font-medium">
+                {company.opportunity.franchise_type}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-3 border-t border-gray-100">
+          <Button
+            variant="outline"
+            className="w-full group-hover:bg-blue-50 group-hover:border-blue-200 group-hover:text-blue-700 transition-all duration-200"
+            onClick={onViewDetails}
+          >
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const AllCompanies = ({ user }: { user?: any }) => {
   const [companies, setCompanies] = useState<any[]>([]);
   const [checked, setChecked] = useState<number[]>([]);
 
-  const [filterType, setFilterType] = useState('All');
-  const [filterCompanyName, setFilterCompanyName] = useState('');
-  const [filterMinInvestment, setFilterMinInvestment] = useState('');
-  const [filterMaxInvestment, setFilterMaxInvestment] = useState('');
+  const [filterType, setFilterType] = useState("All");
+  const [filterCompanyName, setFilterCompanyName] = useState("");
+  const [filterMinInvestment, setFilterMinInvestment] = useState("");
+  const [filterMaxInvestment, setFilterMaxInvestment] = useState("");
 
   const [open, setOpen] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
@@ -37,7 +149,9 @@ const AllCompanies = ({ user }: { user?: any }) => {
   const handleDialogChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen && redirectUrl) {
-      window.location.href = `/login?redirect=${encodeURIComponent(redirectUrl)}`;
+      window.location.href = `/login?redirect=${encodeURIComponent(
+        redirectUrl
+      )}`;
     }
   };
 
@@ -64,26 +178,28 @@ const AllCompanies = ({ user }: { user?: any }) => {
     );
   };
 
-  const franchiseTypes = ['All', ...new Set(companies.map(c => c.opportunity?.franchise_type).filter(Boolean))];
+  const franchiseTypes = [
+    "All",
+    ...new Set(
+      companies.map((c) => c.opportunity?.franchise_type).filter(Boolean)
+    ),
+  ];
 
   // Filtering logic
-  let filtered = companies;
-  console.log("Initial companies count:", companies.length);
-
-  // Show all companies - no status filtering for public listing
+  let filtered = companies.filter((c) => c.status === "approved");
 
   if (filterType !== "All") {
     filtered = filtered.filter(
       (c) => c.opportunity?.franchise_type === filterType
     );
-    console.log("After type filter:", filtered.length);
   }
 
   if (filterCompanyName) {
     filtered = filtered.filter((c) =>
-      (c.company_name ?? "").toLowerCase().includes(filterCompanyName.toLowerCase())
+      (c.company_name ?? "")
+        .toLowerCase()
+        .includes(filterCompanyName.toLowerCase())
     );
-    console.log("After name filter:", filtered.length);
   }
 
   if (filterMinInvestment) {
@@ -91,7 +207,6 @@ const AllCompanies = ({ user }: { user?: any }) => {
       const value = c.opportunity?.min_investment || 0;
       return value >= parseInt(filterMinInvestment, 10);
     });
-    console.log("After min investment filter:", filtered.length);
   }
 
   if (filterMaxInvestment) {
@@ -99,16 +214,13 @@ const AllCompanies = ({ user }: { user?: any }) => {
       const value = c.opportunity?.min_investment || 0;
       return value <= parseInt(filterMaxInvestment, 10);
     });
-    console.log("After max investment filter:", filtered.length);
   }
 
-  console.log("Final filtered count:", filtered.length);
-
   const handleClearFilters = () => {
-    setFilterType('All');
-    setFilterCompanyName('');
-    setFilterMinInvestment('');
-    setFilterMaxInvestment('');
+    setFilterType("All");
+    setFilterCompanyName("");
+    setFilterMinInvestment("");
+    setFilterMaxInvestment("");
   };
 
   return (
@@ -130,7 +242,9 @@ const AllCompanies = ({ user }: { user?: any }) => {
                   className="filter-select"
                 >
                   {franchiseTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -182,32 +296,13 @@ const AllCompanies = ({ user }: { user?: any }) => {
             ) : (
               <div className="company-grid">
                 {filtered.map((company) => (
-                  <div key={company.id} className="company-card">
-                    <div className="company-header">
-                      <input
-                        type="checkbox"
-                        checked={checked.includes(company.id)}
-                        onChange={() => handleCheck(company.id)}
-                      />
-                      <img
-                        src={"/favicon.svg"}
-                        alt={company.company_name + " logo"}
-                        className="ezapply__company-logo"
-                      />
-                      <span className="company-name">{company.company_name}</span>
-                    </div>
-
-                    <p><strong>Brand:</strong> {company.brand_name}</p>
-                    <p><strong>Founded:</strong> {company.year_founded}</p>
-                    <p><strong>Type:</strong> {company.opportunity?.franchise_type}</p>
-                    <p><strong>Description:</strong> {company.description}</p>
-
-                    <button
-                      className="view-details-link"
-                      onClick={(e) => handleViewDetails(e, company)}
-                    >
-                      View Details
-                    </button>
+                  <div key={company.id} className="company-card-wrapper">
+                    <CompanyCard
+                      company={company}
+                      checked={checked.includes(company.id)}
+                      onCheck={() => handleCheck(company.id)}
+                      onViewDetails={(e) => handleViewDetails(e, company)}
+                    />
                   </div>
                 ))}
               </div>
