@@ -25,7 +25,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CompanyApplicantController;
-
+use Illuminate\Support\Facades\File;
 
 
 Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -41,6 +41,15 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
     
+    Route::get('/company/logos', function () {
+    $files = File::files(public_path('storage/logos'));
+    $images = collect($files)
+        ->filter(fn($file) => in_array($file->getExtension(), ['png', 'jpg', 'jpeg']))
+        ->map(fn($file) => asset('storage/logos/' . $file->getFilename()))
+        ->values();
+
+    return response()->json($images);
+});
 
 
 
@@ -82,7 +91,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('applicant/franchise', function () {
         return Inertia::render('Applicant/FranchiseForm', [
-        'companies' => \App\Models\Company::with('opportunity')->get(),
+        'companies' => \App\Models\Company::with(['opportunity', 'marketing'])->get(),
     ]);
     })->name('applicant.franchise');
 Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::class, 'index'])

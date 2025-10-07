@@ -10,9 +10,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import "../../../css/easyApply.css";
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
+
+                <div className="min-h-screen  flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-sky-100">
+                <div className="flex justify-center">
+                <h1 className="text-5xl font-extrabold text-green-950 tracking-wide drop-shadow-md relative z-10 mt-6">
+                <span className="bg-gradient-to-r from-green-950 via-blue-600 to-blue-300 bg-clip-text text-transparent wave-text">
+                    EZ Apply
+                </span>
+                </h1>
+            </div>
+            
+        <div className="relative  flex items-center justify-center gap-15 px-6 mt-10">
+            <div className="w-full md:w-auto flex items-center justify-center ">
+            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 w-150">
+
+            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-green-950 to-blue-600 text-white shadow-md">
+            <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
+            </div>
         <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
             <Head title="Forgot password" />
 
@@ -30,7 +48,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                             </div>
 
                             <div className="my-6 flex items-center justify-start">
-                                <Button className="w-full" disabled={processing}>
+                                <Button className="w-full bg-gradient-to-tr from-blue-900 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" disabled={processing}>
                                     {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                                     Email password reset link
                                 </Button>
@@ -45,5 +63,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </div>
             </div>
         </AuthLayout>
+        </div>
+        </div>
+        </div>
+        </div>
     );
 }

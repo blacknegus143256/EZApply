@@ -47,8 +47,8 @@ const { data, setData, post, processing, errors } = useForm({
     return (
                 <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-sky-100">
                     <div className="flex justify-center">
-                    <h1 className="text-5xl font-extrabold text-blue-700 tracking-wide drop-shadow-md relative z-10 mt-10 mb-6">
-                        <span className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 bg-clip-text text-transparent">
+                    <h1 className="text-5xl font-extrabold text-green-700 tracking-wide drop-shadow-md relative z-10 mb-6">
+                        <span className="bg-gradient-to-r from-green-950 via-blue-600 to-blue-300 bg-clip-text text-transparent">
                         EZ Apply
                         </span>
                     </h1>
@@ -57,12 +57,15 @@ const { data, setData, post, processing, errors } = useForm({
                 <LoginSlideshow />
               </div> */}
               
+        <div className="relative  flex items-center justify-center gap-15 px-6 mt-8">
               <div className="w-full md:w-auto *:flex items-center justify-center">
-            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300">
-                <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-md">
+            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 w-150">
+
+                <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-green-950 to-blue-600 text-white shadow-md">
+
                 <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
                 </div>
-        <AuthLayout title="Create an account" description="Enter your details below to create your account">
+        <AuthLayout title="Create an account" description="">
             <Head title="Register" />
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
@@ -153,7 +156,7 @@ const { data, setData, post, processing, errors } = useForm({
                         <InputError message={errors.password_confirmation} />
                     </div>
                     {/* Submit Button */}
-                    <Button type="submit" className="w-full bg-gradient-to-tr from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
+                    <Button type="submit" className="w-full bg-gradient-to-tr from-green-950 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
@@ -168,6 +171,7 @@ const { data, setData, post, processing, errors } = useForm({
                 </div>
             </form>
         </AuthLayout>
+                            </div>
                             </div>
                             </div>
                             </div>

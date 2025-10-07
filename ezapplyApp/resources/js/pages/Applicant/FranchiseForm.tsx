@@ -397,7 +397,10 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
             <div className="company-grid">            
               {filtered.map((company) => (
               
-                  <div className={`company-card ${applied.includes(company.id) ? 'applied-card' : ''}`} key={company.id} >
+                  <div 
+                    onClick={() => handleCheck(company.id)}
+                    className={`company-card relative cursor-pointer transition-all duration-300 ${applied.includes(company.id) ? 'applied-card' 
+                    : checked.includes(company.id)? 'selected-card' : ''}`} key={company.id} >
                     {applied.includes(company.id) && (
                       <div className="applied-badge">
                         <span className="applied-text">✓ Applied</span>
@@ -410,15 +413,28 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                         onChange={() => handleCheck(company.id)}
                         disabled={applied.includes(company.id)}
                       />
-                      <img
-                        src={"/favicon.svg"}
-                        alt={company.company_name + " logo"}
-                        className="ezapply__company-logo"
-                      />
-                      <span className="company-name">{company.company_name}</span>
+                         <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+                          <img
+                            src={
+                              company.marketing?.logo_path
+                                ? `/storage/${company.marketing.logo_path}`
+                                : "/storage/logos/default-logo.png"
+                            }
+                            alt={`${company.company_name} logo`}
+                            className="h-40 w-40 md:h-32 md:w-32 object-contain rounded-full border-4 border-white shadow-lg bg-gray-50 transition-transform duration-300 hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = "/storage/logos/default-logo.png";
+                            }}
+                          />
+                        </div>
+
                     </div>
 
-                    <div className="company-details">
+                    <div className="company-details ">
+                      <span className="company-name pt-14 pb-4 px-4 text-center">{company.company_name}</span>
                       <p><strong>Brand:</strong> {company.brand_name}</p>
                       <p><strong>Founded:</strong> {company.year_founded}</p>
                       <p><strong>Type:</strong> {company.opportunity?.franchise_type}</p>

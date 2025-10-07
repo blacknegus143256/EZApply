@@ -1,17 +1,29 @@
 // LoginSlideshow.tsx
 import { useState, useEffect } from "react";
-
-const slides = [
-  "/storage/CompanyLogo/Company1.png",
-  "/storage/CompanyLogo/Company2.png",
-  "/storage/CompanyLogo/Company3.png",
-  "/storage/CompanyLogo/Company4.png",
-];
+import axios from "axios";
 
 export default function LoginSlideshow() {
+  const [slides, setSlides] = useState<string[]>([]);
   const [current, setCurrent] = useState(0);
 
+      useEffect(() => {
+      const fetchSlides = async () => {
+        try {
+          const { data } = await axios.get("/company/logos");
+          // shuffle images randomly
+          const shuffled = data.sort(() => Math.random() - 0.5);
+          setSlides(shuffled);
+        } catch (err) {
+          console.error("Failed to fetch company logos:", err);
+        }
+      };
+      fetchSlides();
+    }, []);
+
+
   useEffect(() => {
+    
+    if (slides.length === 0) return;
     const interval = setInterval(() => {
       setCurrent((prev) => {const next = (prev + 1) % slides.length;
 
@@ -25,7 +37,7 @@ export default function LoginSlideshow() {
     }, 2500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [slides]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">

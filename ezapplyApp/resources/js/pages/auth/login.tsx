@@ -23,8 +23,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     return (
         <div className="min-h-screen  flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-sky-100">
             <div className="flex justify-center">
-            <h1 className="text-5xl font-extrabold text-blue-700 tracking-wide drop-shadow-md relative z-10 mt-6">
-            <span className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 bg-clip-text text-transparent wave-text">
+            <h1 className="text-5xl font-extrabold text-green-950 tracking-wide drop-shadow-md relative z-10 mt-6">
+            <span className="bg-gradient-to-r from-green-950 via-blue-600 to-blue-300 bg-clip-text text-transparent wave-text">
                 EZ Apply
             </span>
             </h1>
@@ -37,10 +37,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
       {/* <EzNav /> */}
       
       <div className="w-full md:w-auto flex items-center justify-center ">
-            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 ">
+            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 w-150">
 
             <Head title="Log in" />
-            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-md">
+            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-green-950 to-blue-600 text-white shadow-md">
             <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
             </div>
         <AuthLayout title="Log in to your account" description="">
@@ -91,7 +91,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 <Label htmlFor="remember" className="text-sm text-gray-700">Remember me</Label>
                             </div>
 
-                            <Button type="submit" className="w-full bg-gradient-to-tr from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all " tabIndex={4} disabled={processing}>
+                            <Button type="submit" className="w-full bg-gradient-to-tr from-blue-900 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all " tabIndex={4} disabled={processing}>
                                 {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                                 Log in
                             </Button>
