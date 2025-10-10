@@ -375,17 +375,17 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               ))}
             </select>
           </div>
-          <div className="self-end flex gap-2 justify-end">
+        </div>
+        {checked.length > 0 && (
             <button
               type="button"
               disabled={checked.length === 0}
               onClick={() => setBulkModal({ open: true, desired_location: '', deadline_date: '' })}
-              className={`rounded-lg px-4 py-2 text-white ${checked.length === 0 ? 'bg-gray-600 cursor-not-allowed' : ' hover:bg-gray-600 bg-black'}`}
+              className="apply-selected-btn"
             >
               Apply Selected ({checked.length})
             </button>
-          </div>
-        </div>
+        )}
 </section>
         
             
@@ -741,7 +741,6 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
             )}
           </div>
         </div>
-
         <CompanyDetailsModal
           company={selectedCompany}
           isOpen={isModalOpen}

@@ -46,7 +46,8 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 	};
 
 	return (
-			<div className="p-4">
+			<div className="p-6">
+      		<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 				<form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Type</label>
@@ -70,15 +71,21 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 						<Input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => setData("attachment", e.target.files?.[0] ?? null)} />
 						{errors.attachment && <p className="text-red-600 text-sm mt-1">{errors.attachment}</p>}
 					</div>
+					<div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+						<Button type="submit" disabled={processing} className="px-8">
+							{processing ? "Uploading..." : "Upload"}
+						</Button>
+					</div>
+					</form>
+					<div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 min-h-[250px]">
+				
+						<h3 className="text-sm text-gray-600 dark:text-gray-400">Preview:</h3>
 					  {data.attachment && data.attachment.type.startsWith("image/") && (
-						<div className="mt-4">
-						<p className="text-sm text-gray-600 dark:text-gray-400">Preview:</p>
 						<img
 							src={URL.createObjectURL(data.attachment)}
 							alt="preview"
-							className="mt-2 max-h-48 rounded border dark:border-gray-700"
+							className="mt-2 max-h-100 rounded border dark:border-gray-700"
 						/>
-						</div>
 					)}
 
 					{/* If PDF or DOCX show filename */}
@@ -87,13 +94,13 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 						Selected file: {data.attachment.name}
 						</p>
 					)}
-
-					<div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-						<Button type="submit" disabled={processing} className="px-8">
-							{processing ? "Uploading..." : "Upload"}
-						</Button>
+										{!data.attachment && (
+						<p className="text-gray-500 text-sm italic">
+							No file selected yet.
+						</p>
+					)}
 					</div>
-				</form>
+					</div>
 
 				{attachments.length > 0 && (
 					<div className="mt-10">
@@ -106,26 +113,25 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
  								 <div className="flex items-center gap-3">
     								{a.attachment_path.match(/\.(jpg|jpeg|png)$/i) ? (
 									 <img
-										src={`/storage/${a.attachment_path}`} // adjust path if needed
-										alt={a.attachment_type}
-										className="h-12 w-12 object-cover rounded border dark:border-gray-700"
-									/>
+									 src={`/storage/${a.attachment_path}`} // adjust path if needed
+									 alt={a.attachment_type}
+									 className="h-12 w-12 object-cover rounded border dark:border-gray-700"
+									 />
 									) : (
 									<span className="text-sm text-gray-700 dark:text-gray-300">{a.attachment_type} — {a.attachment_path}</span>
 										)}
-
 										<span className="text-sm text-gray-700 dark:text-gray-300">
 										{a.attachment_type}
-										</span>
-									</div>
-									<div>
-									    <Button className="view-btn btn-2 cursor-pointer"
-										variant="secondary"
-										onClick={() => window.open(`/storage/${a.attachment_path}`, "_blank")}
-										>
-										View File
-										</Button>
-									<Button className="bg-red-600 cursor-pointer" variant="outline" onClick={() => handleDelete(a.id)}>Delete</Button>
+										 </span>
+										 </div>
+									 <div className="flex gap-2">
+									 <Button className="view-btn btn-2 cursor-pointer"
+									 variant="secondary"
+									 onClick={() => window.open(`/storage/${a.attachment_path}`, "_blank")}
+									 >
+									 View File
+									 </Button>
+									 <Button className="bg-red-600 cursor-pointer" variant="outline" onClick={() => handleDelete(a.id)}>Delete</Button>
 									</div>
 								</li>
 							))}

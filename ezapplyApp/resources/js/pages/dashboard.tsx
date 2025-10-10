@@ -127,7 +127,7 @@ export default function Dashboard({ stats }: DashboardProps) {
     <ErrorBoundary>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Dashboard" />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="min-h-screen bg-across-pages p-6 flex flex-col gap-8">
           <div className="flex h-full flex-1 flex-col gap-8 overflow-x-auto rounded-xl p-6">
             {/* Welcome Section */}
             <div className="space-y-4">

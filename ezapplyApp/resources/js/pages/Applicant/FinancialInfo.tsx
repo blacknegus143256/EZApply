@@ -64,9 +64,6 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 
 	return (
 			<div className="p-4">
-				<div className="mb-6">
-					<h1 className="text-2xl font-bold text-black dark:text-white">Financial Information</h1>
-				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
 					<div>
