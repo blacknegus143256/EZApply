@@ -62,11 +62,15 @@ export default function CompanyEditWrapper() {
         target_profile: company.marketing?.target_profile || '',
         preferred_contact_method: company.marketing?.preferred_contact_method || '',
         logo: null as File | null,
+        existing_logo: company.marketing?.logo_path || null,
 
         // Documents
-        dti_sbc: null as File | null, 
-        bir_2303: null as File | null, 
+        dti_sbc: null as File | null,
+        bir_2303: null as File | null,
         ipo_registration: null as File | null,
+        existing_dti_sbc: company.documents?.dti_sbc_path || null,
+        existing_bir_2303: company.documents?.bir_2303_path || null,
+        existing_ipo_registration: company.documents?.ipo_registration_path || null,
       }}
       companyId={company.id}
     />

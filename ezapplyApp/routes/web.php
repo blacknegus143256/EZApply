@@ -62,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     // update company
-    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::match(['PUT', 'POST'], '/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
     // edit company
     Route::get('/companies/{company}/edit',[CompanyController::class,'edit'])->name('companies.edit');
     
