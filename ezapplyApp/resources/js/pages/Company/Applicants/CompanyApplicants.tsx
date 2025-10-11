@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
+import '../../../../css/easyApply.css'
 import {
   Card,
   CardContent,
@@ -84,6 +85,7 @@ export default function CompanyApplicants() {
     >
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Company Applicants" />
+        <div className="bg-across-pages min-h-screen">
 
         <Card>
           <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
@@ -193,6 +195,7 @@ export default function CompanyApplicants() {
         onOpenChange={setIsDialogOpen}
         application={selectedApplicant}
         />
+        </div>
       </AppLayout>
     </PermissionGate>
   );

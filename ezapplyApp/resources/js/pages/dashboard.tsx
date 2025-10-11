@@ -1,10 +1,11 @@
 import React from 'react';
+import '../../css/easyApply.css';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import PermissionGate from '@/components/PermissionGate';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,13 +39,34 @@ interface DashboardStats {
   totalApplications?: number;
   totalUsers?: number;
   pendingApprovals?: number;
+  pendingApplications?: number;
+  approvedCompanies?: number;
+  approvedApplications?: number;
+  rejectedApplications?: number;
+  userRole?: string;
 }
 
 interface DashboardProps {
   stats?: DashboardStats;
 }
+interface Company {
+  id: number;
+  company_name: string;
+  brand_name: string;
+  opportunity?: {
+    franchise_type?: string | null;
+  };
+  year_founded?: number | null;
+  country?: string | null;
+  created_at: string;
+  status: "pending" | "approved" | "rejected";
+}
 
 export default function Dashboard({ stats }: DashboardProps) {
+      const { auth } = usePage().props as any;
+      const user = auth?.user;
+      const userRole = stats?.userRole || 'customer';
+  
   const quickActions = [
     {
       title: 'Register Company',
@@ -80,58 +102,194 @@ export default function Dashboard({ stats }: DashboardProps) {
     },
   ];
 
-  const statCards = [
-    {
-      title: 'Total Companies',
-      value: stats?.totalCompanies || 0,
-      icon: Building2,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      change: '+12%',
-      changeType: 'positive' as const,
-      description: 'From last month'
-    },
-    {
-      title: 'Applications',
-      value: stats?.totalApplications || 0,
-      icon: FileText,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      change: '+8%',
-      changeType: 'positive' as const,
-      description: 'From last month'
-    },
-    {
-      title: 'Total Users',
-      value: stats?.totalUsers || 0,
-      icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      change: '+15%',
-      changeType: 'positive' as const,
-      description: 'From last month'
-    },
-    {
-      title: 'Pending Approvals',
-      value: stats?.pendingApprovals || 0,
-      icon: MessageCircle,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      change: '-5%',
-      changeType: 'negative' as const,
-      description: 'From last month'
-    },
-  ];
+  const getStatCards = () => {
+    switch (userRole) {
+      case 'company':
+        return [
+          {
+            title: 'My Companies',
+            value: stats?.totalCompanies || 0,
+            icon: Building2,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50',
+            change: '+12%',
+            changeType: 'positive' as const,
+            description: 'Companies registered'
+          },
+          {
+            title: 'Applications Received',
+            value: stats?.totalApplications || 0,
+            icon: FileText,
+            color: 'text-green-600',
+            bgColor: 'bg-green-50',
+            change: '+8%',
+            changeType: 'positive' as const,
+            description: 'Total applications'
+          },
+          {
+            title: 'Approved Companies',
+            value: stats?.approvedCompanies || 0,
+            icon: Award,
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-50',
+            change: '+15%',
+            changeType: 'positive' as const,
+            description: 'Approved by admin'
+          },
+          {
+            title: 'Pending Applications',
+            value: stats?.pendingApplications || 0,
+            icon: MessageCircle,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50',
+            change: '-5%',
+            changeType: 'negative' as const,
+            description: 'Awaiting review'
+          },
+        ];
+      case 'customer':
+        return [
+          {
+            title: 'My Applications',
+            value: stats?.totalApplications || 0,
+            icon: FileText,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50',
+            change: '+12%',
+            changeType: 'positive' as const,
+            description: 'Total applications'
+          },
+          {
+            title: 'Approved Applications',
+            value: stats?.approvedApplications || 0,
+            icon: Award,
+            color: 'text-green-600',
+            bgColor: 'bg-green-50',
+            change: '+8%',
+            changeType: 'positive' as const,
+            description: 'Successfully approved'
+          },
+          {
+            title: 'Pending Applications',
+            value: stats?.pendingApplications || 0,
+            icon: Clock,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50',
+            change: '+15%',
+            changeType: 'positive' as const,
+            description: 'Under review'
+          },
+          {
+            title: 'Rejected Applications',
+            value: stats?.rejectedApplications || 0,
+            icon: TrendingDown,
+            color: 'text-red-600',
+            bgColor: 'bg-red-50',
+            change: '-5%',
+            changeType: 'negative' as const,
+            description: 'Not approved'
+          },
+        ];
+      case 'admin':
+        return [
+          {
+            title: 'Total Companies',
+            value: stats?.totalCompanies || 0,
+            icon: Building2,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50',
+            change: '+12%',
+            changeType: 'positive' as const,
+            description: 'All registered companies'
+          },
+          {
+            title: 'Total Applications',
+            value: stats?.totalApplications || 0,
+            icon: FileText,
+            color: 'text-green-600',
+            bgColor: 'bg-green-50',
+            change: '+8%',
+            changeType: 'positive' as const,
+            description: 'All applications'
+          },
+          {
+            title: 'Total Users',
+            value: stats?.totalUsers || 0,
+            icon: Users,
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-50',
+            change: '+15%',
+            changeType: 'positive' as const,
+            description: 'All registered users'
+          },
+          {
+            title: 'Pending Approvals',
+            value: stats?.pendingApprovals || 0,
+            icon: MessageCircle,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50',
+            change: '-5%',
+            changeType: 'negative' as const,
+            description: 'Companies awaiting approval'
+          },
+        ];
+      default:
+        return [
+          {
+            title: 'My Applications',
+            value: stats?.totalApplications || 0,
+            icon: FileText,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-50',
+            change: '+12%',
+            changeType: 'positive' as const,
+            description: 'Total applications'
+          },
+          {
+            title: 'Pending Applications',
+            value: stats?.pendingApplications || 0,
+            icon: Clock,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-50',
+            change: '+15%',
+            changeType: 'positive' as const,
+            description: 'Under review'
+          },
+          {
+            title: 'Approved Applications',
+            value: stats?.approvedApplications || 0,
+            icon: Award,
+            color: 'text-green-600',
+            bgColor: 'bg-green-50',
+            change: '+8%',
+            changeType: 'positive' as const,
+            description: 'Successfully approved'
+          },
+          {
+            title: 'Available Companies',
+            value: stats?.totalCompanies || 0,
+            icon: Building2,
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-50',
+            change: '+12%',
+            changeType: 'positive' as const,
+            description: 'Franchise opportunities'
+          },
+        ];
+    }
+  };
+
+  const statCards = getStatCards();
 
   return (
     <ErrorBoundary>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Dashboard" />
         <div className="min-h-screen bg-across-pages p-6 flex flex-col gap-8">
-          <div className="flex h-full flex-1 flex-col gap-8 overflow-x-auto rounded-xl p-6">
+          <div className="flex h-full flex-1 flex-col gap-8 overflow-x-auto rounded-xl p-6 bg-white/50 backdrop-blur-sm">
             {/* Welcome Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-6 bg-white/70 rounded-lg backdrop-blur-sm">
                 <div>
                   <h1 className="text-4xl font-bold text-gray-900">Welcome to EZApply</h1>
                   <p className="text-lg text-gray-600 mt-2">
@@ -148,7 +306,7 @@ export default function Dashboard({ stats }: DashboardProps) {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {statCards.map((stat, index) => (
-                <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:-translate-y-1">
+                <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:-translate-y-1 bg-white">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className={`p-3 rounded-xl ${stat.bgColor} group-hover:scale-110 transition-transform duration-300`}>
@@ -179,7 +337,7 @@ export default function Dashboard({ stats }: DashboardProps) {
 
             {/* Quick Actions */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 bg-white/70 rounded-lg backdrop-blur-sm">
                 <h2 className="text-2xl font-bold text-gray-900">Quick Actions</h2>
                 <Badge variant="outline" className="text-blue-600 border-blue-200">
                   <Activity className="w-4 h-4 mr-1" />
@@ -189,7 +347,7 @@ export default function Dashboard({ stats }: DashboardProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {quickActions.map((action, index) => (
                   <PermissionGate key={index} role={action.role as any}>
-                    <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-lg hover:-translate-y-2 bg-white/80 backdrop-blur-sm">
+                    <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow-lg hover:-translate-y-2 bg-white">
                       <Link href={action.href} className="block">
                         <CardHeader className="pb-4">
                           <div className="flex items-center gap-4">
@@ -216,14 +374,14 @@ export default function Dashboard({ stats }: DashboardProps) {
 
             {/* Recent Activity */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4 bg-white/70 rounded-lg backdrop-blur-sm">
                 <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
                 <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
                   View All
                   <ArrowUpRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
-              <Card className="border-0 shadow-lg">
+              <Card className="border-0 shadow-lg bg-white">
                 <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
                   <CardTitle className="flex items-center gap-2">
                     <Activity className="w-5 h-5 text-blue-600" />

@@ -117,7 +117,7 @@ export default function ApplicantDetails() {
     }
   };
 
-  // Confirm payment
+  // Confirming payment
   const handleConfirmPayment = () => {
     if (!selectedField) return;
     setLoading(true);

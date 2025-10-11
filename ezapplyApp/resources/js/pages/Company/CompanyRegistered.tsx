@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
+import '../../../css/easyApply.css';
 import {
   Card,
   CardContent,
@@ -129,7 +130,7 @@ const CompanyRegistered = () => {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Company Request" />
-
+      <div className="bg-across-pages min-h-screen">
       <Card>
         <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
           <CardTitle>My Registered Companies</CardTitle>
@@ -172,7 +173,7 @@ const CompanyRegistered = () => {
           </Table>
         </CardContent>
       </Card>
-
+      </div>
     </AppLayout>
   );
 };

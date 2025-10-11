@@ -38,9 +38,6 @@ export default function ViewProfileDialog({ open, onOpenChange, application }: P
               <Button variant="outline" onClick={handleMoreInfo}>
                 More Information
               </Button>
-          <DialogClose asChild>
-            <Button>Close</Button>
-          </DialogClose>
         </div>
       </DialogContent>
     </Dialog>

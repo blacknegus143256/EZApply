@@ -58,9 +58,7 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/companies/{company}/status', [CompanyController::class, 'updateStatus'])
     ->name('companies.update-status');
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     // update company
     Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
     // edit company
