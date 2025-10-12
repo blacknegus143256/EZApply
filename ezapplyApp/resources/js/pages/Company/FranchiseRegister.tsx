@@ -84,10 +84,14 @@ interface CompanyForm {
 
   target_profile: string;
   logo: File | null;
+  existing_logo: string | null;
   preferred_contact_method: string;
   dti_sbc: File | null;
   bir_2303: File | null;
   ipo_registration: File | null;
+  existing_dti_sbc: string | null;
+  existing_bir_2303: string | null;
+  existing_ipo_registration: string | null;
 }
 
 // Ensure hydrateAddressData outputs strictly string values
@@ -141,10 +145,14 @@ function hydrateAddressData(initialData: Partial<CompanyForm>): CompanyForm {
 
     target_profile: initialData.target_profile || '',
     logo: initialData.logo || null,
+    existing_logo: initialData.existing_logo || null,
     preferred_contact_method: initialData.preferred_contact_method || '',
     dti_sbc: initialData.dti_sbc || null,
     bir_2303: initialData.bir_2303 || null,
     ipo_registration: initialData.ipo_registration || null,
+    existing_dti_sbc: initialData.existing_dti_sbc || null,
+    existing_bir_2303: initialData.existing_bir_2303 || null,
+    existing_ipo_registration: initialData.existing_ipo_registration || null,
   };
 }
 
@@ -166,7 +174,7 @@ function ErrorText({ message }: { message?: string }) {
 export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
   const hydratedData = hydrateAddressData(initialData || {});
 
-  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>(hydratedData);
+  const { data, setData, post, put, processing, errors, reset } = useForm<CompanyForm>(hydratedData);
 
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
@@ -188,7 +196,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
       2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
-      5: ['dti_sbc', 'bir_2303', 'ipo_registration'],
+      5: companyId ? [] : ['dti_sbc', 'bir_2303', 'ipo_registration'], // Documents not required in edit mode
     };
 
     for (const field of requiredFields[step] || []) {
@@ -219,36 +227,41 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   }
 
 function doSubmit() {
-  transform((d) => ({
-    ...d,
-    prior_experience: d.prior_experience,
-    year_founded: d.year_founded === '' ? null : parseInt(d.year_founded as string),
-    num_franchise_locations: d.num_franchise_locations === '' ? null : parseInt(d.num_franchise_locations as string),
-    min_investment: d.min_investment === '' ? null : parseFloat(d.min_investment as string),
-    franchise_fee: d.franchise_fee === '' ? null : parseFloat(d.franchise_fee as string),
-    avg_annual_revenue: d.avg_annual_revenue === '' ? null : parseFloat(d.avg_annual_revenue as string),
-    years_in_operation: d.years_in_operation === '' ? null : parseInt(d.years_in_operation as string),
-    total_revenue: d.total_revenue === '' ? null : parseFloat(d.total_revenue as string),
-    min_net_worth: d.min_net_worth === '' ? null : parseFloat(d.min_net_worth as string),
-    min_liquid_assets: d.min_liquid_assets === '' ? null : parseFloat(d.min_liquid_assets as string),
-  }));
+  // Filter out existing_* fields before sending to backend
+  const { existing_logo, existing_dti_sbc, existing_bir_2303, existing_ipo_registration, ...submitData } = data;
+
+  // Convert null values to undefined and exclude null/undefined file fields for Inertia compatibility
+  const cleanedData: Record<string, any> = {};
+  for (const [key, value] of Object.entries(submitData)) {
+    if (value === null) {
+      // For file fields, don't send null values - let backend preserve existing files
+      if (['logo', 'dti_sbc', 'bir_2303', 'ipo_registration'].includes(key)) {
+        continue;
+      }
+      cleanedData[key] = undefined;
+    } else {
+      cleanedData[key] = value;
+    }
+  }
 
    if (companyId) {
-      console.log(data.company_name, data);
-      put(`/companies/${companyId}`, {
+      console.log(data.company_name, cleanedData);
+      post(`/companies/${companyId}`, {
+        ...cleanedData,
+        method: 'put',
         onSuccess: () => {
           window.location.href = '/my-companies';
         },
         onError: (error: unknown) => {
           console.error('Update failed:', error);
-          console.error('Request data:', data);
+          console.error('Request data:', cleanedData);
           console.error('Company ID:', companyId);
           alert('Update failed. Please check console for details.');
         },
       });
     } else {
       post('/companies', {
-        ...data,
+        ...cleanedData,
         onSuccess: () => {
           reset();
           setStep(0);
@@ -256,7 +269,7 @@ function doSubmit() {
         },
         onError: (error: unknown) => {
           console.error('Submission failed:', error);
-          console.error('Request data:', data);
+          console.error('Request data:', cleanedData);
           alert('Submission failed. Please check console for details.');
         },
       });
@@ -596,14 +609,40 @@ function doSubmit() {
                         <ErrorText message={(errors as any).listing_description} />
                       </Field>
                       <div>
-                        <label className="block text-xs text-black">Upload Logo or Brand Images (optional)</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="mt-1 block w-full text-gray-200"
-                          name="logo"
-                          onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
-                        />
+                        <label className="block text-xs text-black">
+                          {companyId ? 'Current Logo' : 'Upload Logo or Brand Images (optional)'}
+                        </label>
+                        {data.existing_logo && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Current logo:</p>
+                            <img
+                              src={`/storage/${data.existing_logo}`}
+                              alt="Current logo"
+                              className="max-w-32 max-h-32 object-contain border rounded"
+                            />
+                          </div>
+                        )}
+                        {!companyId && (
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="mt-1 block w-full text-gray-200"
+                            name="logo"
+                            onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                          />
+                        )}
+                        {companyId && (
+                          <div className="mt-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="block w-full text-gray-200"
+                              name="logo"
+                              onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Upload a new logo to replace the current one (optional)</p>
+                          </div>
+                        )}
                         <ErrorText message={(errors as any).logo} />
                       </div>
                       <Field label="Preferred Contact Method for Inquiries (optional)">
@@ -617,37 +656,99 @@ function doSubmit() {
                   {/* Step 6: Documents */}
                   {step === 5 && (
                     <div className="grid gap-3">
-                      <h3 className="text-md font-semibold">Required Business Documents</h3>
-                      
-                      <Field label="DTI/SBC Certificate *">
+                      <h3 className="text-md font-semibold">
+                        {companyId ? 'Business Documents (Optional - upload new files to replace existing)' : 'Required Business Documents'}
+                      </h3>
+
+                      <Field label={`DTI/SBC Certificate ${companyId ? '(Optional)' : '*'}`}>
+                        {data.existing_dti_sbc && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Current DTI/SBC:</p>
+                            {data.existing_dti_sbc.toLowerCase().endsWith('.pdf') ? (
+                              <embed
+                                src={`/storage/${data.existing_dti_sbc}`}
+                                type="application/pdf"
+                                width="100%"
+                                height="200px"
+                                className="border rounded"
+                              />
+                            ) : (
+                              <img
+                                src={`/storage/${data.existing_dti_sbc}`}
+                                alt="Current DTI/SBC"
+                                className="max-w-full max-h-48 object-contain border rounded"
+                              />
+                            )}
+                          </div>
+                        )}
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
                           onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
-                          required
+                          required={!companyId}
                         />
                         <ErrorText message={(errors as any).dti_sbc} />
                       </Field>
 
-                      <Field label="BIR 2303 Form *">
+                      <Field label={`BIR 2303 Form ${companyId ? '(Optional)' : '*'}`}>
+                        {data.existing_bir_2303 && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Current BIR 2303:</p>
+                            {data.existing_bir_2303.toLowerCase().endsWith('.pdf') ? (
+                              <embed
+                                src={`/storage/${data.existing_bir_2303}`}
+                                type="application/pdf"
+                                width="100%"
+                                height="200px"
+                                className="border rounded"
+                              />
+                            ) : (
+                              <img
+                                src={`/storage/${data.existing_bir_2303}`}
+                                alt="Current BIR 2303"
+                                className="max-w-full max-h-48 object-contain border rounded"
+                              />
+                            )}
+                          </div>
+                        )}
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
                           onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
-                          required
+                          required={!companyId}
                         />
                         <ErrorText message={(errors as any).bir_2303} />
                       </Field>
 
-                      <Field label="IPO Registration *">
+                      <Field label={`IPO Registration ${companyId ? '(Optional)' : '*'}`}>
+                        {data.existing_ipo_registration && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Current IPO Registration:</p>
+                            {data.existing_ipo_registration.toLowerCase().endsWith('.pdf') ? (
+                              <embed
+                                src={`/storage/${data.existing_ipo_registration}`}
+                                type="application/pdf"
+                                width="100%"
+                                height="200px"
+                                className="border rounded"
+                              />
+                            ) : (
+                              <img
+                                src={`/storage/${data.existing_ipo_registration}`}
+                                alt="Current IPO Registration"
+                                className="max-w-full max-h-48 object-contain border rounded"
+                              />
+                            )}
+                          </div>
+                        )}
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
                           onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
-                          required
+                          required={!companyId}
                         />
                         <ErrorText message={(errors as any).ipo_registration} />
                       </Field>

@@ -60,7 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('companies.update-status');
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     // update company
-    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::match(['PUT', 'POST'], '/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
     // edit company
     Route::get('/companies/{company}/edit',[CompanyController::class,'edit'])->name('companies.edit');
     
