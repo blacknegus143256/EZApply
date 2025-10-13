@@ -202,6 +202,12 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   const containerRef = useRef<HTMLDivElement>(null);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Preview state for file uploads
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [dtiSbcPreview, setDtiSbcPreview] = useState<string | null>(null);
+  const [bir2303Preview, setBir2303Preview] = useState<string | null>(null);
+  const [ipoPreview, setIpoPreview] = useState<string | null>(null);
   
 
   useEffect(() => {
@@ -210,6 +216,16 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
       setTimeout(() => document.getElementById('company_name')?.focus(), 200);
     }
   }, [open]);
+
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      if (dtiSbcPreview) URL.revokeObjectURL(dtiSbcPreview);
+      if (bir2303Preview) URL.revokeObjectURL(bir2303Preview);
+      if (ipoPreview) URL.revokeObjectURL(ipoPreview);
+    };
+  }, [logoPreview, dtiSbcPreview, bir2303Preview, ipoPreview]);
 
   function validateStep(step: number) {
     const requiredFields: Record<number, (keyof typeof data)[]> = {
@@ -635,12 +651,28 @@ function doSubmit() {
                         <label className="block text-xs text-black">
                           {companyId ? 'Current Logo' : 'Upload Logo or Brand Images (optional)'}
                         </label>
-                        {data.existing_logo && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current logo:</p>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {logoPreview ? 'New logo preview:' : data.existing_logo ? 'Current logo:' : 'No logo uploaded'}
+                            </p>
+                            {logoPreview || data.existing_logo ? (
+                              <img
+                                src={logoPreview || `/storage/${data.existing_logo}`}
+                                alt="Logo preview"
+                                className="max-w-32 max-h-32 object-contain border rounded"
+                              />
+                            ) : (
+                              <p className="text-gray-500">No logo uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && logoPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Logo preview:</p>
                             <img
-                              src={`/storage/${data.existing_logo}`}
-                              alt="Current logo"
+                              src={logoPreview}
+                              alt="Logo preview"
                               className="max-w-32 max-h-32 object-contain border rounded"
                             />
                           </div>
@@ -651,7 +683,16 @@ function doSubmit() {
                             accept="image/*"
                             className="mt-1 block w-full text-gray-200"
                             name="logo"
-                            onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                            onChange={(e) => {
+                              const file = e.currentTarget.files?.[0] ?? null;
+                              setData('logo', file);
+                              if (file) {
+                                const previewUrl = URL.createObjectURL(file);
+                                setLogoPreview(previewUrl);
+                              } else {
+                                setLogoPreview(null);
+                              }
+                            }}
                           />
                         )}
                         {companyId && (
@@ -661,7 +702,16 @@ function doSubmit() {
                               accept="image/*"
                               className="block w-full text-gray-200"
                               name="logo"
-                              onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                              onChange={(e) => {
+                                const file = e.currentTarget.files?.[0] ?? null;
+                                setData('logo', file);
+                                if (file) {
+                                  const previewUrl = URL.createObjectURL(file);
+                                  setLogoPreview(previewUrl);
+                                } else {
+                                  setLogoPreview(null);
+                                }
+                              }}
                             />
                             <p className="text-xs text-gray-500 mt-1">Upload a new logo to replace the current one (optional)</p>
                           </div>
@@ -684,12 +734,56 @@ function doSubmit() {
                       </h3>
 
                       <Field label={`DTI/SBC Certificate ${companyId ? '(Optional)' : '*'}`}>
-                        {data.existing_dti_sbc && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current DTI/SBC:</p>
-                            {data.existing_dti_sbc.toLowerCase().endsWith('.pdf') ? (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {dtiSbcPreview ? 'New DTI/SBC preview:' : data.existing_dti_sbc ? 'Current DTI/SBC:' : 'No DTI/SBC uploaded'}
+                            </p>
+                            {dtiSbcPreview || data.existing_dti_sbc ? (
+                              dtiSbcPreview ? (
+                                dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={dtiSbcPreview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={dtiSbcPreview}
+                                    alt="DTI/SBC preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                data.existing_dti_sbc.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_dti_sbc}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_dti_sbc}`}
+                                    alt="Current DTI/SBC"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No DTI/SBC uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && dtiSbcPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">DTI/SBC preview:</p>
+                            {dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
                               <embed
-                                src={`/storage/${data.existing_dti_sbc}`}
+                                src={dtiSbcPreview}
                                 type="application/pdf"
                                 width="100%"
                                 height="200px"
@@ -697,8 +791,8 @@ function doSubmit() {
                               />
                             ) : (
                               <img
-                                src={`/storage/${data.existing_dti_sbc}`}
-                                alt="Current DTI/SBC"
+                                src={dtiSbcPreview}
+                                alt="DTI/SBC preview"
                                 className="max-w-full max-h-48 object-contain border rounded"
                               />
                             )}
@@ -708,19 +802,72 @@ function doSubmit() {
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('dti_sbc', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setDtiSbcPreview(previewUrl);
+                            } else {
+                              setDtiSbcPreview(null);
+                            }
+                          }}
                           required={!companyId}
                         />
                         <ErrorText message={(errors as any).dti_sbc} />
                       </Field>
 
                       <Field label={`BIR 2303 Form ${companyId ? '(Optional)' : '*'}`}>
-                        {data.existing_bir_2303 && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current BIR 2303:</p>
-                            {data.existing_bir_2303.toLowerCase().endsWith('.pdf') ? (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {bir2303Preview ? 'New BIR 2303 preview:' : data.existing_bir_2303 ? 'Current BIR 2303:' : 'No BIR 2303 uploaded'}
+                            </p>
+                            {bir2303Preview || data.existing_bir_2303 ? (
+                              bir2303Preview ? (
+                                bir2303Preview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={bir2303Preview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={bir2303Preview}
+                                    alt="BIR 2303 preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                data.existing_bir_2303.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_bir_2303}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_bir_2303}`}
+                                    alt="Current BIR 2303"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No BIR 2303 uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && bir2303Preview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">BIR 2303 preview:</p>
+                            {bir2303Preview.toLowerCase().endsWith('.pdf') ? (
                               <embed
-                                src={`/storage/${data.existing_bir_2303}`}
+                                src={bir2303Preview}
                                 type="application/pdf"
                                 width="100%"
                                 height="200px"
@@ -728,8 +875,8 @@ function doSubmit() {
                               />
                             ) : (
                               <img
-                                src={`/storage/${data.existing_bir_2303}`}
-                                alt="Current BIR 2303"
+                                src={bir2303Preview}
+                                alt="BIR 2303 preview"
                                 className="max-w-full max-h-48 object-contain border rounded"
                               />
                             )}
@@ -739,19 +886,72 @@ function doSubmit() {
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('bir_2303', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setBir2303Preview(previewUrl);
+                            } else {
+                              setBir2303Preview(null);
+                            }
+                          }}
                           required={!companyId}
                         />
                         <ErrorText message={(errors as any).bir_2303} />
                       </Field>
 
                       <Field label={`IPO Registration ${companyId ? '(Optional)' : '*'}`}>
-                        {data.existing_ipo_registration && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current IPO Registration:</p>
-                            {data.existing_ipo_registration.toLowerCase().endsWith('.pdf') ? (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {ipoPreview ? 'New IPO Registration preview:' : data.existing_ipo_registration ? 'Current IPO Registration:' : 'No IPO Registration uploaded'}
+                            </p>
+                            {ipoPreview || data.existing_ipo_registration ? (
+                              ipoPreview ? (
+                                ipoPreview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={ipoPreview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={ipoPreview}
+                                    alt="IPO Registration preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                data.existing_ipo_registration.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_ipo_registration}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_ipo_registration}`}
+                                    alt="Current IPO Registration"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No IPO Registration uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && ipoPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">IPO Registration preview:</p>
+                            {ipoPreview.toLowerCase().endsWith('.pdf') ? (
                               <embed
-                                src={`/storage/${data.existing_ipo_registration}`}
+                                src={ipoPreview}
                                 type="application/pdf"
                                 width="100%"
                                 height="200px"
@@ -759,8 +959,8 @@ function doSubmit() {
                               />
                             ) : (
                               <img
-                                src={`/storage/${data.existing_ipo_registration}`}
-                                alt="Current IPO Registration"
+                                src={ipoPreview}
+                                alt="IPO Registration preview"
                                 className="max-w-full max-h-48 object-contain border rounded"
                               />
                             )}
@@ -770,7 +970,16 @@ function doSubmit() {
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('ipo_registration', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setIpoPreview(previewUrl);
+                            } else {
+                              setIpoPreview(null);
+                            }
+                          }}
                           required={!companyId}
                         />
                         <ErrorText message={(errors as any).ipo_registration} />
