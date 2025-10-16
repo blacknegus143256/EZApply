@@ -144,7 +144,22 @@ export default function AppliedCompanies() {
                    <TableRow key={a.id}>
                     <TableCell>
                     <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
-                      <Building2 className="w-4 h-4 mr-1 text-blue-500" />
+                      {/* <Building2 className="w-4 h-4 mr-1 text-blue-500" /> */}
+                          <img
+                            src={
+                              a.company.marketing?.logo_path
+                                ? `/storage/${a.company.marketing.logo_path}`
+                                : "/storage/logos/default-logo.png"
+                            }
+                            alt={`${a.company.company_name} logo`}
+                            className="h-20 w-20 md:h-15 md:w-15 object-contain rounded-full border-4 border-white shadow-lg bg-gray-50 transition-transform duration-300 hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = "/storage/logos/default-logo.png";
+                            }}
+                          />
                       {a.company.company_name}
                     </span>
                     </TableCell>

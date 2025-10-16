@@ -21,26 +21,27 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     return (
-        <div className="min-h-screen  flex-col items-center justify-center bg-gradient-to-br from-green-200 via-white to-blue-200">
-            <div className="flex justify-center">
-            <h1 className="text-5xl font-extrabold text-green-950 tracking-wide drop-shadow-md relative z-10 mt-6">
-            <span className="bg-gradient-to-r from-green-600  to-indigo-500 bg-clip-text text-transparent wave-text">
+        <div className="login-background relative min-h-screen flex flex-col">
+            <EzNav />   
+            {/* <div className="flex justify-center">
+            <h1 className="text-5xl font-extrabold text-green-950 tracking-wide drop-shadow-md relative z-10 mt-20 wave-text">
+            <span className="bg-gradient-to-r from-green-600  to-indigo-500 bg-clip-text text-transparent ">
                 EZ Apply
             </span>
             </h1>
-        </div>
-        <div className="relative  flex items-center justify-center gap-15 px-6 mt-10">
-            <div className=" hidden md:flex w-1/2 relative h-[500px] bg-gray-200 rounded-lg shadow-lg">
+        </div> */}
+        {/* <div className="relative  flex items-center justify-center gap-15 px-6 mt-10"> */}
+            {/* <div className=" hidden md:flex w-1/2 relative h-[500px] bg-gray-200 rounded-lg shadow-lg">
         <LoginSlideshow />
-      </div>
+      </div> */}
       
       {/* <EzNav /> */}
       
-      <div className="w-full md:w-auto flex items-center justify-center ">
-            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 w-150">
+      <div className="w-full md:w-auto flex items-center justify-center">
+            <div className="glass-card p-8 w-full max-w-md">
 
             <Head title="Log in" />
-            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-green-800 to-blue-600 text-white shadow-md">
+            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl Ezezez shadow-md">
             <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
             </div>
         <AuthLayout title="Log in to your account" description="">
@@ -112,6 +113,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     </div>
                                     </div>
                                     </div>
-                                    </div>
+                                    // </div>
     );
 }

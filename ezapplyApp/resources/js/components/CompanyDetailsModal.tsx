@@ -34,7 +34,8 @@ export default function CompanyDetailsModal({ company, isOpen, onClose }: Compan
   }, [isOpen, company?.id]);
 
   if (!company) {
-    return <div className="p-6">Loading...</div>;
+     <div className="p-6">Loading...</div>;
+    return null;
   }
 
   return (

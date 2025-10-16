@@ -42,13 +42,21 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
     
     Route::get('/company/logos', function () {
-    $files = File::files(public_path('storage/logos'));
-    $images = collect($files)
-        ->filter(fn($file) => in_array($file->getExtension(), ['png', 'jpg', 'jpeg']))
-        ->map(fn($file) => asset('storage/logos/' . $file->getFilename()))
-        ->values();
+    $companies = \App\Models\Company::where('status', 'approved')
+        ->get();
 
-    return response()->json($images);
+    $logos = $companies->map(function ($company) {
+        $marketing = is_array($company->marketing)
+            ? $company->marketing
+            : json_decode($company->marketing ?? '{}', true);
+
+        if (!empty($marketing['logo_path'])) {
+            return asset('storage/' . $marketing['logo_path']);
+        }
+        return null;
+    
+ })->filter()->values();
+    return response()->json($logos);
 });
 
 

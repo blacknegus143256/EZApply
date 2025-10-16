@@ -3,6 +3,7 @@ import { login } from '@/routes';
 import { LoaderCircle } from 'lucide-react';
 import { useForm, Head } from '@inertiajs/react';
 import '../../../css/easyApply.css';
+import EzNav from "../Landing/ezapply-nav";
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -45,28 +46,27 @@ const { data, setData, post, processing, errors } = useForm({
     };
 
     return (
-                <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-200 via-white to-blue-200">
-                    <div className="flex justify-center">
-                    <h1 className="text-5xl font-extrabold text-green-700 tracking-wide drop-shadow-md relative z-10 mb-6">
+                <div className="login-background relative min-h-screen flex flex-col ">
+                    <EzNav />
+                    {/* <div className="flex justify-center">
+                    <h1 className="text-5xl font-extrabold text-green-700 tracking-wide drop-shadow-md relative z-10 mb-6 wave-text">
                         <span className="bg-gradient-to-r from-green-600 to-indigo-500 bg-clip-text text-transparent">
                         EZ Apply
                         </span>
                     </h1>
-                    </div>
+                    </div> */}
                     {/* <div className=" hidden md:flex w-1/2 relative h-[500px] bg-gray-200 m-15">
                 <LoginSlideshow />
               </div> */}
               
-        <div className="relative  flex items-center justify-center gap-15 px-6 mt-8">
-              <div className="w-full md:w-auto *:flex items-center justify-center">
-            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 w-150">
+              <div className="w-full md:w-auto flex items-center justify-center">
+            <div className="glass-card p-8 w-full max-w-md mt-15">
 
-                <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-green-950 to-blue-600 text-white shadow-md">
-
+            <Head title="Register" />
+                <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl Ezezez shadow-md">
                 <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
                 </div>
-        <AuthLayout title="Create an account" description="">
-            <Head title="Register" />
+        <AuthLayout title="Create an Account" description="">
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
                 <div className="grid gap-2">
@@ -156,7 +156,7 @@ const { data, setData, post, processing, errors } = useForm({
                         <InputError message={errors.password_confirmation} />
                     </div>
                     {/* Submit Button */}
-                    <Button type="submit" className="w-full bg-gradient-to-tr from-green-950 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
+                    <Button type="submit" className="w-full bg-gradient-to-tr from-blue-900 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
@@ -174,6 +174,6 @@ const { data, setData, post, processing, errors } = useForm({
                             </div>
                             </div>
                             </div>
-                            </div>
+                            // </div>
     );
 }

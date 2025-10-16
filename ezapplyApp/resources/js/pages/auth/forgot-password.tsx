@@ -3,6 +3,7 @@ import PasswordResetLinkController from '@/actions/App/Http/Controllers/Auth/Pas
 import { login } from '@/routes';
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import EzNav from "../Landing/ezapply-nav";
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -14,21 +15,21 @@ import "../../../css/easyApply.css";
 
 export default function ForgotPassword({ status }: { status?: string }) {
     return (
-
-                <div className="min-h-screen  flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-sky-100">
-                <div className="flex justify-center">
+                <div className="login-background relative min-h-screen flex flex-col">
+                    <EzNav />
+                {/* <div className="flex justify-center">
                 <h1 className="text-5xl font-extrabold text-green-950 tracking-wide drop-shadow-md relative z-10 mt-6">
                 <span className="bg-gradient-to-r from-green-950 via-blue-600 to-blue-300 bg-clip-text text-transparent wave-text">
                     EZ Apply
                 </span>
                 </h1>
-            </div>
+            </div> */}
             
-        <div className="relative  flex items-center justify-center gap-15 px-6 mt-10">
-            <div className="w-full md:w-auto flex items-center justify-center ">
-            <div className="ezapply-card backdrop-blur-sm bg-white/90 border border-blue-100 shadow-lg transition-all duration-300 w-150">
+        {/* <div className="relative  flex items-center justify-center"> */}
+            <div className="w-full md:w-auto flex items-center justify-center">
+            <div className="glass-card p-8 w-full max-w-md">
 
-            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl bg-gradient-to-tr from-green-950 to-blue-600 text-white shadow-md">
+            <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl Ezezez shadow-md">
             <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
             </div>
         <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
@@ -59,13 +60,13 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                    <TextLink href={login()} tabIndex={5} className="text-blue-600 hover:text-blue-800 font-medium">log in</TextLink>
                 </div>
             </div>
         </AuthLayout>
         </div>
         </div>
         </div>
-        </div>
+        // </div>
     );
 }
