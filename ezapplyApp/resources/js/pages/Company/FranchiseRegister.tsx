@@ -171,6 +171,27 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="mt-1 text-xs text-red-400">{message}</p>;
 }
 
+// Utility functions for currency formatting
+function formatCurrency(value: string | number | null): string {
+  if (value === null || value === '' || value === undefined) return '';
+  const num = typeof value === 'string' ? parseFloat(value.replace(/[^\d.-]/g, '')) : value;
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
+}
+
+function parseCurrency(value: string): string {
+  if (!value) return '';
+  // Remove ₱, commas, and spaces
+  const cleaned = value.replace(/[₱,\s]/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? '' : num.toString();
+}
+
 export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
   const hydratedData = hydrateAddressData(initialData || {});
 
@@ -180,6 +201,13 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Preview state for file uploads
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [dtiSbcPreview, setDtiSbcPreview] = useState<string | null>(null);
+  const [bir2303Preview, setBir2303Preview] = useState<string | null>(null);
+  const [ipoPreview, setIpoPreview] = useState<string | null>(null);
   
 
   useEffect(() => {
@@ -188,6 +216,16 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
       setTimeout(() => document.getElementById('company_name')?.focus(), 200);
     }
   }, [open]);
+
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      if (dtiSbcPreview) URL.revokeObjectURL(dtiSbcPreview);
+      if (bir2303Preview) URL.revokeObjectURL(bir2303Preview);
+      if (ipoPreview) URL.revokeObjectURL(ipoPreview);
+    };
+  }, [logoPreview, dtiSbcPreview, bir2303Preview, ipoPreview]);
 
   function validateStep(step: number) {
     const requiredFields: Record<number, (keyof typeof data)[]> = {
@@ -517,19 +555,20 @@ function doSubmit() {
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
                         <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
-                      <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment ?? ''} onChange={(e) => setData('min_investment', e.target.value)} required /></Field>
-                      <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee ?? ''} onChange={(e) => setData('franchise_fee', e.target.value)} required /></Field>
+                      <Field label="Minimum Investment Required *"><Input name="min_investment" type="text" value={focusedField === 'min_investment' ? data.min_investment || '' : formatCurrency(data.min_investment || '')} onChange={(e) => setData('min_investment', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱1,000,000.00" required /></Field>
+                      <Field label="Franchise Fee *"><Input name="franchise_fee" type="text" value={focusedField === 'franchise_fee' ? data.franchise_fee || '' : formatCurrency(data.franchise_fee || '')} onChange={(e) => setData('franchise_fee', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱500,000.00" required /></Field>
                       <Field label="Royalty Fee Structure*">
                         <Input
-                          name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
+                          name="royalty_fee_structure"
                           value={data.royalty_fee_structure}
                           onChange={(e) => setData("royalty_fee_structure", e.target.value)}
+                          placeholder="e.g., 5% of revenue or ₱10,000 monthly"
                         />
                         {errors.royalty_fee_structure && (
                           <div className="text-red-500">{errors.royalty_fee_structure}</div>
                         )}
-                      </Field>                        
-                      <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue ?? ''} onChange={(e) => setData('avg_annual_revenue', e.target.value)} /></Field>
+                      </Field>
+                      <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="text" value={focusedField === 'avg_annual_revenue' ? data.avg_annual_revenue || '' : formatCurrency(data.avg_annual_revenue || '')} onChange={(e) => setData('avg_annual_revenue', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱5,000,000.00" /></Field>
                       <ErrorText message={(errors as any).avg_annual_revenue} />
                       </div>
                       <Field label="Target Markets/Regions for Expansion *"><Input name="target_markets" value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
@@ -560,7 +599,7 @@ function doSubmit() {
                         <ErrorText message={(errors as any).years_in_operation} />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue ?? ''} onChange={(e) => setData('total_revenue', e.target.value)} /></Field>
+                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="text" value={focusedField === 'total_revenue' ? data.total_revenue || '' : formatCurrency(data.total_revenue || '')} onChange={(e) => setData('total_revenue', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱50,000,000.00" /></Field>
                         <Field label="Awards or Recognitions (optional)"><Input name="awards" value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
                         <ErrorText message={(errors as any).total_revenue} />
                       </div>
@@ -575,10 +614,10 @@ function doSubmit() {
                   {step === 3 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth ?? ''} onChange={(e) => setData('min_net_worth', e.target.value)} required /></Field>
-                        <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets ?? ''} onChange={(e) => setData('min_liquid_assets', e.target.value)} required /></Field>
-                        <ErrorText message={(errors as any).min_net_worth} />
-                        <ErrorText message={(errors as any).min_liquid_assets} />
+                      <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="text" value={focusedField === 'min_net_worth' ? data.min_net_worth || '' : formatCurrency(data.min_net_worth || '')} onChange={(e) => setData('min_net_worth', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱10,000,000.00" required /></Field>
+                      <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="text" value={focusedField === 'min_liquid_assets' ? data.min_liquid_assets || '' : formatCurrency(data.min_liquid_assets || '')} onChange={(e) => setData('min_liquid_assets', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱5,000,000.00" required /></Field>
+                      <ErrorText message={(errors as any).min_net_worth} />
+                      <ErrorText message={(errors as any).min_liquid_assets} />
                       </div>
 
                       <div className="flex items-center gap-2 text-gray-200">
@@ -612,12 +651,28 @@ function doSubmit() {
                         <label className="block text-xs text-black">
                           {companyId ? 'Current Logo' : 'Upload Logo or Brand Images (optional)'}
                         </label>
-                        {data.existing_logo && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current logo:</p>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {logoPreview ? 'New logo preview:' : data.existing_logo ? 'Current logo:' : 'No logo uploaded'}
+                            </p>
+                            {logoPreview || data.existing_logo ? (
+                              <img
+                                src={logoPreview || `/storage/${data.existing_logo}`}
+                                alt="Logo preview"
+                                className="max-w-32 max-h-32 object-contain border rounded"
+                              />
+                            ) : (
+                              <p className="text-gray-500">No logo uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && logoPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Logo preview:</p>
                             <img
-                              src={`/storage/${data.existing_logo}`}
-                              alt="Current logo"
+                              src={logoPreview}
+                              alt="Logo preview"
                               className="max-w-32 max-h-32 object-contain border rounded"
                             />
                           </div>
@@ -628,7 +683,16 @@ function doSubmit() {
                             accept="image/*"
                             className="mt-1 block w-full text-gray-200"
                             name="logo"
-                            onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                            onChange={(e) => {
+                              const file = e.currentTarget.files?.[0] ?? null;
+                              setData('logo', file);
+                              if (file) {
+                                const previewUrl = URL.createObjectURL(file);
+                                setLogoPreview(previewUrl);
+                              } else {
+                                setLogoPreview(null);
+                              }
+                            }}
                           />
                         )}
                         {companyId && (
@@ -638,7 +702,16 @@ function doSubmit() {
                               accept="image/*"
                               className="block w-full text-gray-200"
                               name="logo"
-                              onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
+                              onChange={(e) => {
+                                const file = e.currentTarget.files?.[0] ?? null;
+                                setData('logo', file);
+                                if (file) {
+                                  const previewUrl = URL.createObjectURL(file);
+                                  setLogoPreview(previewUrl);
+                                } else {
+                                  setLogoPreview(null);
+                                }
+                              }}
                             />
                             <p className="text-xs text-gray-500 mt-1">Upload a new logo to replace the current one (optional)</p>
                           </div>
@@ -661,12 +734,56 @@ function doSubmit() {
                       </h3>
 
                       <Field label={`DTI/SBC Certificate ${companyId ? '(Optional)' : '*'}`}>
-                        {data.existing_dti_sbc && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current DTI/SBC:</p>
-                            {data.existing_dti_sbc.toLowerCase().endsWith('.pdf') ? (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {dtiSbcPreview ? 'New DTI/SBC preview:' : data.existing_dti_sbc ? 'Current DTI/SBC:' : 'No DTI/SBC uploaded'}
+                            </p>
+                            {dtiSbcPreview || data.existing_dti_sbc ? (
+                              dtiSbcPreview ? (
+                                dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={dtiSbcPreview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={dtiSbcPreview}
+                                    alt="DTI/SBC preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                data.existing_dti_sbc.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_dti_sbc}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_dti_sbc}`}
+                                    alt="Current DTI/SBC"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No DTI/SBC uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && dtiSbcPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">DTI/SBC preview:</p>
+                            {dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
                               <embed
-                                src={`/storage/${data.existing_dti_sbc}`}
+                                src={dtiSbcPreview}
                                 type="application/pdf"
                                 width="100%"
                                 height="200px"
@@ -674,8 +791,8 @@ function doSubmit() {
                               />
                             ) : (
                               <img
-                                src={`/storage/${data.existing_dti_sbc}`}
-                                alt="Current DTI/SBC"
+                                src={dtiSbcPreview}
+                                alt="DTI/SBC preview"
                                 className="max-w-full max-h-48 object-contain border rounded"
                               />
                             )}
@@ -685,19 +802,72 @@ function doSubmit() {
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('dti_sbc', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setDtiSbcPreview(previewUrl);
+                            } else {
+                              setDtiSbcPreview(null);
+                            }
+                          }}
                           required={!companyId}
                         />
                         <ErrorText message={(errors as any).dti_sbc} />
                       </Field>
 
                       <Field label={`BIR 2303 Form ${companyId ? '(Optional)' : '*'}`}>
-                        {data.existing_bir_2303 && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current BIR 2303:</p>
-                            {data.existing_bir_2303.toLowerCase().endsWith('.pdf') ? (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {bir2303Preview ? 'New BIR 2303 preview:' : data.existing_bir_2303 ? 'Current BIR 2303:' : 'No BIR 2303 uploaded'}
+                            </p>
+                            {bir2303Preview || data.existing_bir_2303 ? (
+                              bir2303Preview ? (
+                                bir2303Preview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={bir2303Preview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={bir2303Preview}
+                                    alt="BIR 2303 preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                data.existing_bir_2303.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_bir_2303}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_bir_2303}`}
+                                    alt="Current BIR 2303"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No BIR 2303 uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && bir2303Preview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">BIR 2303 preview:</p>
+                            {bir2303Preview.toLowerCase().endsWith('.pdf') ? (
                               <embed
-                                src={`/storage/${data.existing_bir_2303}`}
+                                src={bir2303Preview}
                                 type="application/pdf"
                                 width="100%"
                                 height="200px"
@@ -705,8 +875,8 @@ function doSubmit() {
                               />
                             ) : (
                               <img
-                                src={`/storage/${data.existing_bir_2303}`}
-                                alt="Current BIR 2303"
+                                src={bir2303Preview}
+                                alt="BIR 2303 preview"
                                 className="max-w-full max-h-48 object-contain border rounded"
                               />
                             )}
@@ -716,19 +886,72 @@ function doSubmit() {
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('bir_2303', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setBir2303Preview(previewUrl);
+                            } else {
+                              setBir2303Preview(null);
+                            }
+                          }}
                           required={!companyId}
                         />
                         <ErrorText message={(errors as any).bir_2303} />
                       </Field>
 
                       <Field label={`IPO Registration ${companyId ? '(Optional)' : '*'}`}>
-                        {data.existing_ipo_registration && (
+                        {companyId && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
-                            <p className="text-sm text-gray-600 mb-2">Current IPO Registration:</p>
-                            {data.existing_ipo_registration.toLowerCase().endsWith('.pdf') ? (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {ipoPreview ? 'New IPO Registration preview:' : data.existing_ipo_registration ? 'Current IPO Registration:' : 'No IPO Registration uploaded'}
+                            </p>
+                            {ipoPreview || data.existing_ipo_registration ? (
+                              ipoPreview ? (
+                                ipoPreview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={ipoPreview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={ipoPreview}
+                                    alt="IPO Registration preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                data.existing_ipo_registration.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_ipo_registration}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_ipo_registration}`}
+                                    alt="Current IPO Registration"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No IPO Registration uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && ipoPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">IPO Registration preview:</p>
+                            {ipoPreview.toLowerCase().endsWith('.pdf') ? (
                               <embed
-                                src={`/storage/${data.existing_ipo_registration}`}
+                                src={ipoPreview}
                                 type="application/pdf"
                                 width="100%"
                                 height="200px"
@@ -736,8 +959,8 @@ function doSubmit() {
                               />
                             ) : (
                               <img
-                                src={`/storage/${data.existing_ipo_registration}`}
-                                alt="Current IPO Registration"
+                                src={ipoPreview}
+                                alt="IPO Registration preview"
                                 className="max-w-full max-h-48 object-contain border rounded"
                               />
                             )}
@@ -747,7 +970,16 @@ function doSubmit() {
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('ipo_registration', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setIpoPreview(previewUrl);
+                            } else {
+                              setIpoPreview(null);
+                            }
+                          }}
                           required={!companyId}
                         />
                         <ErrorText message={(errors as any).ipo_registration} />
@@ -818,4 +1050,3 @@ function doSubmit() {
     </PermissionGate>
   );
 }
-

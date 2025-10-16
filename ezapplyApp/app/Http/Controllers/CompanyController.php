@@ -206,6 +206,23 @@ class CompanyController extends Controller
         return response()->json($company);
     }
 
+    public function details($id)
+    {
+        // Load company + all related data for page rendering
+        $company = Company::with([
+            'opportunity',
+            'background',
+            'requirements',
+            'marketing',
+            'documents',
+            'user',
+        ])->findOrFail($id);
+
+        return Inertia::render('Company/CompanyFullDetails', [
+            'company' => $company,
+        ]);
+    }
+
     public function index()
     {
         // Get all companies and eager load their related data
