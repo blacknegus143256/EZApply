@@ -1000,7 +1000,7 @@
 }
 
 .login-background {
-  background-image: url('/storage/background/ambot.png');
+  background-image: url('/background/ambot.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

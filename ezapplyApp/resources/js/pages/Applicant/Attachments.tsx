@@ -42,7 +42,13 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 	};
 
 	const handleDelete = (id: number) => {
+		
+  if (window.confirm("Are you sure you want to delete this item?")) {
+
 		router.delete(`/applicant/attachments/${id}`);
+  }else {
+	return;
+  }
 	};
 
 	return (
@@ -124,14 +130,14 @@ export default function Attachments({ attachments = [] }: AttachmentsProps) {
 										{a.attachment_type}
 										 </span>
 										 </div>
-									 <div className="flex gap-2">
+									 <div className="flex justify-center items-center gap-2">
 									 <Button className="view-btn btn-2 cursor-pointer"
 									 variant="secondary"
 									 onClick={() => window.open(`/storage/${a.attachment_path}`, "_blank")}
 									 >
 									 View File
 									 </Button>
-									 <Button className="bg-red-600 cursor-pointer" variant="outline" onClick={() => handleDelete(a.id)}>Delete</Button>
+									 <Button className=" cursor-pointer" variant="destructive" onClick={() => handleDelete(a.id)}>Delete</Button>
 									</div>
 								</li>
 							))}
