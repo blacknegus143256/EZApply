@@ -284,7 +284,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
                         <SelectContent>
                           <SelectItem value="all">All Types</SelectItem>
                         {franchiseTypes.map((t) => (
-                          <SelectItem key={t} value={t || ''}>
+                          <SelectItem key={t} value={t}>
                             {t}
                           </SelectItem>
                         ))}

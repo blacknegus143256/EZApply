@@ -25,6 +25,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
+        // Add versioning to force fresh data for company applicants page
+        if ($request->is('company-applicants')) {
+            return md5(now()->toISOString());
+        }
         return parent::version($request);
     }
 
