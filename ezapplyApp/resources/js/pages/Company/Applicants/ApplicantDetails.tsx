@@ -202,12 +202,10 @@ export default function ApplicantDetails() {
 
         <Card>
           <CardHeader>
-            <CardTitle>
-              {applicant.user?.basicinfo?.first_name} {applicant.user?.basicinfo?.last_name}
-            </CardTitle>
           </CardHeader>
           <CardContent>
             {renderTable([
+              {key: "name", label: "Full Name", value: `${applicant.user?.basicinfo?.first_name} ${applicant.user?.basicinfo?.last_name}` },
               { key: "email", label: "Email", value: applicant.user?.email },
               { key: "phone", label: "Phone", value: applicant.user?.basicinfo?.phone },
               {

@@ -130,7 +130,7 @@ const CompanyRegistered = () => {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Company Request" />
-      <div className="bg-across-pages min-h-screen">
+      <div className="bg-across-pages min-h-screen p-5">
       <Card>
         <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
           <CardTitle>My Registered Companies</CardTitle>
