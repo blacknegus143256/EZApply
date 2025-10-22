@@ -33,12 +33,6 @@ const mainNavItems: NavItem[] = [
     permission: 'view_customer_dashboard',
     },
     {
-        title: 'Company',
-        href: '/companies',
-        icon: Building2,
-        permission: 'view_request_companies',
-    },
-    {
         title: 'My Companies',
         href: '/my-companies',
         icon: Building2,

@@ -57,7 +57,7 @@ const CompanyFullDetails: React.FC = () => {
   return (
     <>
       <Head title="Company Details" />
-
+      <div className='bg-across-pages min-h-screen p-5'>
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <Link
@@ -191,6 +191,7 @@ const CompanyFullDetails: React.FC = () => {
             </div>
           </details>
         </div>
+      </div>
       </div>
     </>
   );

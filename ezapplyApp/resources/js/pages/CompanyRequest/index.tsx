@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import CompanyDetails from '../Company/CompanyDetails';
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 
 
 interface Company {
@@ -60,6 +61,8 @@ export default function Roles({ roles }: { roles: any }) {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
     const filteredCompanies = companies.filter((company) => {
     const matchesSearch = company.company_name
@@ -94,6 +97,11 @@ export default function Roles({ roles }: { roles: any }) {
     });
 }, []);
 
+
+function handleCloseModal() {
+  setIsModalOpen(false);
+  setSelectedCompany(null);
+}
 
     return (
         <Can permission="view_request_companies" fallback={<div className="p-4">You don't have permission to view roles.</div>}>
@@ -179,34 +187,16 @@ export default function Roles({ roles }: { roles: any }) {
           </TableCell>
 
           <TableCell className="flex gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="default">View</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="flex justify-between items-center mt-5">
-                    Company Details
-                    <p>
-                      <strong>Status:</strong>{" "}
-                      {company.status === "pending" && (
-                        <Badge variant="secondary">Pending</Badge>
-                      )}
-                      {company.status === "approved" && (
-                        <Badge variant="success">Approved</Badge>
-                      )}
-                      {company.status === "rejected" && (
-                        <Badge variant="destructive">Rejected</Badge>
-                      )}
-                    </p>
-                  </DialogTitle>
-                  <DialogDescription>
-                    Below are the details for this company.
-                  </DialogDescription>
-                </DialogHeader>
-                <CompanyDetails company={company} />
-              </DialogContent>
-            </Dialog>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCompany(company);
+                setIsModalOpen(true);
+              }}
+            >
+              View Details
+            </Button>
+
 
             <Select
               value={company.status}
@@ -277,6 +267,14 @@ export default function Roles({ roles }: { roles: any }) {
 </TableBody>
 
                         </Table>
+                        {selectedCompany && (
+  <CompanyDetailsModal
+    company={selectedCompany}
+    isOpen={isModalOpen}
+    onClose={handleCloseModal}
+  />
+)}
+
                     </CardContent>
                 </Card>
             </AppLayout>
