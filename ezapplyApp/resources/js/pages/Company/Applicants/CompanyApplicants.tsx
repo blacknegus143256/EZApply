@@ -34,7 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const statusOptions = ["pending", "approved", "rejected", "interested"];
 
 export default function CompanyApplicants() {
-  const { props } = usePage<PageProps>();
+  const { props } = usePage<any>();
   const applicants = props.applicants ?? [];
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,7 +53,7 @@ export default function CompanyApplicants() {
 
   // Filter logic
   const filteredApplicants = useMemo(() => {
-    return applicants.filter((a) => {
+    return applicants.filter((a: any) => {
       const firstName = a.user?.basicinfo?.first_name ?? "";
       const lastName = a.user?.basicinfo?.last_name ?? "";
       const email = a.user?.email ?? "";
@@ -62,32 +62,80 @@ export default function CompanyApplicants() {
     });
   }, [applicants, searchTerm]);
 
-  // Fetch paid fields for each applicant
+  // Fetch paid fields for each applicant, batching state updates
   useEffect(() => {
+    let isMounted = true; 
+    
     async function fetchPaidFields() {
+      if (!isMounted) return;
+
       setLoading(true);
+      
+      const newPaidFields: Record<number, string[]> = {};
+      const newVisibleFields: Record<number, Record<string, boolean>> = {};
+      
       try {
-        for (const applicant of applicants) {
-          const res = await fetch(`/check-applicant-view/${applicant.id}`);
-          if (!res.ok) continue;
-          const data = await res.json();
-
-          if (Array.isArray(data.paid_fields)) {
-            setPaidFields((prev) => ({ ...prev, [applicant.id]: data.paid_fields }));
-
-            const revealed: Record<string, boolean> = {};
-            data.paid_fields.forEach((f: string) => (revealed[f] = true));
-            setVisibleFields((prev) => ({ ...prev, [applicant.id]: revealed }));
+        // Use Promise.all() for concurrent fetching
+        const fetchPromises = applicants.map(async (applicant: any) => {
+          try {
+            const res = await fetch(`/check-applicant-view/${applicant.id}`);
+            if (!res.ok) {
+              // Log the error to help debug backend failures
+              console.error(`API call failed for ID ${applicant.id}. Status: ${res.status}`);
+              return null;
+            }
+            
+            const data = await res.json();
+            
+            if (Array.isArray(data.paid_fields)) {
+              const revealed: Record<string, boolean> = {};
+              data.paid_fields.forEach((f: string) => (revealed[f] = true));
+              
+              return { 
+                id: applicant.id, 
+                paid_fields: data.paid_fields, 
+                visible_fields: revealed 
+              };
+            }
+            return null;
+          } catch (err) {
+            console.error(`Failed to fetch paid fields for ID ${applicant.id}:`, err);
+            return null;
           }
+        });
+        
+        const results = await Promise.all(fetchPromises);
+        
+        results.forEach(result => {
+          if (result) {
+            newPaidFields[result.id] = result.paid_fields;
+            newVisibleFields[result.id] = result.visible_fields;
+          }
+        });
+
+        if (isMounted) {
+          // Update state once after all fetches are complete
+          setPaidFields((prev) => ({ ...prev, ...newPaidFields }));
+          setVisibleFields((prev) => ({ ...prev, ...newVisibleFields }));
         }
+        
       } catch (err) {
-        console.error("Failed to fetch paid fields:", err);
+        if (isMounted) {
+          console.error("Critical error during batch fetch:", err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     if (applicants.length > 0) fetchPaidFields();
+    
+    return () => {
+      isMounted = false;
+    };
+    
   }, [applicants]);
 
   const handleStatusChange = (id: number, status: string) => {
@@ -155,10 +203,11 @@ export default function CompanyApplicants() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredApplicants.map((a) => (
+                    filteredApplicants.map((a: any) => (
                       <TableRow key={a.user?.id ?? a.id}>
                         {/* Name field */}
                         <TableCell>
+                          {/* This check is correct based on expected backend keys */}
                           {visibleFields[a.id]?.first_name || visibleFields[a.id]?.last_name ? (
                               `${a.user?.basicinfo?.first_name ?? ""} ${a.user?.basicinfo?.last_name ?? ""}`
                             ) : (

@@ -49,7 +49,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ApplicantDetails() {
-  const { props } = usePage<{ application: ApplicantDetailsProps["application"], auth: { user: { credit?: { balance: number }, credits?: number } } }>(); // Added auth type
+  const { props } = usePage<{ application: ApplicantDetailsProps["application"], auth: { user: { credit?: { balance: number }, credits?: number } }, flash?: { success?: string } }>(); // Added flash type
   const applicant = props.application;
 
   // UI state
@@ -67,6 +67,14 @@ export default function ApplicantDetails() {
 
   const revealField = (fieldKey: string) => {
     setVisibleFields((prev) => ({ ...prev, [fieldKey]: true }));
+  };
+  
+  const revealBasicProfile = (key: string) => {
+    if (key === 'first_name') {
+      setVisibleFields((prev) => ({ ...prev, 'first_name': true, 'last_name': true }));
+    } else {
+      revealField(key);
+    }
   };
 
   const toggleFieldVisibility = (fieldKey: string) => {
@@ -90,10 +98,11 @@ export default function ApplicantDetails() {
   };
 
   const handleViewClick = async (fieldKey: string) => {
+    if (fieldKey === 'first_name' && (visibleFields['first_name'] || visibleFields['last_name'])) return;
     if (visibleFields[fieldKey]) return; 
 
     if (dontAskAgain) {
-      revealField(fieldKey);
+      revealBasicProfile(fieldKey);
       return;
     }
 
@@ -104,9 +113,16 @@ export default function ApplicantDetails() {
       }
       const data = await res.json();
 
-      if (data.paid_fields && Array.isArray(data.paid_fields) && data.paid_fields.includes(fieldKey)) {
-        revealField(fieldKey);
-        return;
+      // Check if the individual field is marked as paid
+      if (data.paid_fields && Array.isArray(data.paid_fields)) {
+         if (fieldKey === 'first_name' && (data.paid_fields.includes('first_name') || data.paid_fields.includes('last_name'))) {
+            revealBasicProfile(fieldKey);
+            return;
+         }
+         if (data.paid_fields.includes(fieldKey)) {
+            revealBasicProfile(fieldKey);
+            return;
+         }
       }
 
       setSelectedField(fieldKey);
@@ -125,7 +141,7 @@ export default function ApplicantDetails() {
     router.post("/view-applicant", { application_id: applicant.id, field_key: selectedField }, 
       {
         onSuccess: (page) => {
-          revealField(selectedField);
+          revealBasicProfile(selectedField);
           setDialogOpen(false);
           setLoading(false);
 
@@ -133,14 +149,19 @@ export default function ApplicantDetails() {
           if (newBalance !== undefined) setBalance(newBalance as number);
 
           if (!paidFields.includes(selectedField)) {
-            setPaidFields((prev) => [...prev, selectedField]);
+             setPaidFields((prev) => selectedField === 'first_name' ? [...prev, 'first_name', 'last_name'] : [...prev, selectedField]);
           }
-           alert("Payment successful!");
+          
+          //Alert message
+          const message = page.props?.flash?.success || "info successfully revealed!";
+          alert(message);
         },
         onError: (errors) => {
           setLoading(false);
-          const msg = errors?.balance || errors?.message || "Transaction failed.";
-          alert(msg);
+          const msg = errors?.balance || errors?.message || "Transaction failed. Please check your credit balance.";
+          
+          //Descriptive error message
+          alert(`Transaction Failed: ${msg}`);
         },
         preserveScroll: true,
         preserveState: true, 
@@ -155,10 +176,10 @@ export default function ApplicantDetails() {
           <tr key={key} className="border-b">
             <td className="font-medium py-2 pr-4 align-top">{label}</td>
             <td className="py-2 pr-4 align-top">
-              {visibleFields[key] ? (format === "currency" ? formatValue(value, "currency") : value ?? "") : maskValue(value)}
+              {visibleFields[key] || (key === 'first_name' && visibleFields['last_name']) ? (format === "currency" ? formatValue(value, "currency") : value ?? "") : maskValue(value)}
             </td>
             <td className="py-2 text-right align-top">
-              {!visibleFields[key] ? (
+              {!(visibleFields[key] || (key === 'first_name' && visibleFields['last_name'])) ? (
                 <Button size="sm" variant="outline" onClick={() => handleViewClick(key)}>
                   View
                 </Button>
@@ -205,7 +226,7 @@ export default function ApplicantDetails() {
           </CardHeader>
           <CardContent>
             {renderTable([
-              {key: "name", label: "Full Name", value: `${applicant.user?.basicinfo?.first_name} ${applicant.user?.basicinfo?.last_name}` },
+              {key: "first_name", label: "Full Name", value: `${applicant.user?.basicinfo?.first_name} ${applicant.user?.basicinfo?.last_name}` },
               { key: "email", label: "Email", value: applicant.user?.email },
               { key: "phone", label: "Phone", value: applicant.user?.basicinfo?.phone },
               {
