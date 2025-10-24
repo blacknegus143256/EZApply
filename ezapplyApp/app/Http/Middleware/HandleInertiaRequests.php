@@ -39,19 +39,30 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user();
+        if ($user && !$user->hasRole('company')) {
+            $user->loadMissing([
+                'basicInfo',
+                'financial',
+                'affiliations',
+                'attachments'
+            ]);
+        }
+        $profileStatus = $user ? $this->checkProfileStatus($user) : ['complete' => false, 'hasAnyData' => false];
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'first_name' => $request->user()->first_name,
-                    'last_name' => $request->user()->last_name,
-                    'credits' => optional($request->user()->credit)->balance ?? 0,
-                    'roles' => $request->user()->roles->map(function ($role) {
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'credits' => optional($user->credit)->balance ?? 0,
+                    'roles' => $user->roles->map(function ($role) {
                         return [
                             'id' => $role->id,
                             'name' => $role->name,
@@ -63,8 +74,15 @@ class HandleInertiaRequests extends Middleware
                             }),
                         ];
                     }),
+                    'userType' => $user->hasRole('company') ? 'company' : 'customer',
+                    'complete' => $profileStatus['complete'],
+                    'hasAnyData' => $profileStatus['hasAnyData'],
+                    'basicInfo' => $user->basicInfo,
+                    'financial' => $user->financial,
+                    'affiliations' => $user->affiliations,
+                    'attachments' => $user->attachments,
                 ] : null,
-                'permissions' => $request->user() ? $request->user()->getAllPermissions()->pluck('name') : [],
+                'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
@@ -76,4 +94,29 @@ class HandleInertiaRequests extends Middleware
             ],
         ];
     }
+    protected function checkProfileStatus($user): array
+{
+    if ($user->hasRole('company')) {
+        return [
+            'complete' => true,
+            'hasAnyData' => true,
+        ];
+    }
+
+    $user->loadMissing([
+        'basicInfo',
+        'financial',
+        'affiliations',
+        'attachments'
+    ]);
+
+    // Simple check: if user has basic info and financial data, they can apply
+    $hasBasicInfo = $user->basicInfo && !empty($user->basicInfo->first_name);
+    $hasFinancial = $user->financial && !empty($user->financial->income_source);
+
+    return [
+        'complete' => $hasBasicInfo && $hasFinancial,
+        'hasAnyData' => $hasBasicInfo || $hasFinancial,
+    ];
+}
 }

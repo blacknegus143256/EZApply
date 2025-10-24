@@ -3,9 +3,10 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { type BreadcrumbItem } from '@/types';
-import { type PropsWithChildren } from 'react';
+import { type PropsWithChildren, useState } from 'react';
 import DisplayBalance from '@/components/balance-display';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import ProfileStatusCard from '@/components/ProfileStatusCard';
 
 function DisplayBalanceWrapper() {
   const { state } = useSidebar();

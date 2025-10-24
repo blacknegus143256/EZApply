@@ -308,30 +308,61 @@ type PrimitiveFields = Exclude<
               <SummaryRow label="Facebook" field="Facebook" />
               <SummaryRow label="LinkedIn" field="LinkedIn" />
               <SummaryRow label="Viber" field="Viber" />
-                <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Region</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {data.users_address.region_name || "-"}
-              </span>
-                </div>
-            <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Province</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {data.users_address.province_name || "-"}
-              </span>
-            </div>
-            <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-              <span className="text-sm text-gray-600 dark:text-gray-400">City/Municipality</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {data.users_address.citymun_name || "-"}
-              </span>
-            </div>
-            <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Barangay</span>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {data.users_address.barangay_name || "-"}
-              </span>
-            </div>
+              <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Region</span>
+                <select
+                  value={data.users_address.region_code}
+                  onChange={(e) => handleRegionChange(e.target.value)}
+                  className="max-w-xs border rounded px-3 py-2"
+                >
+                  <option value="">Select Region</option>
+                  {regions.map((r) => (
+                    <option key={r.code} value={r.code}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Province</span>
+                <select
+                  value={data.users_address.province_code}
+                  onChange={(e) => handleProvinceChange(e.target.value)}
+                  className="max-w-xs border rounded px-3 py-2"
+                  disabled={!data.users_address.region_code}
+                >
+                  <option value="">Select Province</option>
+                  {provinces.map((p) => (
+                    <option key={p.code} value={p.code}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <span className="text-sm text-gray-600 dark:text-gray-400">City/Municipality</span>
+                <select
+                  value={data.users_address.citymun_code}
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  className="max-w-xs border rounded px-3 py-2"
+                  disabled={!data.users_address.province_code}
+                >
+                  <option value="">Select City/Municipality</option>
+                  {cities.map((c) => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Barangay</span>
+                <select
+                  value={data.users_address.barangay_code}
+                  onChange={(e) => handleBarangayChange(e.target.value)}
+                  className="max-w-xs border rounded px-3 py-2"
+                  disabled={!data.users_address.citymun_code}
+                >
+                  <option value="">Select Barangay</option>
+                  {barangays.map((b) => (
+                    <option key={b.code} value={b.code}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="flex justify-end mt-4">
                 <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">

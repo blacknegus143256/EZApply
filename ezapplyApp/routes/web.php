@@ -97,8 +97,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('applicant.profile');
 
     Route::get('applicant/franchise', function () {
+
+    $user = Auth::user();
+
+    // Load profile relationships for the FranchiseForm page
+    $user->load([
+        'basicInfo',
+        'financial',
+        'affiliations',
+        'attachments'
+    ]);
+
+    $profileComplete = $user->basicInfo
+        && $user->financial
+        && $user->affiliations->count() > 0
+        && $user->attachments->count() > 0;
+
+
+
         return Inertia::render('Applicant/FranchiseForm', [
         'companies' => \App\Models\Company::with(['opportunity', 'marketing'])->get(),
+        'profileComplete' => $profileComplete,
     ]);
     })->name('applicant.franchise');
 Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::class, 'index'])

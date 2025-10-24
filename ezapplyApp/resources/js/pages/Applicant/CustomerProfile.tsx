@@ -4,7 +4,8 @@ import AppLayout from "@/layouts/app-layout";
 import { dashboard } from "@/routes";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
+import { useProfileStatus } from '@/hooks/useProfileStatus';
 
 import BasicInfo from "./BasicInfo";
 import Affiliations from "./Affiliations";
@@ -31,6 +32,12 @@ export default function CustomerProfile( {
   financial,
   attachments,
 }: CustomerProfileProps) {
+  const { isProfileComplete, hasAnyData } = useProfileStatus();
+  const { props } = usePage();
+
+  console.log("CustomerProfile - Profile Status:", { isProfileComplete, hasAnyData });
+  console.log("CustomerProfile - Inertia props:", props);
+
   return (
     <PermissionGate
       permission="view_customer_dashboard"

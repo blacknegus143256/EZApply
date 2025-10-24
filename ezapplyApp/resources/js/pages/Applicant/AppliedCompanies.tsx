@@ -149,7 +149,7 @@ export default function AppliedCompanies() {
                             src={
                               a.company.marketing?.logo_path
                                 ? `/storage/${a.company.marketing.logo_path}`
-                                : "/storage/logos/default-logo.png"
+                                : "/background/default-logo.png"
                             }
                             alt={`${a.company.company_name} logo`}
                             className="h-20 w-20 md:h-15 md:w-15 object-contain rounded-full border-4 border-white shadow-lg bg-gray-50 transition-transform duration-300 hover:scale-105"
@@ -157,7 +157,7 @@ export default function AppliedCompanies() {
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.onerror = null;
-                              target.src = "/storage/logos/default-logo.png";
+                              target.src = "/background/default-logo.png";
                             }}
                           />
                       {a.company.company_name}

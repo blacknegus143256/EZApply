@@ -6,6 +6,7 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import PermissionGate from '@/components/PermissionGate';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useProfileStatus } from '@/hooks/useProfileStatus';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +67,10 @@ export default function Dashboard({ stats }: DashboardProps) {
       const { auth } = usePage().props as any;
       const user = auth?.user;
       const userRole = stats?.userRole || 'customer';
+      const { isProfileComplete, hasAnyData } = useProfileStatus();
+
+      console.log("Dashboard - Profile Status:", { isProfileComplete, hasAnyData });
+      console.log("Dashboard - Inertia props:", usePage().props);
   
   const quickActions = [
     {
