@@ -331,8 +331,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .selected-card {
-  transform: scale(1.03);
-  box-shadow: 0 0 0 3px #3b82f6; /* Tailwind blue-500 */
+  transform: scale(1.03) translateY(-4px);
+  box-shadow: 0 0 0 4px #2563eb, 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+.selected-card:hover {
+  transform: scale(1.03) translateY(-4px);
+  box-shadow: 0 0 0 4px #2563eb, 0 8px 25px rgba(59, 130, 246, 0.4);
 }
 @keyframes pulse-ring {
   0% {
@@ -351,6 +355,20 @@
   inset: 0;
   border-radius: 1rem;
   animation: pulse-ring 1s ease-out;
+}
+.selected-card:hover::after {
+  animation: pulse-ring-hover 0.8s ease-out infinite;
+}
+@keyframes pulse-ring-hover {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
 }
 
 .company-card:hover {
@@ -517,6 +535,15 @@
 
 .company-card.applied-card .company-details p strong {
   color: #444;
+}
+.company-card button {
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
+}
+.company-card {
+  position: relative;
+  z-index: 0;
 }
 
 /* Applied link styling */

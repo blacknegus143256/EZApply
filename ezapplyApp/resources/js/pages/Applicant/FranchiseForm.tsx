@@ -307,6 +307,7 @@ const FranchiseForm = () => {
 
   const handleCheck = (companyId: number) => {
     setChecked(prev => {
+      
       const updated = prev.includes(companyId) 
         ? prev.filter(id => id !== companyId)
         : [...prev, companyId]
@@ -476,9 +477,19 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               {filtered.map((company) => (
               
                   <div
-                    onClick={() => handleCheck(company.id)}
-                    className={`group hover:shadow-xl company-card relative ${applied.includes(company.id) ? 'cursor-not-allowed' : 'cursor-pointer'} transition-all duration-300 shadow-md hover:-translate-y-1 bg-white/80 backdrop-blur-sm p-0 ${applied.includes(company.id) ? 'applied-card'
-                    : checked.includes(company.id)? 'selected-card' : ''}`} key={company.id} >
+                    key={company.id}
+                    onClick={(e) => {
+                      if (!(e.target as HTMLElement).closest('button')) {
+                        handleCheck(company.id);
+                      }
+                    }}
+                    className={`group hover:shadow-xl company-card relative transition-all duration-300 shadow-md bg-white/80 backdrop-blur-sm p-0 ${
+                      applied.includes(company.id)
+                        ? 'cursor-not-allowed applied-card'
+                        : checked.includes(company.id)
+                        ? 'cursor-pointer selected-card hover:-translate-y-2'
+                        : 'cursor-pointer hover:-translate-y-1'
+                    }`}>
                     {applied.includes(company.id) && (
                       <div className="applied-badge">
                         <span className="applied-text">✓ Applied</span>
@@ -603,10 +614,8 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                     ) : !applied.includes(company.id) ? (
                     <Button variant="link" size="sm"
                       onClick={(e) => {
-                        e.stopPropagation();
-                        if (!applied.includes(company.id)) {
-                          setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
-                        }
+                        e.nativeEvent.stopImmediatePropagation();
+                        setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
                       }}
                       disabled={applied.includes(company.id) || applying === company.id}
                       className={`apply-button rounded-md text-white transition ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
@@ -616,8 +625,11 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                      ) : (
                         <>
                           <Button
-                            disabled
-                            className="apply-button applied bg-green-600 text-white px-4 py-2 rounded-md cursor-default"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
+                            }}
+                            className="apply-button applied bg-green-600 text-white px-4 py-2 rounded-md"
                           >
                             Applied
                           </Button>
