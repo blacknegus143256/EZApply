@@ -168,6 +168,9 @@ const CompanyRegistered = () => {
           </TableCell>
           <TableCell>
             <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link href={`/companies/${company.id}/details`}>View</Link>
+              </Button>
               <Button asChild variant="default">
                 <Link href={`/companies/${company.id}/edit`}>Edit</Link>
               </Button>
