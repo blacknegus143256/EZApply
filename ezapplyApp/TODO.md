@@ -1,12 +1,25 @@
-# Fix Company Applicants Page Refresh Issue
+# TODO: Add Dropdown for Industry Sector
 
-## Tasks
-- [x] Modify `CompanyController@companyApplicants` to add Cache-Control headers to prevent caching
-- [x] Update `CompanyApplicants.tsx` to reload data after status update
-- [x] Check `Application` model and related models for any cached relationships
-- [ ] Test the changes by updating an applicant status and verifying data refresh
+## Task Description
+Replace the free-text input for "Industry Sector" in the company registration form with a dropdown containing predefined options.
 
-## Notes
-- Backend changes: Added versioning in HandleInertiaRequests middleware to force fresh data for company-applicants route
-- Frontend changes: After `router.put` in `handleStatusChange`, added `router.reload({ only: ['applicants'] })`
-- No Cache::remember or similar found in model queries
+## Steps
+- [x] Update `resources/js/pages/Company/FranchiseRegister.tsx` to change the Industry Sector field from `<Input>` to `<Select>` with the provided list of options.
+- [x] Test the dropdown functionality in the form.
+
+## Options for Dropdown
+- Food & Beverage
+- Home Services
+- Business Services
+- Retail
+- Health & Fitness
+- Senior & Healthcare Services
+- Automotive
+- Child-Related Services
+- Real Estate & Property
+- Beauty & Personal Care
+- Pet Care
+- Travel & Lodging
+- Restoration & Remediation
+- Computers & Technology
+- Vending

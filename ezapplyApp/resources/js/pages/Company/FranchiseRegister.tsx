@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 // import { Progress } from '@/components/ui/progress';
 import { CheckCircle, ChevronRight, ChevronLeft, Building2, DollarSign, Users, FileText, Upload, AlertCircle } from 'lucide-react';
 
@@ -559,7 +560,27 @@ function doSubmit() {
                   {step === 1 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
+                        <Field label="Franchise Type *">
+                          <Select value={data.franchise_type} onValueChange={(value) => setData('franchise_type', value)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select franchise type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Business Format Franchise">Business Format Franchise</SelectItem>
+                              <SelectItem value="Product Distribution Franchise">Product Distribution Franchise (or Trade Name Franchise)</SelectItem>
+                              <SelectItem value="Manufacturing Franchise">Manufacturing Franchise</SelectItem>
+                              <SelectItem value="Job Franchise">Job Franchise</SelectItem>
+                              <SelectItem value="Investment Franchise">Investment Franchise</SelectItem>
+                              <SelectItem value="Conversion Franchise">Conversion Franchise</SelectItem>
+                              <SelectItem value="Service Franchise">Service Franchise</SelectItem>
+                              <SelectItem value="Management Franchise">Management Franchise</SelectItem>
+                              <SelectItem value="Single-Unit Franchise">Single-Unit Franchise</SelectItem>
+                              <SelectItem value="Multi-Unit Franchise">Multi-Unit Franchise</SelectItem>
+                              <SelectItem value="Area Developer Franchise">Area Developer Franchise</SelectItem>
+                              <SelectItem value="Master Franchise">Master Franchise (or Regional Developer)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
                         <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
                       <Field label="Minimum Investment Required *"><Input name="min_investment" type="text" value={focusedField === 'min_investment' ? data.min_investment || '' : formatCurrency(data.min_investment || '')} onChange={(e) => setData('min_investment', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱1,000,000.00" required /></Field>
                       <Field label="Franchise Fee *"><Input name="franchise_fee" type="text" value={focusedField === 'franchise_fee' ? data.franchise_fee || '' : formatCurrency(data.franchise_fee || '')} onChange={(e) => setData('franchise_fee', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱500,000.00" required /></Field>
@@ -588,7 +609,28 @@ function doSubmit() {
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Industry Sector *">
-                          <Input name="industry_sector" value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required />
+                          <Select value={data.industry_sector} onValueChange={(value) => setData('industry_sector', value)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select industry sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
+                              <SelectItem value="Home Services">Home Services</SelectItem>
+                              <SelectItem value="Business Services">Business Services</SelectItem>
+                              <SelectItem value="Retail">Retail</SelectItem>
+                              <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
+                              <SelectItem value="Senior & Healthcare Services">Senior & Healthcare Services</SelectItem>
+                              <SelectItem value="Automotive">Automotive</SelectItem>
+                              <SelectItem value="Child-Related Services">Child-Related Services</SelectItem>
+                              <SelectItem value="Real Estate & Property">Real Estate & Property</SelectItem>
+                              <SelectItem value="Beauty & Personal Care">Beauty & Personal Care</SelectItem>
+                              <SelectItem value="Pet Care">Pet Care</SelectItem>
+                              <SelectItem value="Travel & Lodging">Travel & Lodging</SelectItem>
+                              <SelectItem value="Restoration & Remediation">Restoration & Remediation</SelectItem>
+                              <SelectItem value="Computers & Technology">Computers & Technology</SelectItem>
+                              <SelectItem value="Vending">Vending</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </Field>
                         <Field label="Years in Operation*">
                         <Input
