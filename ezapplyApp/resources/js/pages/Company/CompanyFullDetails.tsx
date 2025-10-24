@@ -57,12 +57,12 @@ const CompanyFullDetails: React.FC = () => {
   return (
     <>
       <Head title="Company Details" />
-
+      <div className='bg-across-pages min-h-screen p-5'>
       {/* Back Button */}
       <div className="flex justify-start mb-4">
         <Link
           href="/applicant/franchise"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 hover:shadow-lg"
+          className="inline-flex items-center gap-2 px-4 py-2 mt-6 mx-4 bg-gradient-to-r from-blue-300 to-blue-400 text-white rounded-lg shadow-md hover:from-blue-400 hover:to-blue-500 transition-all duration-200 hover:shadow-lg"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -86,11 +86,14 @@ const CompanyFullDetails: React.FC = () => {
           </AvatarFallback>
         </Avatar>
         <div className="text-center md:text-left">
-          <h1 className="text-3xl font-bold mb-2">{company.brand_name || company.company_name}</h1>
+          <h1 className="text-4xl font-bold mb-2">{company.company_name}</h1>
+          {company.brand_name && (
+            <p className="text-lg text-muted-foreground mb-2">{company.brand_name}</p>
+          )}
           {company.company_website && (
-            <a 
-              href={company.company_website} 
-              target="_blank" 
+            <a
+              href={company.company_website}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -188,6 +191,7 @@ const CompanyFullDetails: React.FC = () => {
             </div>
           </details>
         </div>
+      </div>
       </div>
     </>
   );

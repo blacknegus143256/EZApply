@@ -118,7 +118,7 @@ export default function AppliedCompanies() {
     <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Applied Companies" />
-        <div className="bg-across-pages min-h-screen">
+        <div className="bg-across-pages min-h-screen p-5">
         <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
           <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
             Applied Companies

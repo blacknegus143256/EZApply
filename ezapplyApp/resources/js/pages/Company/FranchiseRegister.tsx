@@ -265,6 +265,12 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   }
 
 function doSubmit() {
+  // In create mode, ensure all required documents are uploaded
+  if (!companyId && (!data.dti_sbc || !data.bir_2303 || !data.ipo_registration)) {
+    alert('Please upload all required documents (DTI/SBC, BIR 2303, IPO Registration) before submitting.');
+    return;
+  }
+
   // Filter out existing_* fields before sending to backend
   const { existing_logo, existing_dti_sbc, existing_bir_2303, existing_ipo_registration, ...submitData } = data;
 
@@ -757,7 +763,7 @@ function doSubmit() {
                                   />
                                 )
                               ) : (
-                                data.existing_dti_sbc.toLowerCase().endsWith('.pdf') ? (
+                                (data.existing_dti_sbc || '').toLowerCase().endsWith('.pdf') ? (
                                   <embed
                                     src={`/storage/${data.existing_dti_sbc}`}
                                     type="application/pdf"
@@ -841,7 +847,7 @@ function doSubmit() {
                                   />
                                 )
                               ) : (
-                                data.existing_bir_2303.toLowerCase().endsWith('.pdf') ? (
+                                (data.existing_bir_2303 || '').toLowerCase().endsWith('.pdf') ? (
                                   <embed
                                     src={`/storage/${data.existing_bir_2303}`}
                                     type="application/pdf"
@@ -925,7 +931,7 @@ function doSubmit() {
                                   />
                                 )
                               ) : (
-                                data.existing_ipo_registration.toLowerCase().endsWith('.pdf') ? (
+                                (data.existing_ipo_registration || '').toLowerCase().endsWith('.pdf') ? (
                                   <embed
                                     src={`/storage/${data.existing_ipo_registration}`}
                                     type="application/pdf"
@@ -1024,7 +1030,7 @@ function doSubmit() {
                       <Button
                         type="button"
                         onClick={doSubmit}
-                        disabled={processing}
+                        disabled={!validateStep(step) || processing}
                         className="flex items-center gap-2"
                       >
                         {processing ? (

@@ -277,7 +277,7 @@ class CompanyController extends Controller
 
 return Inertia::render('Company/Applicants/CompanyApplicants', [
     'applicants' => $applicants,
-    ]);
+]);
 }
 
 
