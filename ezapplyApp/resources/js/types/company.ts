@@ -49,4 +49,9 @@ export interface CompanyDetails {
     target_profile?: string;
     preferred_contact_method?: string;
   };
+  documents?: {
+    dti_sbc_path?: string;
+    bir_2303_path?: string;
+    ipo_registration_path?: string;
+  };
 }

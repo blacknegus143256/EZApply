@@ -102,6 +102,7 @@ const FranchiseForm = () => {
   const [bulkAnytime, setBulkAnytime] = useState(false);
   
   const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
+  const [savedFilters, setSavedFilters] = useState<any>(null);
 
   const [search] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
@@ -190,18 +191,30 @@ const FranchiseForm = () => {
     }
   }, [bulkModal.open]);
   useEffect(() => {
+    // Restore form state if coming back from profile
+    const savedState = localStorage.getItem("franchiseFormState");
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      setChecked(state.checked || []);
+      setBudget(state.budget || '');
+      setType(state.type || 'all');
+      setApplicationFilter(state.applicationFilter || 'all');
+      localStorage.removeItem("franchiseFormState");
+    }
+
+    // Restore pending applications
     const saved = localStorage.getItem("pendingApplications");
     if (saved) {
       const ids = JSON.parse(saved);
       if (Array.isArray(ids) && ids.length > 0) {
-        setChecked(ids); // ✅ restore previously selected companies
-        // Optionally open the apply modal immediately if profile now complete
-        if (isProfileComplete) {
-          localStorage.removeItem("pendingApplications"); // cleanup after resume
-        }
+        // Filter out already applied companies
+        const filteredIds = ids.filter((id: number) => !applied.includes(id));
+        setChecked(filteredIds); // ✅ restore previously selected companies, excluding applied ones
       }
     }
-  }, [isProfileComplete]);
+    // Cleanup profile redirect flag if it exists
+    localStorage.removeItem("profileRedirect");
+  }, [applied]);
   const onApplyRegionChange = (regionCode: string) => {
   const region = applyRegions.find((r) => r.code === regionCode);
     setApplyAddressCodes({
@@ -307,13 +320,12 @@ const FranchiseForm = () => {
 
   const handleCheck = (companyId: number) => {
     setChecked(prev => {
-      
-      const updated = prev.includes(companyId) 
+      const updated = prev.includes(companyId)
         ? prev.filter(id => id !== companyId)
-        : [...prev, companyId]
-            localStorage.setItem("pendingApplications", JSON.stringify(updated));
-    return updated;
-  });
+        : [...prev, companyId];
+      localStorage.setItem("pendingApplications", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const handleCompanyClick = (company: Company) => {
@@ -359,26 +371,37 @@ const franchiseTypes = Array.from(
 );
 
 const handleApplySingle = (companyId: number, desired_location?: string, deadline_date?: string) => {
-  if(!isProfileComplete){   alert("Please complete your customer profile before applying. Go to profile now?");
-    router.get('/applicant/profile');
+  if(!isProfileComplete){
+    // Save current state before redirecting
+    const currentState = {
+      checked,
+      budget,
+      type,
+      applicationFilter,
+      search,
+      scrollPosition: window.scrollY
+    };
+    localStorage.setItem('franchiseFormState', JSON.stringify(currentState));
+    localStorage.setItem('profileRedirect', 'franchise');
+    router.get('/applicant/profile?redirect=franchise');
     return;
       }
-      if (confirm("Are you sure you want to apply?")) {
+        setChecked((prev) => prev.filter((id) => id !== companyId)); // Deselect immediately
         if (applying !== null) return;
         setApplying(companyId);
         axios.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date })
           .then(() => {
             setApplied((prev) => (prev.includes(companyId) ? prev : [...prev, companyId]));
-            setChecked((prev) => prev.filter((id) => id !== companyId)); // Deselect after apply
             setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' });
           })
           .catch((err) => {
             console.error('Apply failed', err);
+            // If apply fails, re-select the company
+            setChecked((prev) => [...prev, companyId]);
           })
           .finally(() => {
             setApplying(null);
           });
-      }
 };
 
   const handleViewDetails = (e: React.MouseEvent, company: Company) => {
@@ -893,12 +916,17 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       if (checked.length > 0) {
                         const { region_name, province_name, citymun_name, barangay_name } = bulkAddressCodes;
                         const locationStr = [region_name, province_name, citymun_name, barangay_name].filter(Boolean).join('-');
+                        setChecked([]); // Deselect all immediately
                         axios.post('/applicant/applications', { companyIds: checked, desired_location: locationStr, deadline_date: bulkModal.deadline_date })
                           .then(()=>{
                             setApplied((prev)=> Array.from(new Set([...prev, ...checked])));
                             setBulkModal({ open: false, desired_location: '', deadline_date: '' });
                           })
-                          .catch((err)=>console.error('Bulk apply failed', err));
+                          .catch((err)=>{
+                            console.error('Bulk apply failed', err);
+                            // If bulk apply fails, re-select the companies
+                            setChecked(checked);
+                          });
                       }
                     }}>Confirm Apply</button>
                   </div>

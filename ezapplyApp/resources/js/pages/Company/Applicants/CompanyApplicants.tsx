@@ -49,7 +49,8 @@ export default function CompanyApplicants() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [createdAtFilter, setCreatedAtFilter] = useState<string>("");
-  const [loading] = useState(false);
+  // Removed explicit setLoading hook since we rely on the one in useEffect
+  const [loading, setLoading] = useState(false);
   const [error] = useState<string | null>(null);
 
   // Modal states
@@ -76,13 +77,9 @@ export default function CompanyApplicants() {
       let matchesCreatedAt = true;
       if (createdAtFilter) {
         if (a.created_at) {
-          // Convert created_at (YYYY-MM-DD) to MM-DD-YYYY for comparison
-          const date = new Date(a.created_at);
-          const mm = String(date.getMonth() + 1).padStart(2, '0');
-          const dd = String(date.getDate()).padStart(2, '0');
-          const yyyy = date.getFullYear();
-          const formattedDate = `${mm}-${dd}-${yyyy}`;
-          matchesCreatedAt = formattedDate.includes(createdAtFilter);
+          // FIX: Compare the ISO date string (YYYY-MM-DD) directly against the input
+          // This is simpler and more reliable when using type="date"
+          matchesCreatedAt = a.created_at.includes(createdAtFilter);
         } else {
           matchesCreatedAt = false;
         }
@@ -106,12 +103,10 @@ export default function CompanyApplicants() {
       const newVisibleFields: Record<number, Record<string, boolean>> = {};
       
       try {
-        // Use Promise.all() for concurrent fetching
         const fetchPromises = applicants.map(async (applicant: any) => {
           try {
             const res = await fetch(`/check-applicant-view/${applicant.id}`);
             if (!res.ok) {
-              // Log the error to help debug backend failures
               console.error(`API call failed for ID ${applicant.id}. Status: ${res.status}`);
               return null;
             }
@@ -145,7 +140,6 @@ export default function CompanyApplicants() {
         });
 
         if (isMounted) {
-          // Update state once after all fetches are complete
           setPaidFields((prev) => ({ ...prev, ...newPaidFields }));
           setVisibleFields((prev) => ({ ...prev, ...newVisibleFields }));
         }
@@ -172,9 +166,7 @@ export default function CompanyApplicants() {
   const handleStatusChange = (id: number, status: string) => {
     router.put(`/company/applicants/${id}/status`, { status }, {
       preserveScroll: true,
-      onSuccess: () => {
-        router.reload({ only: ['applicants'] });
-      }
+      // REMOVED: router.reload() for better performance (rely on model update)
     });
   };
 
@@ -193,38 +185,37 @@ export default function CompanyApplicants() {
         <Head title="Company Applicants" />
         <div className="bg-across-pages min-h-screen p-5">
           <Card>
-            <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
+          <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
               <CardTitle>Company Applicants</CardTitle>
-              <div className="flex gap-2 w-full md:w-auto flex-wrap">
-                <Input
-                  type="text"
-                  placeholder="Search applicant..."
-                  className="max-w-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm px-3 py-2"
-                >
-                  <option value="">All Statuses</option>
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                <Input
-                  type="text"
-                  placeholder="Filter by created date (MM-DD-YYYY)..."
-                  className="max-w-sm"
-                  value={createdAtFilter}
-                  onChange={(e) => setCreatedAtFilter(e.target.value)}
-                />
+              <div className="flex gap-2 w-auto"> 
+                  <Input
+                      type="text"
+                      placeholder="Search applicant..."
+                      className="max-w-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Input
+                      type="date"
+                      placeholder="Filter by created date..."
+                      className="max-w-sm"
+                      value={createdAtFilter}
+                      onChange={(e) => setCreatedAtFilter(e.target.value)}
+                  />
+                  <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm px-3 py-2"
+                  >
+                      <option value="">All Statuses</option>
+                      {statusOptions.map((status) => (
+                          <option key={status} value={status}>
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                      ))}
+                  </select>
               </div>
-            </CardHeader>
-
+          </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
@@ -260,7 +251,6 @@ export default function CompanyApplicants() {
                     filteredApplicants.map((a: any) => (
                       <TableRow key={a.user?.id ?? a.id}>
                         <TableCell>
-                          {/* This check is correct based on expected backend keys */}
                           {visibleFields[a.id]?.first_name || visibleFields[a.id]?.last_name ? (
                             `${a.user?.basicinfo?.first_name ?? ""} ${a.user?.basicinfo?.last_name ?? ""}`
                           ) : (
