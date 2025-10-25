@@ -3,10 +3,12 @@ import { Head, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { useInitials } from '@/hooks/use-initials';
 import { ArrowLeft } from 'lucide-react';
-import { BreadcrumbItem } from '@/types'; 
+import { BreadcrumbItem } from '@/types';
 import type { CompanyDetails } from '@/types/company';
+import PermissionGate from '@/components/PermissionGate';
 
 type FormatType = "number" | "currency";
 
@@ -60,13 +62,13 @@ const CompanyFullDetails: React.FC = () => {
       <div className='bg-across-pages min-h-screen p-5'>
       {/* Back Button */}
       <div className="flex justify-start mb-4">
-        <Link
-          href="/applicant/franchise"
+        <Button
+          onClick={() => window.history.back()}
           className="inline-flex items-center gap-2 px-4 py-2 mt-6 mx-4 bg-gradient-to-r from-blue-300 to-blue-400 text-white rounded-lg shadow-md hover:from-blue-400 hover:to-blue-500 transition-all duration-200 hover:shadow-lg"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
-        </Link>
+        </Button>
       </div>
 
       {/* Company Header Section */}
@@ -191,6 +193,48 @@ const CompanyFullDetails: React.FC = () => {
             </div>
           </details>
         </div>
+
+        {/* Documents Section - Only visible to admin and company */}
+        <PermissionGate permission="view_company_dashboard" fallback={null}>
+          <section className="bg-card rounded-lg border p-6">
+            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Documents</h2>
+            {company.documents ? (
+              <ul className="space-y-3">
+                {[
+                  { label: "DTI/SBC", path: company.documents.dti_sbc_path },
+                  { label: "BIR 2303", path: company.documents.bir_2303_path },
+                  { label: "IPO Registration", path: company.documents.ipo_registration_path },
+                ].map((doc, index) => (
+                  <li key={index} className="flex items-center justify-between rounded-lg border p-3 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      {doc.path && doc.path.match(/\.(jpg|jpeg|png)$/i) ? (
+                        <img
+                          src={`/storage/${doc.path}`}
+                          alt={doc.label}
+                          className="h-12 w-12 object-cover rounded border dark:border-gray-700"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{doc.label}</span>
+                      )}
+                    </div>
+                    {doc.path ? (
+                      <Button
+                        variant="secondary"
+                        onClick={() => window.open(`/storage/${doc.path}`, "_blank")}
+                      >
+                        View File
+                      </Button>
+                    ) : (
+                      <span className="text-sm text-gray-500">Not uploaded</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No documents available</p>
+            )}
+          </section>
+        </PermissionGate>
       </div>
       </div>
     </>
