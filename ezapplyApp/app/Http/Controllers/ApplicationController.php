@@ -42,7 +42,7 @@ class ApplicationController extends Controller
             );
         }
 
-        return response()->noContent();
+        return back();
     }
 
     // list logged-in user's applications

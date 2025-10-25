@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { Search, Filter, MapPin, Calendar, DollarSign, Building2, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import Services from "./services";
 import About from "./about";
 import Contact from "./contact";
 import EzNav from "./ezapply-nav";
+import { Title } from "@radix-ui/react-dialog";
 
 interface Company {
   id: number;
@@ -196,6 +197,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
 
   return (
     <ErrorBoundary>
+      <Head title="EZ Apply PH" />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <EzNav user={users} />
         

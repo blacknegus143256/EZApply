@@ -11,10 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
-import axios from 'axios';
-import { useState } from 'react';
-import { useEffect } from 'react'; 
-import LoginSlideshow from '@/components/LoginSlideshow';
+import AppLogoIcon from '../../components/app-logo-icon';
+
 
 type PSGCItem = { code: string; name: string };
 interface RegisterProps {
@@ -46,25 +44,17 @@ const { data, setData, post, processing, errors } = useForm({
     };
 
     return (
-                <div className="login-background relative min-h-screen flex flex-col ">
-                    <EzNav />
-                    {/* <div className="flex justify-center">
-                    <h1 className="text-5xl font-extrabold text-green-700 tracking-wide drop-shadow-md relative z-10 mb-6 wave-text">
-                        <span className="bg-gradient-to-r from-green-600 to-indigo-500 bg-clip-text text-transparent">
-                        EZ Apply
-                        </span>
-                    </h1>
-                    </div> */}
-                    {/* <div className=" hidden md:flex w-1/2 relative h-[500px] bg-gray-200 m-15">
-                <LoginSlideshow />
-              </div> */}
+            <div className="login-background relative min-h-screen flex flex-col ">
+            <EzNav />
               
-              <div className="w-full md:w-auto flex items-center justify-center">
+            <div className="w-full md:w-auto flex items-center justify-center">
             <div className="glass-card p-8 w-full max-w-md mt-15">
 
             <Head title="Register" />
-                <div className="relative mx-4 -mt-6 mb-4 flex h-24 items-center justify-center rounded-xl Ezezez shadow-md">
-                <h1 className="text-3xl font-semibold tracking-tight">EZ Apply</h1>
+            <div className="relative mx-4 -mt-4 flex h-24 items-center justify-center gap-2">
+            <AppLogoIcon className="size-10" /> 
+
+            <h1 className="text-3xl font-semibold tracking-tight login-header">EZ Apply</h1>
                 </div>
         <AuthLayout title="Create an Account" description="">
 
@@ -84,11 +74,6 @@ const { data, setData, post, processing, errors } = useForm({
                             onChange={(e) => setData('role' as any, e.target.value)}
                             tabIndex={3}
                         >
-                            {/* {roles.map((role) => (
-                                <option key={role} value={role}>
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </option>
-                            ))} */}
                             <option key={roles[1]} value={roles[1]}>
                                 {roles[1]}
                             </option>

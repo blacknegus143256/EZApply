@@ -5,6 +5,10 @@
   font-family: Inter, sans-serif;
   color: #1b1b18;
 }
+.login-header{
+  font-size: 2.5rem;
+  color: #2563eb;
+}
 
 .ezapply-main-content {
   display: flex;
@@ -53,7 +57,7 @@
 
 .hero {
   text-align: center;
-  padding: 6rem 2rem 4rem;
+  padding: 2rem 2rem 2rem;
   background: linear-gradient(135deg, #074035, #2563eb);
   color: #fff;
 }

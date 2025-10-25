@@ -364,7 +364,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
     return;
       }
       if (confirm("Are you sure you want to apply?")) {
-      router.post(`/applicant/franchise/apply/${companyId}`);
+      router.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date });
     }
   if (applying !== null) return;
   setApplying(companyId);
