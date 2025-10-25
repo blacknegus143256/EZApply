@@ -25,7 +25,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CompanyApplicantController;
-
+use Illuminate\Support\Facades\File;
 
 
 Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -40,7 +40,25 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
+    Route::get('/companies/{id}/details', [CompanyController::class, 'details'])->name('companies.details');
     
+    Route::get('/company/logos', function () {
+    $companies = \App\Models\Company::where('status', 'approved')
+        ->get();
+
+    $logos = $companies->map(function ($company) {
+        $marketing = is_array($company->marketing)
+            ? $company->marketing
+            : json_decode($company->marketing ?? '{}', true);
+
+        if (!empty($marketing['logo_path'])) {
+            return asset('storage/' . $marketing['logo_path']);
+        }
+        return null;
+    
+ })->filter()->values();
+    return response()->json($logos);
+});
 
 
 
@@ -49,19 +67,15 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/companies/{company}/status', [CompanyController::class, 'updateStatus'])
     ->name('companies.update-status');
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     // update company
-    Route::put('/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+    Route::match(['PUT', 'POST'], '/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
     // edit company
     Route::get('/companies/{company}/edit',[CompanyController::class,'edit'])->name('companies.edit');
     
     Route::get('/my-companies', [CompanyController::class, 'myCompanies'])
     ->name('companies.my');
 
-
-    Route::delete('/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
 
     Route::get('applicant/basicinfo', [BasicInfoController::class, 'index'])->name('applicant.basicinfo');
     Route::post('applicant/basicinfo', [BasicInfoController::class, 'store'])->name('applicant.basicinfo.store');
@@ -83,8 +97,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('applicant.profile');
 
     Route::get('applicant/franchise', function () {
+
+    $user = Auth::user();
+
+    // Load profile relationships for the FranchiseForm page
+    $user->load([
+        'basicInfo',
+        'financial',
+        'affiliations',
+        'attachments'
+    ]);
+
+    $profileComplete = $user->basicInfo
+        && $user->financial
+        && $user->affiliations->count() > 0
+        && $user->attachments->count() > 0;
+
+
+
         return Inertia::render('Applicant/FranchiseForm', [
-        'companies' => \App\Models\Company::with('opportunity')->get(),
+        'companies' => \App\Models\Company::with(['opportunity', 'marketing'])->get(),
+        'profileComplete' => $profileComplete,
     ]);
     })->name('applicant.franchise');
 Route::get('/applicant/franchise/appliedcompanies', [ApplicationController::class, 'index'])
@@ -102,6 +135,8 @@ Route::get('/api/applied-company-ids', [ApplicationController::class, 'getApplie
     Route::post('/companies', [CompanyController::class, 'store'])->name('companies.store');
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
+    Route::delete('/applicant/applications/{company}', [ApplicationController::class, 'destroy'])
+    ->name('applicant.applications.destroy');    
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');
@@ -125,9 +160,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Credit Display
     Route::get('/credit-balance',[CreditController::class,'creditDisplay'])->name('credit.display');
     Route::put('/company/deduct-balance', [CreditController::class, 'deductBalance'])->name('company.deduct-balance');
-    Route::post('/company/view-applicant', [CreditController::class, 'viewApplicant'])->name('company.view-applicant');
-    Route::get('/company/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView'])->name('company.check-applicant-view');
-    Route::get('/credit-transaction-history', [CreditController::class, 'transactionHistory'])->name('credit.transaction-history');
+    Route::get('/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView']);
+    Route::post('/view-applicant', [CreditController::class, 'viewApplicant']);
+
+    // Show transaction history
+    Route::get('/credits/transactions', [CreditController::class, 'transactionHistory'])
+        ->name('credits.transactionHistory');
+
 
     //Chatbox
     Route::get('/chat/{user}', [MessageController::class, 'index'])->name('chat.index');

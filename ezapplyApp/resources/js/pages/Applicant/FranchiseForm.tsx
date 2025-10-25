@@ -5,7 +5,26 @@ import { type BreadcrumbItem } from "@/types";
 import { Head, usePage, router } from "@inertiajs/react";
 import PermissionGate from '@/components/PermissionGate';
 import CompanyDetailsModal from '@/components/CompanyDetailsModal';
+import { useProfileStatus } from '@/hooks/useProfileStatus';
 import '../../../css/easyApply.css';
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { MapPin, Calendar, DollarSign, Building2 } from "lucide-react";
+
+const formatInvestment = (amount?: number) => {
+  if (amount == null || isNaN(amount)) return "N/A";
+  try {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `₱${amount.toLocaleString()}`;
+  }
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -71,9 +90,10 @@ type Company = CompanyDetails;
 
 
 const FranchiseForm = () => {
-  
+  const { props } = usePage();
   const companies: Company[] = Array.isArray((usePage().props as any).companies) ? (usePage().props as any).companies : [];
 
+  const { isProfileComplete, hasAnyData } = useProfileStatus();
   
   // const [companies, setCompanies] = useState<Company[]>([]);
   const [anywhere, setAnywhere] = useState(false);
@@ -81,11 +101,13 @@ const FranchiseForm = () => {
   const [bulkAnywhere, setBulkAnywhere] = useState(false);
   const [bulkAnytime, setBulkAnytime] = useState(false);
   
+  const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
 
   const [search] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
   const [type, setType] = useState('all');
+  const [applicationFilter, setApplicationFilter] = useState('all');
   const [applied, setApplied] = useState<number[]>([]);
   const [applying, setApplying] = useState<number | null>(null);
   const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null; desired_location: string; deadline_date: string}>({ open: false, companyId: null, desired_location: '', deadline_date: '' });
@@ -135,8 +157,6 @@ const FranchiseForm = () => {
 
   const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-console.log("Companies:", companies);
   
   useEffect(() => {
     // Fetch companies
@@ -169,7 +189,19 @@ console.log("Companies:", companies);
         .catch(() => {});
     }
   }, [bulkModal.open]);
-
+  useEffect(() => {
+    const saved = localStorage.getItem("pendingApplications");
+    if (saved) {
+      const ids = JSON.parse(saved);
+      if (Array.isArray(ids) && ids.length > 0) {
+        setChecked(ids); // ✅ restore previously selected companies
+        // Optionally open the apply modal immediately if profile now complete
+        if (isProfileComplete) {
+          localStorage.removeItem("pendingApplications"); // cleanup after resume
+        }
+      }
+    }
+  }, [isProfileComplete]);
   const onApplyRegionChange = (regionCode: string) => {
   const region = applyRegions.find((r) => r.code === regionCode);
     setApplyAddressCodes({
@@ -274,13 +306,24 @@ console.log("Companies:", companies);
   };
 
   const handleCheck = (companyId: number) => {
-    setChecked(prev => 
-      prev.includes(companyId) 
+    setChecked(prev => {
+      
+      const updated = prev.includes(companyId) 
         ? prev.filter(id => id !== companyId)
         : [...prev, companyId]
-    );
+            localStorage.setItem("pendingApplications", JSON.stringify(updated));
+    return updated;
+  });
   };
 
+  const handleCompanyClick = (company: Company) => {
+  if (!isProfileComplete) {
+    setShowProfileIncompleteModal(true);
+    return;
+  }
+
+  handleCheck(company.id);
+};
 // Start with all companies
 let filtered = companies;
 
@@ -299,6 +342,13 @@ if (budget !== '') {
 
 // Filter by investment amount
 
+// Filter by application status
+if (applicationFilter === 'applied') {
+  filtered = filtered.filter((c) => applied.includes(c.id));
+} else if (applicationFilter === 'not-applied') {
+  filtered = filtered.filter((c) => !applied.includes(c.id));
+}
+
 // Search filter
 filtered = filtered.filter((c) =>
   (c.company_name ?? '').toLowerCase().includes(search.toLowerCase())
@@ -309,6 +359,13 @@ const franchiseTypes = Array.from(
 );
 
 const handleApplySingle = (companyId: number, desired_location?: string, deadline_date?: string) => {
+  if(!isProfileComplete){   alert("Please complete your customer profile before applying. Go to profile now?");
+    router.get('/applicant/profile');
+    return;
+      }
+      if (confirm("Are you sure you want to apply?")) {
+      router.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date });
+    }
   if (applying !== null) return;
   setApplying(companyId);
   axios.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date })
@@ -346,7 +403,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
           Looking for a Company to Franchise?
         </h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium">Budget</label>
             <input
@@ -375,17 +432,39 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               ))}
             </select>
           </div>
-          <div className="self-end flex gap-2 justify-end">
+          <div>
+            <label className="block text-sm font-medium">Application Status</label>
+            <select
+              value={applicationFilter}
+              onChange={(e) => setApplicationFilter(e.target.value)}
+              className="ezapply__filter-select w-full bg-white"
+              title="Filter by application status"
+            >
+              <option value="all">All Companies</option>
+              <option value="applied">Applied</option>
+              <option value="not-applied">Not Applied</option>
+            </select>
+          </div>
+        </div>
+        {checked.length > 0 && (
+          !isProfileComplete ? (
             <button
               type="button"
-              disabled={checked.length === 0}
+              onClick={() => setShowProfileIncompleteModal(true)}
+              className="apply-selected-btn bg-yellow-500 text-white hover:bg-yellow-600"
+            >
+              Complete Profile to Apply Selected ({checked.length})
+            </button>
+          ) : (
+            <button
+              type="button"
               onClick={() => setBulkModal({ open: true, desired_location: '', deadline_date: '' })}
-              className={`rounded-lg px-4 py-2 text-white ${checked.length === 0 ? 'bg-gray-600 cursor-not-allowed' : ' hover:bg-gray-600 bg-black'}`}
+              className="apply-selected-btn"
             >
               Apply Selected ({checked.length})
             </button>
-          </div>
-        </div>
+          )
+        )}
 </section>
         
             
@@ -397,7 +476,20 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
             <div className="company-grid">            
               {filtered.map((company) => (
               
-                  <div className={`company-card ${applied.includes(company.id) ? 'applied-card' : ''}`} key={company.id} >
+                  <div
+                    key={company.id}
+                    onClick={(e) => {
+                      if (!(e.target as HTMLElement).closest('button')) {
+                        handleCheck(company.id);
+                      }
+                    }}
+                    className={`group hover:shadow-xl company-card relative transition-all duration-300 shadow-md bg-white/80 backdrop-blur-sm p-0 ${
+                      applied.includes(company.id)
+                        ? 'cursor-not-allowed applied-card'
+                        : checked.includes(company.id)
+                        ? 'cursor-pointer selected-card hover:-translate-y-2'
+                        : 'cursor-pointer hover:-translate-y-1'
+                    }`}>
                     {applied.includes(company.id) && (
                       <div className="applied-badge">
                         <span className="applied-text">✓ Applied</span>
@@ -407,42 +499,160 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
                       <input
                         type="checkbox"
                         checked={checked.includes(company.id)}
-                        onChange={() => handleCheck(company.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleCheck(company.id);
+                        }}
                         disabled={applied.includes(company.id)}
                       />
-                      <img
-                        src={"/favicon.svg"}
-                        alt={company.company_name + " logo"}
-                        className="ezapply__company-logo"
-                      />
-                      <span className="company-name">{company.company_name}</span>
-                    </div>
+                         <div className="absolute -top-10 left-1/2 transform -translate-x-1/2">
+                          <img
+                            src={
+                              company.marketing?.logo_path
+                                ? `/storage/${company.marketing.logo_path}`
+                                : "/background/default-logo.png"
+                            }
+                            alt={`${company.company_name} logo`}
+                            className="h-30 w-30 md:h-22 md:w-22 object-contain rounded-full border-4 border-white shadow-lg bg-gray-50 transition-transform duration-300 hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = "/background/default-logo.png";
+                            }}
+                          />
+                        </div>
 
-                    <div className="company-details">
+                    </div>        
+                                <div className="flex-1 min-w-0">
+                                  <CardTitle className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                    {company.company_name}
+                                  </CardTitle>
+                                </div>
+                    <div className="grid grid-cols-1 gap-3 text-sm">
+                              <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                                {company.marketing?.listing_description ||
+                                  company.description ||
+                                  "No description available"}
+                              </p>
+                    
+                              <div className="flex items-center gap-3 text-gray-600">
+                                <div className="p-2 bg-blue-50 rounded-lg">
+                                  <MapPin className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <span className="truncate font-medium">
+                                  {[company.city, company.state_province, company.country]
+                                    .filter(Boolean)
+                                    .join(", ") || "Location not specified"}
+                                </span>
+                              </div>
+                    
+                              {company.year_founded && (
+                                <div className="flex items-center gap-3 text-gray-600">
+                                  <div className="p-2 bg-green-50 rounded-lg">
+                                    <Calendar className="h-4 w-4 text-green-600" />
+                                  </div>
+                                  <span className="font-medium">Est. {company.year_founded}</span>
+                                </div>
+                              )}
+                    
+                              {company.opportunity?.min_investment !== undefined && (
+                                <div className="flex items-center gap-3 text-gray-600">
+                                  <div className="p-2 bg-yellow-50 rounded-lg">
+                                    <DollarSign className="h-4 w-4 text-yellow-600" />
+                                  </div>
+                                  <span className="font-medium">
+                                    From {formatInvestment(company.opportunity.min_investment)}
+                                  </span>
+                                </div>
+                              )}
+                    
+                              {company.opportunity?.franchise_type && (
+                                <div className="flex items-center gap-3 text-gray-600">
+                                  <div className="p-2 bg-purple-50 rounded-lg">
+                                    <Building2 className="h-4 w-4 text-purple-600" />
+                                  </div>
+                                  <span className="font-medium">
+                                    {company.opportunity.franchise_type}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                    {/* <div className="company-details ">
+                      
+                      <span className="company-name pt-4 pb-4 px-4 text-center">{company.company_name}</span>
                       <p><strong>Brand:</strong> {company.brand_name}</p>
                       <p><strong>Founded:</strong> {company.year_founded}</p>
                       <p><strong>Type:</strong> {company.opportunity?.franchise_type}</p>
                       <p className="company-description"><strong>Description:</strong> {company.description}</p>
-                    </div>
-
-                    <button
-                      className={`view-details-link ${applied.includes(company.id) ? 'applied-link' : ''}`}
+                    </div> */}
+                  <Button variant="outline" size="sm"
+                  className={`view-details-link  ${applied.includes(company.id) ? 'applied-link' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); handleViewDetails(e, company); }}>
+                    View Details
+                  </Button>
+                    {/* <button
+                      className={`view-details-link  ${applied.includes(company.id) ? 'applied-link' : ''}`}
                       onClick={(e) => handleViewDetails(e, company)}
                     >
                       View Details
-                    </button>
-                    <button
+                    </button> */}
+                    <div className="flex flex-wrap gap-2 justify-center items-center">
+                    {!isProfileComplete ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!applied.includes(company.id)) {
-                          setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
-                        }
+                        setShowProfileIncompleteModal(true);
+                      }}
+                      className="bg-yellow-500 text-white hover:bg-yellow-600"
+                    >
+                      Apply
+                    </Button>
+                    ) : !applied.includes(company.id) ? (
+                    <Button variant="link" size="sm"
+                      onClick={(e) => {
+                        e.nativeEvent.stopImmediatePropagation();
+                        setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
                       }}
                       disabled={applied.includes(company.id) || applying === company.id}
-                      className={`apply-button ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
+                      className={`apply-button rounded-md text-white transition ${applied.includes(company.id) ? 'applied' : (applying === company.id ? 'applying' : '')}`}
                     >
                       {applied.includes(company.id) ? 'Applied' : (applying === company.id ? 'Applying…' : 'Apply')}
-                    </button>
+                    </Button>
+                     ) : (
+                        <>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setApplyModal({ open: true, companyId: company.id, desired_location: '', deadline_date: '' });
+                            }}
+                            className="apply-button applied bg-green-600 text-white px-4 py-2 rounded-md"
+                          >
+                            Applied
+                          </Button>
+                          <Button variant="destructive" size="sm"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm("Are you sure you want to cancel your application?")) {
+                                try {
+                                  await axios.delete(`/applicant/applications/${company.id}`);
+                                  setApplied((prev) => prev.filter((id) => id !== company.id));
+                                } catch (err) {
+                                  console.error('Cancel application failed', err);
+                                  alert('Failed to cancel application. Please try again.');
+                                }
+                              }
+                            }}
+                            className="cancel-button bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+                          >
+                            Cancel Apply
+                          </Button>
+                        </>
+                        )}
+                      </div>
                   </div>
                    ))}
                   </div>
@@ -696,8 +906,37 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
               </div>
             )}
           </div>
+                  {showProfileIncompleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-2 text-red-600">
+                Incomplete Profile
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                You cannot apply yet because your profile is incomplete. You need to fill in your Basic Information (first name) and Financial Information (income source).
+                Would you like to Fill it now?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowProfileIncompleteModal(false)}
+                  className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowProfileIncompleteModal(false);
+                    router.get('/applicant/profile');
+                  }}
+                  className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                >
+                 Fill Up Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         </div>
-
         <CompanyDetailsModal
           company={selectedCompany}
           isOpen={isModalOpen}

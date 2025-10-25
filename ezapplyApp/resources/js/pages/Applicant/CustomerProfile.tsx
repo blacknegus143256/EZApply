@@ -4,7 +4,8 @@ import AppLayout from "@/layouts/app-layout";
 import { dashboard } from "@/routes";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
+import { useProfileStatus } from '@/hooks/useProfileStatus';
 
 import BasicInfo from "./BasicInfo";
 import Affiliations from "./Affiliations";
@@ -31,6 +32,12 @@ export default function CustomerProfile( {
   financial,
   attachments,
 }: CustomerProfileProps) {
+  const { isProfileComplete, hasAnyData } = useProfileStatus();
+  const { props } = usePage();
+
+  console.log("CustomerProfile - Profile Status:", { isProfileComplete, hasAnyData });
+  console.log("CustomerProfile - Inertia props:", props);
+
   return (
     <PermissionGate
       permission="view_customer_dashboard"
@@ -42,33 +49,39 @@ export default function CustomerProfile( {
     >
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Customer Profile" />
-        <div className="p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="p-6 space-y-6 bg-across-pages min-h-screen">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* Section 1: Basic Info */}
-          <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-4">
+          <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-6 shadow-sm">
             <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               Basic Information
             </h1>
             <BasicInfo basicInfo={basicInfo} address={address} />
+            </section>
+            <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+              <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+                Financial Information
+              </h1>
             <FinancialInfo financial={financial} />
           </section>
+          </div>
+          <div className="space-y-6">
 
           {/* Section 2: Affiliations */}
-          <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-4">
+          <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-6 shadow-sm">
             <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               Affiliations
             </h1>
             <Affiliations affiliations={affiliations} />
-
+            </section>
+            <section className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-6 shadow-sm">           
             <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               Attachments
             </h1>
             <Attachments attachments={attachments}/>
           </section>
           </div>
-
-
         </div>
       </AppLayout>
     </PermissionGate>

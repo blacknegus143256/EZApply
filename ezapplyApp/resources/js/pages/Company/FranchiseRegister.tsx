@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from '@inertiajs/react';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
@@ -6,6 +6,17 @@ import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
+import AddressForm from '@/components/AddressForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// import { Progress } from '@/components/ui/progress';
+import { CheckCircle, ChevronRight, ChevronLeft, Building2, DollarSign, Users, FileText, Upload, AlertCircle } from 'lucide-react';
 
 // Steps definition
 export const STEPS = [
@@ -27,48 +38,123 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface CompanyForm {
   company_name: string;
-  brand_name: string | null;
-
+  brand_name: string;
+  region_code: string;
+  region_name: string;
+  province_code: string;
+  province_name: string;
+  citymun_code: string;
+  citymun_name: string;
+  barangay_code: string;
+  barangay_name: string;
+  postal_code: string;
+  country: string;
   city: string;
   state_province: string;
   zip_code: string;
-  country: string;
-  company_website: string | null;
+  company_website: string;
+
   description: string;
-  year_founded: number | '';
-  num_franchise_locations: number | '';
+  year_founded: string | null;
+  num_franchise_locations: string | null;
 
   franchise_type: string;
-  min_investment: number | '';
-  franchise_fee: number | '';
+  min_investment: string | null;
+  franchise_fee: string | null;
   royalty_fee_structure: string;
-  avg_annual_revenue: number | '';
+  avg_annual_revenue: string | null;
   target_markets: string;
-  training_support: string | null;
+  training_support: string;
   franchise_term: string;
-  unique_selling_points: string | null;
+  unique_selling_points: string;
 
   industry_sector: string;
-  years_in_operation: string; // Changed from years_in_operation
-  total_revenue: number | '';
-  awards: string | null;
-  company_history: string | null;
+  years_in_operation: string | null;
+  total_revenue: string | null;
+  awards: string;
+  company_history: string;
 
-  min_net_worth: number | '';
-  min_liquid_assets: number | '';
+  min_net_worth: string | null;
+  min_liquid_assets: string | null;
   prior_experience: boolean;
-  experience_type: string | null;
-  other_qualifications: string | null;
+  experience_type: string;
+  other_qualifications: string;
 
-  listing_title: string | null;
-  listing_description: string | null;
+  listing_title: string;
+  listing_description: string;
+
+  target_profile: string;
   logo: File | null;
-  target_profile: string | null;
-  preferred_contact_method: string | null;
-  // documents (required on create, optional on edit)
-  dti_sbc?: File | null;
-  bir_2303?: File | null;
-  ipo_registration?: File | null;
+  existing_logo: string | null;
+  preferred_contact_method: string;
+  dti_sbc: File | null;
+  bir_2303: File | null;
+  ipo_registration: File | null;
+  existing_dti_sbc: string | null;
+  existing_bir_2303: string | null;
+  existing_ipo_registration: string | null;
+}
+
+// Ensure hydrateAddressData outputs strictly string values
+function hydrateAddressData(initialData: Partial<CompanyForm>): CompanyForm {
+  return {
+    company_name: initialData.company_name || '',
+    brand_name: initialData.brand_name || '',
+    region_code: initialData.region_code || '',
+    region_name: initialData.region_name || '',
+    province_code: initialData.province_code || '',
+    province_name: initialData.province_name || '',
+    citymun_code: initialData.citymun_code || '',
+    citymun_name: initialData.citymun_name || '',
+    barangay_code: initialData.barangay_code || '',
+    barangay_name: initialData.barangay_name || '',
+    postal_code: initialData.postal_code || '',
+    country: initialData.country || 'Philippines',
+    city: initialData.city || '',
+    state_province: initialData.state_province || '',
+    zip_code: initialData.zip_code || '',
+    company_website: initialData.company_website || '',
+
+    description: initialData.description || '',
+    year_founded: initialData.year_founded || '',
+    num_franchise_locations: initialData.num_franchise_locations || '',
+
+    franchise_type: initialData.franchise_type || '',
+    min_investment: initialData.min_investment || '',
+    franchise_fee: initialData.franchise_fee || '',
+    royalty_fee_structure: initialData.royalty_fee_structure || '',
+    avg_annual_revenue: initialData.avg_annual_revenue || '',
+    target_markets: initialData.target_markets || '',
+    training_support: initialData.training_support || '',
+    franchise_term: initialData.franchise_term || '',
+    unique_selling_points: initialData.unique_selling_points || '',
+
+    industry_sector: initialData.industry_sector || '',
+    years_in_operation: initialData.years_in_operation || '',
+    total_revenue: initialData.total_revenue || '',
+    awards: initialData.awards || '',
+    company_history: initialData.company_history || '',
+
+    min_net_worth: initialData.min_net_worth || '',
+    min_liquid_assets: initialData.min_liquid_assets || '',
+    prior_experience: initialData.prior_experience || false,
+    experience_type: initialData.experience_type || '',
+    other_qualifications: initialData.other_qualifications || '',
+
+    listing_title: initialData.listing_title || '',
+    listing_description: initialData.listing_description || '',
+
+    target_profile: initialData.target_profile || '',
+    logo: initialData.logo || null,
+    existing_logo: initialData.existing_logo || null,
+    preferred_contact_method: initialData.preferred_contact_method || '',
+    dti_sbc: initialData.dti_sbc || null,
+    bir_2303: initialData.bir_2303 || null,
+    ipo_registration: initialData.ipo_registration || null,
+    existing_dti_sbc: initialData.existing_dti_sbc || null,
+    existing_bir_2303: initialData.existing_bir_2303 || null,
+    existing_ipo_registration: initialData.existing_ipo_registration || null,
+  };
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -80,80 +166,49 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  const { className = '', ...rest } = props;
-  return (
-    <input
-      {...rest}
-      className={`w-full rounded-md border border-gray-700 bg-gray-800 p-2 text-gray-100 ${className}`}
-    />
-  );
-}
-
-function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const { className = '', ...rest } = props;
-  return (
-    <textarea
-      {...rest}
-      className={`w-full rounded-md border border-gray-700 bg-gray-800 p-2 text-gray-100 ${className}`}
-    />
-  );
-}
 
 function ErrorText({ message }: { message?: string }) {
   if (!message) return null;
   return <p className="mt-1 text-xs text-red-400">{message}</p>;
 }
 
+// Utility functions for currency formatting
+function formatCurrency(value: string | number | null): string {
+  if (value === null || value === '' || value === undefined) return '';
+  const num = typeof value === 'string' ? parseFloat(value.replace(/[^\d.-]/g, '')) : value;
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
+}
+
+function parseCurrency(value: string): string {
+  if (!value) return '';
+  // Remove ₱, commas, and spaces
+  const cleaned = value.replace(/[₱,\s]/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? '' : num.toString();
+}
+
 export default function FranchiseRegister({ initialData, companyId }: { initialData?: Partial<CompanyForm>, companyId?: number }) {
-  const { data, setData, post, put, processing, errors, reset, transform } = useForm<CompanyForm>({
-    company_name: initialData?.company_name || '',
-    brand_name: initialData?.brand_name || null,
-    city: initialData?.city || '',
-    state_province: initialData?.state_province || '',
-    zip_code: initialData?.zip_code || '',
-    country: initialData?.country || '',
-    company_website: initialData?.company_website || null,
-    description: initialData?.description || '',
-    year_founded: initialData?.year_founded || '',
-    num_franchise_locations: initialData?.num_franchise_locations || '',
+  const hydratedData = hydrateAddressData(initialData || {});
 
-    franchise_type: initialData?.franchise_type || '',
-    min_investment: initialData?.min_investment || '',
-    franchise_fee: initialData?.franchise_fee || '',
-    royalty_fee_structure: initialData?.royalty_fee_structure || '',
-    avg_annual_revenue: initialData?.avg_annual_revenue || '',
-    target_markets: initialData?.target_markets || '',
-    training_support: initialData?.training_support || null,
-    franchise_term: initialData?.franchise_term || '',
-    unique_selling_points: initialData?.unique_selling_points || null,
-
-    industry_sector: initialData?.industry_sector || '',
-    years_in_operation: initialData?.years_in_operation || '',
-    total_revenue: initialData?.total_revenue || '',
-    awards: initialData?.awards || null,
-    company_history: initialData?.company_history || null,
-
-    min_net_worth: initialData?.min_net_worth || '',
-    min_liquid_assets: initialData?.min_liquid_assets || '',
-    prior_experience: initialData?.prior_experience || false,
-    experience_type: initialData?.experience_type || null,
-    other_qualifications: initialData?.other_qualifications || null,
-
-    listing_title: initialData?.listing_title || null,
-    listing_description: initialData?.listing_description || null,
-    logo: null, // File inputs cannot be pre-filled
-    target_profile: initialData?.target_profile || null,
-    preferred_contact_method: initialData?.preferred_contact_method || null,
-
-    dti_sbc: null, // File inputs cannot be pre-filled
-    bir_2303: null, // File inputs cannot be pre-filled  
-    ipo_registration: null, // File inputs cannot be pre-filled
-  });
+  const { data, setData, post, put, processing, errors, reset } = useForm<CompanyForm>(hydratedData);
 
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Preview state for file uploads
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [dtiSbcPreview, setDtiSbcPreview] = useState<string | null>(null);
+  const [bir2303Preview, setBir2303Preview] = useState<string | null>(null);
+  const [ipoPreview, setIpoPreview] = useState<string | null>(null);
   
 
   useEffect(() => {
@@ -163,128 +218,206 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
     }
   }, [open]);
 
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      if (dtiSbcPreview) URL.revokeObjectURL(dtiSbcPreview);
+      if (bir2303Preview) URL.revokeObjectURL(bir2303Preview);
+      if (ipoPreview) URL.revokeObjectURL(ipoPreview);
+    };
+  }, [logoPreview, dtiSbcPreview, bir2303Preview, ipoPreview]);
+
   function validateStep(step: number) {
     const requiredFields: Record<number, (keyof typeof data)[]> = {
-      0: ['company_name', 'city', 'state_province', 'zip_code', 'country', 'description', 'year_founded'],
+      0: ['company_name', 'region_code', 'province_code', 'citymun_code', 'barangay_code', 'country', 'description', 'year_founded'],
       1: ['franchise_type', 'min_investment', 'franchise_fee', 'royalty_fee_structure', 'target_markets', 'franchise_term'],
-      2: ['industry_sector', 'years_in_operation'], // Changed from years_in_operation
+      2: ['industry_sector', 'years_in_operation'],
       3: ['min_net_worth', 'min_liquid_assets'],
       4: [],
-      5: ['dti_sbc', 'bir_2303', 'ipo_registration'], // Add validation for documents step
+      5: companyId ? [] : ['dti_sbc', 'bir_2303', 'ipo_registration'], // Documents not required in edit mode
     };
 
-   for (const field of requiredFields[step] || []) {
-    if (!data[field] && data[field] !== 0) return false;
+    for (const field of requiredFields[step] || []) {
+      if (field === 'zip_code') {
+        // postal_code (zip_code) can be nullable, so skip validation for it
+        continue;
+      }
+      if (data[field] === null || data[field] === '' || data[field] === undefined) return false;
+    }
+    return true;
   }
-  return true;
-}
 
   function next() {
-    if (validateStep(step)) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    if (validateStep(step)) {
+      setCompletedSteps(prev => [...prev, step]);
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    }
   }
+  
   function back() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
-function doSubmit() {
-  transform((d) => ({
-    ...d,
-    prior_experience: d.prior_experience,
-    year_founded: d.year_founded === '' ? null : d.year_founded,
-    num_franchise_locations: d.num_franchise_locations === '' ? null : d.num_franchise_locations,
-    min_investment: d.min_investment === '' ? null : d.min_investment,
-    franchise_fee: d.franchise_fee === '' ? null : d.franchise_fee,
-    avg_annual_revenue: d.avg_annual_revenue === '' ? null : d.avg_annual_revenue,
-    years_in_operation: d.years_in_operation === '' ? null : d.years_in_operation,
-    total_revenue: d.total_revenue === '' ? null : d.total_revenue,
-    min_net_worth: d.min_net_worth === '' ? null : d.min_net_worth,
-    min_liquid_assets: d.min_liquid_assets === '' ? null : d.min_liquid_assets,
-  }));
-
-  if (companyId) {
-    console.log(data.company_name, data); 
-    put(`/companies/${companyId}`, {
-      onSuccess: () => {
-        window.location.href = '/my-companies';
-      },
-      onError: (errors) => {
-        console.error('Update failed:', errors);
-        console.error('Request data:', data);
-        console.error('Company ID:', companyId);
-        alert('Update failed. Please check console for details.');
-      },
-    });
-  } else {
-    post('/companies', {
-      onSuccess: () => {
-        reset();
-        setStep(0);
-        setOpen(false);
-        window.location.href = '/my-companies';
-      },
-      onError: (errors) => {
-        console.error('Submission failed:', errors);
-        console.error('Request data:', data);
-        alert('Submission failed. Please check console for details.');
-      },
-    });
+  function goToStep(targetStep: number) {
+    if (targetStep <= step || completedSteps.includes(targetStep - 1)) {
+      setStep(targetStep);
+    }
   }
-}
 
+function doSubmit() {
+  // In create mode, ensure all required documents are uploaded
+  if (!companyId && (!data.dti_sbc || !data.bir_2303 || !data.ipo_registration)) {
+    alert('Please upload all required documents (DTI/SBC, BIR 2303, IPO Registration) before submitting.');
+    return;
+  }
+
+  // Filter out existing_* fields before sending to backend
+  const { existing_logo, existing_dti_sbc, existing_bir_2303, existing_ipo_registration, ...submitData } = data;
+
+  // Convert null values to undefined and exclude null/undefined file fields for Inertia compatibility
+  const cleanedData: Record<string, any> = {};
+  for (const [key, value] of Object.entries(submitData)) {
+    if (value === null) {
+      // For file fields, don't send null values - let backend preserve existing files
+      if (['logo', 'dti_sbc', 'bir_2303', 'ipo_registration'].includes(key)) {
+        continue;
+      }
+      cleanedData[key] = undefined;
+    } else {
+      cleanedData[key] = value;
+    }
+  }
+
+   if (companyId) {
+      console.log(data.company_name, cleanedData);
+      post(`/companies/${companyId}`, {
+        ...cleanedData,
+        method: 'put',
+        onSuccess: () => {
+          window.location.href = '/my-companies';
+        },
+        onError: (error: unknown) => {
+          console.error('Update failed:', error);
+          console.error('Request data:', cleanedData);
+          console.error('Company ID:', companyId);
+          alert('Update failed. Please check console for details.');
+        },
+      });
+    } else {
+      post('/companies', {
+        ...cleanedData,
+        onSuccess: () => {
+          reset();
+          setStep(0);
+          window.location.href = '/my-companies';
+        },
+        onError: (error: unknown) => {
+          console.error('Submission failed:', error);
+          console.error('Request data:', cleanedData);
+          alert('Submission failed. Please check console for details.');
+        },
+      });
+    }
+  }
+
+
+  const stepIcons = [Building2, DollarSign, Users, FileText, Upload, FileText];
+  const stepDescriptions = [
+    "Basic company information and location",
+    "Franchise opportunity details and investment requirements",
+    "Company background and industry information",
+    "Franchisee requirements and qualifications",
+    "Marketing materials and listing information",
+    "Required business documents and certifications"
+  ];
 
   return (
     <PermissionGate permission="create_companies" fallback={<div className="p-6">You don't have permission to register companies.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
-        <Head title="Dashboard" />
+        <Head title="Company Registration" />
 
-        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-          {/* Card 1: click to expand to full width */}
-          <div
-            ref={containerRef}
-            onClick={() => { if (!open) setOpen(true); }}
-            className={`relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border ${
-              open ? 'md:col-span-3' : 'aspect-video cursor-pointer'
-            }`}
-          >
-            <div className="absolute inset-0 pointer-events-none">
-              <PlaceholderPattern className="size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+          <div className="max-w-4xl mx-auto p-6">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                {companyId ? 'Edit Company Registration' : 'Register Your Company'}
+              </h1>
+              <p className="text-gray-600 ">
+                Complete the registration process to list your franchise opportunity
+              </p>
             </div>
 
-            {!open ? (
-              <div className="relative z-10 flex h-full w-full items-center justify-between p-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-black">Register your Company/Franchise</h3>
-                  <p className="text-xs text-black">Click to start the {STEPS.length}-step setup</p>
-                </div>
-                <svg className="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd" />
-                </svg>
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-gray-700">
+                  Step {step + 1} of {STEPS.length}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(((step + 1) / STEPS.length) * 100)}% Complete
+                </span>
               </div>
-            ) : (
-              <div className="relative z-10 px-4 pb-4 max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="mb-4 flex items-center justify-between pt-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-black">Register your Company/Franchise</h3>
-                    <p className="text-xs text-black">Step {step + 1} of {STEPS.length}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="rounded-md border border-gray-600 px-2 py-1 text-xs text-gray-200 hover:bg-gray-700"
-                  >
-                    Collapse
-                  </button>
-                </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                  style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+                />
+              </div>
+            </div>
 
-                {/* chips */}
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {STEPS.map((label, i) => (
-                    <span key={i} className={`px-2 py-1 rounded-full text-[11px] ${i <= step ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'}`}>
-                      {i + 1}. {label}
-                    </span>
-                  ))}
-                </div>
+            {/* Step Navigation */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                {STEPS.map((stepName, index) => {
+                  const Icon = stepIcons[index];
+                  const isCompleted = completedSteps.includes(index);
+                  const isCurrent = index === step;
+                  const isAccessible = index <= step || completedSteps.includes(index - 1);
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center">
+                      <button
+                        onClick={() => goToStep(index)}
+                        disabled={!isAccessible}
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                          isCompleted
+                            ? 'bg-green-500 text-white'
+                            : isCurrent
+                            ? 'bg-blue-500 text-white'
+                            : isAccessible
+                            ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="w-6 h-6" />
+                        ) : (
+                          <Icon className="w-6 h-6" />
+                        )}
+                      </button>
+                      <span className={`text-xs mt-2 text-center ${
+                        isCurrent ? 'text-blue-600 font-medium' : 'text-gray-500'
+                      }`}>
+                        {stepName}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Form Content */}
+            <Card className="shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardTitle className="flex items-center gap-3">
+                  {React.createElement(stepIcons[step], { className: "w-6 h-6 text-blue-600" })}
+                  {STEPS[step]}
+                </CardTitle>
+                <p className="text-gray-600 ml-12"> {stepDescriptions[step]}</p>
+              </CardHeader>
+              <CardContent className="p-6">
 
                 {/* FORM */}
                 <form
@@ -303,84 +436,167 @@ function doSubmit() {
                 >
                   {/* Step 1: Company */}
                   {step === 0 && (
-                    <div className="grid gap-3">
-                      <Field label="Company Name *">
-                        <Input id="company_name" name="company_name" value={data.company_name} onChange={(e) => setData('company_name', e.target.value)} required />
-                        <ErrorText message={(errors as any).company_name} />
-                      </Field>
-                      <Field label="Brand Name *">
-                        <Input name="brand_name" value={data.brand_name ?? ''} onChange={(e) => setData('brand_name', e.target.value)} required/>
-                        <ErrorText message={(errors as any).brand_name} />
-                      </Field>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_name">Company Name *</Label>
+                          <Input
+                            id="company_name"
+                            name="company_name"
+                            value={data.company_name}
+                            onChange={(e) => setData('company_name', e.target.value)}
+                            placeholder="Enter your company name"
+                            required
+                          />
+                          <ErrorText message={(errors as any).company_name} />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="brand_name">Brand Name</Label>
+                          <Input
+                            name="brand_name"
+                            value={data.brand_name ?? ''}
+                            onChange={(e) => setData('brand_name', e.target.value)}
+                            placeholder="Enter your brand name"
+                          />
+                          <ErrorText message={(errors as any).brand_name} />
+                        </div>
+                      </div>
                       
-                      <h3 className="text-md font-semibold mt-4">Headquarters Address</h3>
-                      <div className="grid grid-cols-2 gap-3">
-                        <Field label="City *"><Input name="city" value={data.city} onChange={(e) => setData('city', e.target.value)} required /> <ErrorText message={(errors as any).city} /></Field>
-                        <Field label="State/Province *"><Input name="state_province" value={data.state_province} onChange={(e) => setData('state_province', e.target.value)} required /> <ErrorText message={(errors as any).state_province} /></Field>
-                        <Field label="ZIP/Postal Code *"><Input name="zip_code" value={data.zip_code} onChange={(e) => setData('zip_code', e.target.value)} required /> <ErrorText message={(errors as any).zip_code} /></Field>
-                        <Field label="Country *"><Input name="country" value={data.country} onChange={(e) => setData('country', e.target.value)} required /> <ErrorText message={(errors as any).country} /></Field>
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Headquarters Address</h3>
+                        <AddressForm
+                          value={{
+                            region_code: data.region_code,
+                            region_name: data.region_name,
+                            province_code: data.province_code,
+                            province_name: data.province_name,
+                            citymun_code: data.citymun_code,
+                            citymun_name: data.citymun_name,
+                            barangay_code: data.barangay_code,
+                            barangay_name: data.barangay_name,
+                            postal_code: data.zip_code,
+                            country: data.country,
+                          }}
+                          onChange={(address) => {
+                            setData('region_code', address.region_code);
+                            setData('region_name', address.region_name);
+                            setData('province_code', address.province_code);
+                            setData('province_name', address.province_name);
+                            setData('citymun_code', address.citymun_code);
+                            setData('citymun_name', address.citymun_name);
+                            setData('barangay_code', address.barangay_code);
+                            setData('barangay_name', address.barangay_name);
+                            setData('zip_code', address.postal_code);
+                            setData('country', address.country);
+                          }}
+                          errors={{
+                            region_code: (errors as any).region_code,
+                            province_code: (errors as any).province_code,
+                            citymun_code: (errors as any).citymun_code,
+                            barangay_code: (errors as any).barangay_code,
+                          }}
+                        />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <Field label="Company Website (optional)">
-                          <Input name="company_website" value={data.company_website ?? ''} onChange={(e) => setData('company_website', e.target.value)} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="company_website">Company Website</Label>
+                          <Input
+                            name="company_website"
+                            value={data.company_website ?? ''}
+                            onChange={(e) => setData('company_website', e.target.value)}
+                            placeholder="https://yourcompany.com"
+                            type="url"
+                          />
                           <ErrorText message={(errors as any).company_website} />
-                        </Field>
-                        <Field label="Year Founded *">
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="year_founded">Year Founded *</Label>
                           <Input
                             name="year_founded"
                             type="number"
                             min={1800}
                             max={new Date().getFullYear()}
-                            value={data.year_founded}
-                            onChange={(e) => setData('year_founded', Number(e.target.value) || '')}
+                            value={data.year_founded ?? ''}
+                            onChange={(e) => setData('year_founded', e.target.value)}
+                            placeholder="2020"
                             required
                           />
                           <ErrorText message={(errors as any).year_founded} />
-                        </Field>
+                        </div>
                       </div>
 
-                      <Field label="Description *">
-                        <Textarea name="description" rows={2} value={data.description} onChange={(e) => setData('description', e.target.value)} required />
+                      <div className="space-y-2">
+                        <Label htmlFor="description">Company Description *</Label>
+                        <Textarea
+                          name="description"
+                          rows={4}
+                          value={data.description}
+                          onChange={(e) => setData('description', e.target.value)}
+                          placeholder="Describe your company and what makes it unique..."
+                          required
+                        />
                         <ErrorText message={(errors as any).description} />
-                      </Field>
+                      </div>
 
-                      <Field label="Number of Existing Franchise Locations (optional)">
+                      <div className="space-y-2">
+                        <Label htmlFor="num_franchise_locations">Number of Existing Franchise Locations</Label>
                         <Input
                           name="num_franchise_locations"
                           type="number"
                           min={0}
-                          value={data.num_franchise_locations}
-                          onChange={(e) => setData('num_franchise_locations', Number(e.target.value) || '')}
+                          value={data.num_franchise_locations ?? ''}
+                          onChange={(e) => setData('num_franchise_locations', e.target.value)}
+                          placeholder="0"
                         />
                         <ErrorText message={(errors as any).num_franchise_locations} />
-                      </Field>
-                      
-
+                      </div>
                     </div>
-                    
                   )}
 
                   {/* Step 2: Opportunity */}
                   {step === 1 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Franchise Type *"><Input name="franchise_type" value={data.franchise_type} onChange={(e) => setData('franchise_type', e.target.value)} required /></Field>
+                        <Field label="Franchise Type *">
+                          <Select value={data.franchise_type} onValueChange={(value) => setData('franchise_type', value)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select franchise type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Business Format Franchise">Business Format Franchise</SelectItem>
+                              <SelectItem value="Product Distribution Franchise">Product Distribution Franchise (or Trade Name Franchise)</SelectItem>
+                              <SelectItem value="Manufacturing Franchise">Manufacturing Franchise</SelectItem>
+                              <SelectItem value="Job Franchise">Job Franchise</SelectItem>
+                              <SelectItem value="Investment Franchise">Investment Franchise</SelectItem>
+                              <SelectItem value="Conversion Franchise">Conversion Franchise</SelectItem>
+                              <SelectItem value="Service Franchise">Service Franchise</SelectItem>
+                              <SelectItem value="Management Franchise">Management Franchise</SelectItem>
+                              <SelectItem value="Single-Unit Franchise">Single-Unit Franchise</SelectItem>
+                              <SelectItem value="Multi-Unit Franchise">Multi-Unit Franchise</SelectItem>
+                              <SelectItem value="Area Developer Franchise">Area Developer Franchise</SelectItem>
+                              <SelectItem value="Master Franchise">Master Franchise (or Regional Developer)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
                         <Field label="Franchise Term *"><Input name="franchise_term" value={data.franchise_term} onChange={(e) => setData('franchise_term', e.target.value)} required /></Field>
-                        <Field label="Minimum Investment Required *"><Input name="min_investment" type="number" step="0.01" value={data.min_investment} onChange={(e) => setData('min_investment', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Franchise Fee *"><Input name="franchise_fee" type="number" step="0.01" value={data.franchise_fee} onChange={(e) => setData('franchise_fee', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Royalty Fee Structure*">
-                          <Input
-                            name="royalty_fee_structure"   // ✅ fixed (was royalty_fee)
-                            value={data.royalty_fee_structure}
-                            onChange={(e) => setData("royalty_fee_structure", e.target.value)}
-                          />
-                          {errors.royalty_fee_structure && (
-                            <div className="text-red-500">{errors.royalty_fee_structure}</div>
-                          )}
-                        </Field>                        
-                        <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="number" step="0.01" value={data.avg_annual_revenue} onChange={(e) => setData('avg_annual_revenue', Number(e.target.value) || '')} /></Field>
-                        <ErrorText message={(errors as any).avg_annual_revenue} />
+                      <Field label="Minimum Investment Required *"><Input name="min_investment" type="text" value={focusedField === 'min_investment' ? data.min_investment || '' : formatCurrency(data.min_investment || '')} onChange={(e) => setData('min_investment', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱1,000,000.00" required /></Field>
+                      <Field label="Franchise Fee *"><Input name="franchise_fee" type="text" value={focusedField === 'franchise_fee' ? data.franchise_fee || '' : formatCurrency(data.franchise_fee || '')} onChange={(e) => setData('franchise_fee', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱500,000.00" required /></Field>
+                      <Field label="Royalty Fee Structure*">
+                        <Input
+                          name="royalty_fee_structure"
+                          value={data.royalty_fee_structure}
+                          onChange={(e) => setData("royalty_fee_structure", e.target.value)}
+                          placeholder="e.g., 5% of revenue or ₱10,000 monthly"
+                        />
+                        {errors.royalty_fee_structure && (
+                          <div className="text-red-500">{errors.royalty_fee_structure}</div>
+                        )}
+                      </Field>
+                      <Field label="Average Annual Revenue per Location (optional)"><Input name="avg_annual_revenue" type="text" value={focusedField === 'avg_annual_revenue' ? data.avg_annual_revenue || '' : formatCurrency(data.avg_annual_revenue || '')} onChange={(e) => setData('avg_annual_revenue', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱5,000,000.00" /></Field>
+                      <ErrorText message={(errors as any).avg_annual_revenue} />
                       </div>
                       <Field label="Target Markets/Regions for Expansion *"><Input name="target_markets" value={data.target_markets} onChange={(e) => setData('target_markets', e.target.value)} required /></Field>
                       <Field label="Training and Support Offered (optional)"><Textarea name="training_support" rows={2} value={data.training_support ?? ''} onChange={(e) => setData('training_support', e.target.value)} /></Field>
@@ -393,7 +609,28 @@ function doSubmit() {
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
                         <Field label="Industry Sector *">
-                          <Input name="industry_sector" value={data.industry_sector} onChange={(e) => setData('industry_sector', e.target.value)} required />
+                          <Select value={data.industry_sector} onValueChange={(value) => setData('industry_sector', value)} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select industry sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
+                              <SelectItem value="Home Services">Home Services</SelectItem>
+                              <SelectItem value="Business Services">Business Services</SelectItem>
+                              <SelectItem value="Retail">Retail</SelectItem>
+                              <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
+                              <SelectItem value="Senior & Healthcare Services">Senior & Healthcare Services</SelectItem>
+                              <SelectItem value="Automotive">Automotive</SelectItem>
+                              <SelectItem value="Child-Related Services">Child-Related Services</SelectItem>
+                              <SelectItem value="Real Estate & Property">Real Estate & Property</SelectItem>
+                              <SelectItem value="Beauty & Personal Care">Beauty & Personal Care</SelectItem>
+                              <SelectItem value="Pet Care">Pet Care</SelectItem>
+                              <SelectItem value="Travel & Lodging">Travel & Lodging</SelectItem>
+                              <SelectItem value="Restoration & Remediation">Restoration & Remediation</SelectItem>
+                              <SelectItem value="Computers & Technology">Computers & Technology</SelectItem>
+                              <SelectItem value="Vending">Vending</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </Field>
                         <Field label="Years in Operation*">
                         <Input
@@ -403,14 +640,14 @@ function doSubmit() {
                           onChange={(e) => setData("years_in_operation", e.target.value)}
                         />
                         {errors.years_in_operation && (
-                          <div className="text-red-500">{errors.years_in_operation}</div>
+                          <div className="text-red-500">{errors.years_in_operation}
+                          </div>
                         )}
                       </Field>
-
                         <ErrorText message={(errors as any).years_in_operation} />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="number" step="0.01" value={data.total_revenue} onChange={(e) => setData('total_revenue', Number(e.target.value) || '')} /></Field>
+                        <Field label="Total Company Revenue (optional)"><Input name="total_revenue" type="text" value={focusedField === 'total_revenue' ? data.total_revenue || '' : formatCurrency(data.total_revenue || '')} onChange={(e) => setData('total_revenue', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱50,000,000.00" /></Field>
                         <Field label="Awards or Recognitions (optional)"><Input name="awards" value={data.awards ?? ''} onChange={(e) => setData('awards', e.target.value)} /></Field>
                         <ErrorText message={(errors as any).total_revenue} />
                       </div>
@@ -425,10 +662,10 @@ function doSubmit() {
                   {step === 3 && (
                     <div className="grid gap-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="number" step="0.01" value={data.min_net_worth} onChange={(e) => setData('min_net_worth', Number(e.target.value) || '')} required /></Field>
-                        <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="number" step="0.01" value={data.min_liquid_assets} onChange={(e) => setData('min_liquid_assets', Number(e.target.value) || '')} required /></Field>
-                        <ErrorText message={(errors as any).min_net_worth} />
-                        <ErrorText message={(errors as any).min_liquid_assets} />
+                      <Field label="Minimum Net Worth Required *"><Input name="min_net_worth" type="text" value={focusedField === 'min_net_worth' ? data.min_net_worth || '' : formatCurrency(data.min_net_worth || '')} onChange={(e) => setData('min_net_worth', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱10,000,000.00" required /></Field>
+                      <Field label="Minimum Liquid Assets Required *"><Input name="min_liquid_assets" type="text" value={focusedField === 'min_liquid_assets' ? data.min_liquid_assets || '' : formatCurrency(data.min_liquid_assets || '')} onChange={(e) => setData('min_liquid_assets', parseCurrency(e.target.value))} onFocus={(e) => setFocusedField(e.target.name)} onBlur={() => setFocusedField(null)} placeholder="₱5,000,000.00" required /></Field>
+                      <ErrorText message={(errors as any).min_net_worth} />
+                      <ErrorText message={(errors as any).min_liquid_assets} />
                       </div>
 
                       <div className="flex items-center gap-2 text-gray-200">
@@ -459,14 +696,74 @@ function doSubmit() {
                         <ErrorText message={(errors as any).listing_description} />
                       </Field>
                       <div>
-                        <label className="block text-xs text-black">Upload Logo or Brand Images (optional)</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="mt-1 block w-full text-gray-200"
-                          name="logo"
-                          onChange={(e) => setData('logo', e.currentTarget.files?.[0] ?? null)}
-                        />
+                        <label className="block text-xs text-black">
+                          {companyId ? 'Current Logo' : 'Upload Logo or Brand Images (optional)'}
+                        </label>
+                        {companyId && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {logoPreview ? 'New logo preview:' : data.existing_logo ? 'Current logo:' : 'No logo uploaded'}
+                            </p>
+                            {logoPreview || data.existing_logo ? (
+                              <img
+                                src={logoPreview || `/storage/${data.existing_logo}`}
+                                alt="Logo preview"
+                                className="max-w-32 max-h-32 object-contain border rounded"
+                              />
+                            ) : (
+                              <p className="text-gray-500">No logo uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && logoPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">Logo preview:</p>
+                            <img
+                              src={logoPreview}
+                              alt="Logo preview"
+                              className="max-w-32 max-h-32 object-contain border rounded"
+                            />
+                          </div>
+                        )}
+                        {!companyId && (
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="mt-1 block w-full text-gray-200"
+                            name="logo"
+                            onChange={(e) => {
+                              const file = e.currentTarget.files?.[0] ?? null;
+                              setData('logo', file);
+                              if (file) {
+                                const previewUrl = URL.createObjectURL(file);
+                                setLogoPreview(previewUrl);
+                              } else {
+                                setLogoPreview(null);
+                              }
+                            }}
+                          />
+                        )}
+                        {companyId && (
+                          <div className="mt-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="block w-full text-gray-200"
+                              name="logo"
+                              onChange={(e) => {
+                                const file = e.currentTarget.files?.[0] ?? null;
+                                setData('logo', file);
+                                if (file) {
+                                  const previewUrl = URL.createObjectURL(file);
+                                  setLogoPreview(previewUrl);
+                                } else {
+                                  setLogoPreview(null);
+                                }
+                              }}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Upload a new logo to replace the current one (optional)</p>
+                          </div>
+                        )}
                         <ErrorText message={(errors as any).logo} />
                       </div>
                       <Field label="Preferred Contact Method for Inquiries (optional)">
@@ -480,96 +777,322 @@ function doSubmit() {
                   {/* Step 6: Documents */}
                   {step === 5 && (
                     <div className="grid gap-3">
-                      <h3 className="text-md font-semibold">Required Business Documents</h3>
-                      
-                      <Field label="DTI/SBC Certificate *">
+                      <h3 className="text-md font-semibold">
+                        {companyId ? 'Business Documents (Optional - upload new files to replace existing)' : 'Required Business Documents'}
+                      </h3>
+
+                      <Field label={`DTI/SBC Certificate ${companyId ? '(Optional)' : '*'}`}>
+                        {companyId && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {dtiSbcPreview ? 'New DTI/SBC preview:' : data.existing_dti_sbc ? 'Current DTI/SBC:' : 'No DTI/SBC uploaded'}
+                            </p>
+                            {dtiSbcPreview || data.existing_dti_sbc ? (
+                              dtiSbcPreview ? (
+                                dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={dtiSbcPreview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={dtiSbcPreview}
+                                    alt="DTI/SBC preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                (data.existing_dti_sbc || '').toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_dti_sbc}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_dti_sbc}`}
+                                    alt="Current DTI/SBC"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No DTI/SBC uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && dtiSbcPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">DTI/SBC preview:</p>
+                            {dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
+                              <embed
+                                src={dtiSbcPreview}
+                                type="application/pdf"
+                                width="100%"
+                                height="200px"
+                                className="border rounded"
+                              />
+                            ) : (
+                              <img
+                                src={dtiSbcPreview}
+                                alt="DTI/SBC preview"
+                                className="max-w-full max-h-48 object-contain border rounded"
+                              />
+                            )}
+                          </div>
+                        )}
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('dti_sbc', e.currentTarget.files?.[0] ?? null)}
-                          required
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('dti_sbc', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setDtiSbcPreview(previewUrl);
+                            } else {
+                              setDtiSbcPreview(null);
+                            }
+                          }}
+                          required={!companyId}
                         />
                         <ErrorText message={(errors as any).dti_sbc} />
                       </Field>
 
-                      <Field label="BIR 2303 Form *">
+                      <Field label={`BIR 2303 Form ${companyId ? '(Optional)' : '*'}`}>
+                        {companyId && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {bir2303Preview ? 'New BIR 2303 preview:' : data.existing_bir_2303 ? 'Current BIR 2303:' : 'No BIR 2303 uploaded'}
+                            </p>
+                            {bir2303Preview || data.existing_bir_2303 ? (
+                              bir2303Preview ? (
+                                bir2303Preview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={bir2303Preview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={bir2303Preview}
+                                    alt="BIR 2303 preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                (data.existing_bir_2303 || '').toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_bir_2303}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_bir_2303}`}
+                                    alt="Current BIR 2303"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No BIR 2303 uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && bir2303Preview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">BIR 2303 preview:</p>
+                            {bir2303Preview.toLowerCase().endsWith('.pdf') ? (
+                              <embed
+                                src={bir2303Preview}
+                                type="application/pdf"
+                                width="100%"
+                                height="200px"
+                                className="border rounded"
+                              />
+                            ) : (
+                              <img
+                                src={bir2303Preview}
+                                alt="BIR 2303 preview"
+                                className="max-w-full max-h-48 object-contain border rounded"
+                              />
+                            )}
+                          </div>
+                        )}
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('bir_2303', e.currentTarget.files?.[0] ?? null)}
-                          required
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('bir_2303', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setBir2303Preview(previewUrl);
+                            } else {
+                              setBir2303Preview(null);
+                            }
+                          }}
+                          required={!companyId}
                         />
                         <ErrorText message={(errors as any).bir_2303} />
                       </Field>
 
-                      <Field label="IPO Registration *">
+                      <Field label={`IPO Registration ${companyId ? '(Optional)' : '*'}`}>
+                        {companyId && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">
+                              {ipoPreview ? 'New IPO Registration preview:' : data.existing_ipo_registration ? 'Current IPO Registration:' : 'No IPO Registration uploaded'}
+                            </p>
+                            {ipoPreview || data.existing_ipo_registration ? (
+                              ipoPreview ? (
+                                ipoPreview.toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={ipoPreview}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={ipoPreview}
+                                    alt="IPO Registration preview"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              ) : (
+                                (data.existing_ipo_registration || '').toLowerCase().endsWith('.pdf') ? (
+                                  <embed
+                                    src={`/storage/${data.existing_ipo_registration}`}
+                                    type="application/pdf"
+                                    width="100%"
+                                    height="200px"
+                                    className="border rounded"
+                                  />
+                                ) : (
+                                  <img
+                                    src={`/storage/${data.existing_ipo_registration}`}
+                                    alt="Current IPO Registration"
+                                    className="max-w-full max-h-48 object-contain border rounded"
+                                  />
+                                )
+                              )
+                            ) : (
+                              <p className="text-gray-500">No IPO Registration uploaded yet</p>
+                            )}
+                          </div>
+                        )}
+                        {!companyId && ipoPreview && (
+                          <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <p className="text-sm text-gray-600 mb-2">IPO Registration preview:</p>
+                            {ipoPreview.toLowerCase().endsWith('.pdf') ? (
+                              <embed
+                                src={ipoPreview}
+                                type="application/pdf"
+                                width="100%"
+                                height="200px"
+                                className="border rounded"
+                              />
+                            ) : (
+                              <img
+                                src={ipoPreview}
+                                alt="IPO Registration preview"
+                                className="max-w-full max-h-48 object-contain border rounded"
+                              />
+                            )}
+                          </div>
+                        )}
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
                           className="mt-1 block w-full text-gray-200"
-                          onChange={(e) => setData('ipo_registration', e.currentTarget.files?.[0] ?? null)}
-                          required
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('ipo_registration', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setIpoPreview(previewUrl);
+                            } else {
+                              setIpoPreview(null);
+                            }
+                          }}
+                          required={!companyId}
                         />
                         <ErrorText message={(errors as any).ipo_registration} />
                       </Field>
                     </div>
                   )}
 
-                  {/* controls */}
-                  <div className="mt-4 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={back}
-                      className="rounded-lg border border-gray-600 px-3 py-2 text-black disabled:opacity-40"
-                      disabled={step === 0 || processing}
-                    >
-                      Back
-                    </button>
+                </form>
 
+                {/* Form Controls */}
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={back}
+                    disabled={step === 0 || processing}
+                    className="flex items-center gap-2"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Back
+                  </Button>
+
+                  <div className="flex items-center gap-4">
+                    {Object.keys(errors).length > 0 && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        Please fix the errors above
+                      </div>
+                    )}
+                    
                     {step < STEPS.length - 1 ? (
-                      <button
+                      <Button
                         type="button"
                         onClick={next}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                         disabled={!validateStep(step) || processing}
+                        className="flex items-center gap-2"
                       >
                         Next
-                      </button>
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         type="button"
                         onClick={doSubmit}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                        disabled={processing}>
-                        {companyId ? 'Resubmit' : 'Submit'}
-                      </button>
+                        disabled={!validateStep(step) || processing}
+                        className="flex items-center gap-2"
+                      >
+                        {processing ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            {companyId ? 'Updating...' : 'Submitting...'}
+                          </>
+                        ) : (
+                          <>
+                            {companyId ? 'Update Company' : 'Submit Registration'}
+                            <CheckCircle className="w-4 h-4" />
+                          </>
+                        )}
+                      </Button>
                     )}
                   </div>
-
-                  {Object.keys(errors).length > 0 && (
-                    <div className="mt-3 rounded-md bg-red-600/20 p-3 text-sm text-red-300">
-                      Please fix the highlighted errors and submit again.
-                    </div>
-                  )}
-                </form>
-              </div>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          {/* two placeholder cards when closed */}
-          {!open && (
-            <>
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-              </div>
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-              </div>
-            </>
-          )}
-        </div>
         </div>
       </AppLayout>
     </PermissionGate>

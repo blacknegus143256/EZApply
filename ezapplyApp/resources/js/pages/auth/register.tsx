@@ -3,6 +3,7 @@ import { login } from '@/routes';
 import { LoaderCircle } from 'lucide-react';
 import { useForm, Head } from '@inertiajs/react';
 import '../../../css/easyApply.css';
+import EzNav from "../Landing/ezapply-nav";
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -10,9 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
-import axios from 'axios';
-import { useState } from 'react';
-import { useEffect } from 'react'; 
+import AppLogoIcon from '../../components/app-logo-icon';
+
 
 type PSGCItem = { code: string; name: string };
 interface RegisterProps {
@@ -44,11 +44,22 @@ const { data, setData, post, processing, errors } = useForm({
     };
 
     return (
-        <AuthLayout title="Create an account" description="Enter your details below to create your account">
-            <Head title="Register" />
+            <div className="login-background relative min-h-screen flex flex-col ">
+            <EzNav />
+              
+            <div className="w-full md:w-auto flex items-center justify-center">
+            <div className="glass-card p-8 w-full max-w-md mt-15">
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                <div className="grid gap-6">
+            <Head title="Register" />
+            <div className="relative mx-4 -mt-4 flex h-24 items-center justify-center gap-2">
+            <AppLogoIcon className="size-10" /> 
+
+            <h1 className="text-3xl font-semibold tracking-tight login-header">EZ Apply</h1>
+                </div>
+        <AuthLayout title="Create an Account" description="">
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+                <div className="grid gap-2">
 
 
                     {/* Role */}
@@ -58,16 +69,11 @@ const { data, setData, post, processing, errors } = useForm({
                             id="role"
                             name="role"
                             required
-                            className="border rounded-md px-3 py-2"
+                            className="border rounded-md px-3 py-2 h-11 border-gray-300 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                             value={(data as any).role}
                             onChange={(e) => setData('role' as any, e.target.value)}
                             tabIndex={3}
                         >
-                            {/* {roles.map((role) => (
-                                <option key={role} value={role}>
-                                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                                </option>
-                            ))} */}
                             <option key={roles[1]} value={roles[1]}>
                                 {roles[1]}
                             </option>
@@ -91,6 +97,7 @@ const { data, setData, post, processing, errors } = useForm({
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
                             placeholder="email@example.com"
+                            className="h-11 rounded-lg border border-gray-300 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                         />
                         <InputError message={errors.email} />
                     </div>
@@ -111,6 +118,7 @@ const { data, setData, post, processing, errors } = useForm({
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
                             placeholder="Password"
+                            className="h-11 rounded-lg border border-gray-300 px-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                         />
                         <InputError message={errors.password} />
                     </div>
@@ -128,11 +136,12 @@ const { data, setData, post, processing, errors } = useForm({
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
                             placeholder="Confirm password"
-                        />
+                            className="ezapply-input"
+                            />
                         <InputError message={errors.password_confirmation} />
                     </div>
                     {/* Submit Button */}
-                    <Button type="submit" className="mt-2 w-full" tabIndex={9}>
+                    <Button type="submit" className="w-full bg-gradient-to-tr from-blue-900 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
@@ -141,11 +150,15 @@ const { data, setData, post, processing, errors } = useForm({
                 {/* Already have account */}
                 <div className="text-center text-sm text-muted-foreground">
                     Already have an account?{' '}
-                    <TextLink href={login()} tabIndex={10}>
+                    <TextLink href={login()} tabIndex={10} className="text-blue-600 hover:text-blue-800 font-medium">
                         Log in
                     </TextLink>
                 </div>
             </form>
         </AuthLayout>
+                            </div>
+                            </div>
+                            </div>
+                            // </div>
     );
 }

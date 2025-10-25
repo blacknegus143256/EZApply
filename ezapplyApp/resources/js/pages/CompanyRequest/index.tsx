@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import CompanyDetails from '../Company/CompanyDetails';
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 
 
 interface Company {
@@ -60,6 +61,8 @@ export default function Roles({ roles }: { roles: any }) {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
     const filteredCompanies = companies.filter((company) => {
     const matchesSearch = company.company_name
@@ -94,6 +97,11 @@ export default function Roles({ roles }: { roles: any }) {
     });
 }, []);
 
+
+function handleCloseModal() {
+  setIsModalOpen(false);
+  setSelectedCompany(null);
+}
 
     return (
         <Can permission="view_request_companies" fallback={<div className="p-4">You don't have permission to view roles.</div>}>
@@ -145,110 +153,128 @@ export default function Roles({ roles }: { roles: any }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center">
-                                            <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading companies...
-                                        </TableCell>
-                                    </TableRow>
-                                ) : error ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center text-red-500">
-                                            {error}
-                                        </TableCell>
-                                    </TableRow>
-                                ) : companies.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center">
-                                            No companies registered yet.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredCompanies.map((company) => (
-                                    <TableRow key={company.id}>
-                                        <TableCell>{company.id}</TableCell>
-                                        <TableCell>{company.company_name}</TableCell>
-                                        <TableCell>{new Date(company.created_at).toLocaleDateString()}</TableCell>
+  {loading ? (
+    <TableRow>
+      <TableCell colSpan={5} className="text-center">
+        <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading
+        companies...
+      </TableCell>
+    </TableRow>
+  ) : error ? (
+    <TableRow>
+      <TableCell colSpan={5} className="text-center text-red-500">
+        {error}
+      </TableCell>
+    </TableRow>
+  ) : companies.length === 0 ? (
+    <TableRow>
+      <TableCell colSpan={5} className="text-center">
+        No companies registered yet.
+      </TableCell>
+    </TableRow>
+  ) : (
+    [...filteredCompanies]
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      .map((company) => (
+        <TableRow key={company.id}>
+          <TableCell>{company.id}</TableCell>
+          <TableCell>{company.company_name}</TableCell>
+          <TableCell>
+            {new Date(company.created_at).toLocaleDateString()}
+          </TableCell>
 
-                                        <TableCell className="flex gap-2">
-                                            <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button variant="default">View</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                            <DialogTitle className='flex justify-between items-center mt-5'>Company Details
-                                                <p>
-                                                <strong>Status:</strong>{" "}
-                                                {company.status === "pending" && <Badge variant="secondary">Pending</Badge>}
-                                                {company.status === "approved" && <Badge variant="success">Approved</Badge>}
-                                                {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
-                                            </p>
-                                            </DialogTitle>
-                                            <DialogDescription>
-                                                Below are the details for this company.
-                                            </DialogDescription>
-                                            </DialogHeader>
-                                           <CompanyDetails company={company} />
-                                        </DialogContent>
-                                        </Dialog>                    
-                                        <Select
-                                            value={company.status}
-                                            onValueChange={(value: 'pending' | 'approved' | 'rejected') => {
-                                            setCompanies((prev) =>
-                                                prev.map((c) =>
-                                                c.id === company.id ? { ...c, status: value } : c
-                                                )
-                                            );
+          <TableCell className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedCompany(company);
+                setIsModalOpen(true);
+              }}
+            >
+              View Details
+            </Button>
 
-                                            route.put(`/companies/${company.id}/status`, { status: value }, {
-                                                preserveState: true,
-                                                onError: () => {
-                                                setCompanies((prev) =>
-                                                    prev.map((c) =>
-                                                    c.id === company.id ? { ...c, status: company.status } : c
-                                                    )
-                                                );
-                                                },
-                                            });
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder="Select Status" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel className='text-center'>Status</SelectLabel>
-                                                <SelectItem value="pending">Pending</SelectItem>
-                                                <SelectItem value="approved">Approved</SelectItem>
-                                                <SelectItem value="rejected">Rejected</SelectItem>
-                                            </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                        </TableCell>
 
-                                        <TableCell>
-                                        {company.status === "pending" && <Badge variant="secondary">Pending</Badge>}
-                                        {company.status === "approved" && <Badge variant="success">Approved</Badge>}
-                                        {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
-                                        </TableCell>
-                                        <TableCell>
-                                        {company.status === "approved" && (
-                                            <span className="text-green-500 text-lg">🟢</span>
-                                        )}
-                                        {company.status === "pending" && (
-                                            <span className="text-yellow-500 text-lg">🟡</span>
-                                        )}
-                                        {company.status === "rejected" && (
-                                            <span className="text-red-500 text-lg">🔴</span>
-                                        )}
-                                        </TableCell>
-                                    </TableRow>
-                                    
-                                    ))
-                                )}
-                            </TableBody>
+            <Select
+              value={company.status}
+              onValueChange={(value: "pending" | "approved" | "rejected") => {
+                setCompanies((prev) =>
+                  prev.map((c) =>
+                    c.id === company.id ? { ...c, status: value } : c
+                  )
+                );
+
+                route.put(
+                  `/companies/${company.id}/status`,
+                  { status: value },
+                  {
+                    preserveState: true,
+                    onError: () => {
+                      setCompanies((prev) =>
+                        prev.map((c) =>
+                          c.id === company.id
+                            ? { ...c, status: company.status }
+                            : c
+                        )
+                      );
+                    },
+                  }
+                );
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel className="text-center">Status</SelectLabel>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </TableCell>
+
+          <TableCell>
+            {company.status === "pending" && (
+              <Badge variant="secondary">Pending</Badge>
+            )}
+            {company.status === "approved" && (
+              <Badge variant="success">Approved</Badge>
+            )}
+            {company.status === "rejected" && (
+              <Badge variant="destructive">Rejected</Badge>
+            )}
+          </TableCell>
+          <TableCell>
+            {company.status === "approved" && (
+              <span className="text-green-500 text-lg">🟢</span>
+            )}
+            {company.status === "pending" && (
+              <span className="text-yellow-500 text-lg">🟡</span>
+            )}
+            {company.status === "rejected" && (
+              <span className="text-red-500 text-lg">🔴</span>
+            )}
+          </TableCell>
+        </TableRow>
+      ))
+  )}
+</TableBody>
+
                         </Table>
+                        {selectedCompany && (
+  <CompanyDetailsModal
+    company={selectedCompany}
+    isOpen={isModalOpen}
+    onClose={handleCloseModal}
+  />
+)}
+
                     </CardContent>
                 </Card>
             </AppLayout>

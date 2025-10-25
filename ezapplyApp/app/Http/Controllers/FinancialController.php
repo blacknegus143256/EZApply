@@ -28,11 +28,11 @@ class FinancialController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'income_source' => 'nullable|string|max:255',
-            'monthly_income' => 'nullable|numeric|min:0',
+            'income_source' => 'required|string|max:255',
+            'monthly_income' => 'required|numeric|min:0',
             'other_income'      => 'nullable|string|max:1000',
-            'monthly_expenses'  => 'nullable|numeric|min:0',
-            'existing_loans'    => 'nullable|numeric|min:0',
+            'monthly_expenses'  => 'required|numeric|min:0',
+            'existing_loans'    => 'required|numeric|min:0',
         ]);
 
         $user = Auth::user();

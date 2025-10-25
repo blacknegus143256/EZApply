@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { Wallet, History, PlusCircle } from "lucide-react";
+import { Wallet, History, PlusCircle, ArrowUp, ArrowDown } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from '@/components/PermissionGate';
@@ -26,6 +26,18 @@ export default function BalancePage() {
   const { props } = usePage<SharedData>();
   const creditsDisplay = props.balance ?? 0;
 
+  const creditTransactions: Transactions[] = props.credit_transactions ?? [];
+
+  const formatDate = (dateString: string) => {
+
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   return (
     <PermissionGate role="company" permission="view_balance">
@@ -62,7 +74,7 @@ export default function BalancePage() {
         })}
       </div>
 
-      
+
       <div className="flex-1 flex items-center justify-center">
         {activeTab === "balance" && (
           <Card className="w-full max-w-md shadow-lg">
@@ -77,11 +89,36 @@ export default function BalancePage() {
         )}
 
         {activeTab === "history" && (
-          <Card className="w-full max-w-md shadow-lg">
+          <Card className="w-full max-w-lg shadow-lg"> 
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold text-gray-600 mb-4">Transaction History</h2>
-              <ul className="space-y-3 text-sm">
-                
+              <ul className="divide-y divide-gray-200"> 
+                {creditTransactions.length > 0 ? (
+                  creditTransactions.map((transaction) => {
+                    const isUsage = transaction.type === 'usage';
+                    const Icon = isUsage ? ArrowDown : ArrowUp; 
+                    const iconColor = isUsage ? 'text-red-500' : 'text-green-500';
+                    const amountColor = isUsage ? 'text-red-600' : 'text-green-600';
+                    const amountSign = isUsage ? '-' : '+';
+
+                    return (
+                      <li key={transaction.id} className="py-4 flex items-center space-x-4"> 
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isUsage ? 'bg-red-100' : 'bg-green-100'}`}>
+                          <Icon className={`w-5 h-5 ${iconColor}`} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800">{transaction.description}</p>
+                          <p className="text-xs text-gray-500 mt-1">{formatDate(transaction.created_at)}</p>
+                        </div>
+                        <span className={`font-semibold text-base ${amountColor} flex-shrink-0`}>
+                          {amountSign} {transaction.amount} credits
+                        </span>
+                      </li>
+                    );
+                  })
+                ) : (
+                  <li className="text-center text-gray-500 py-4">No transaction history available.</li>
+                )}
               </ul>
             </CardContent>
           </Card>

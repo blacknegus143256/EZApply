@@ -7,6 +7,14 @@ import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 import { useState } from 'react';
 import '../../../css/easyApply.css';
 import ChatButton from "@/components/ui/chat-button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -110,48 +118,78 @@ export default function AppliedCompanies() {
     <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Applied Companies" />
-
+        <div className="bg-across-pages min-h-screen p-5">
         <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
           <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100 mb-4">
             Applied Companies
           </h1>
-
           {applications.length === 0 ? (
             <p className="text-neutral-600 dark:text-neutral-400">
               No applications yet. Go back and apply to companies to see them here.
             </p>
           ) : (
-            <div className="space-y-2">
+                <Table className="w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Company Name</TableHead>
+                      <TableHead>Representative</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Action</TableHead>
+                      <TableHead>Chat</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  
+              <TableBody>
               {applications.map((a) => (
-                  <div
-                    key={a.id}
-                    className="w-full flex items-center px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-700"
-                  >
+                   <TableRow key={a.id}>
+                    <TableCell>
                     <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
-                      <Building2 className="w-4 h-4 mr-1 text-blue-500" />
+                      {/* <Building2 className="w-4 h-4 mr-1 text-blue-500" /> */}
+                          <img
+                            src={
+                              a.company.marketing?.logo_path
+                                ? `/storage/${a.company.marketing.logo_path}`
+                                : "/background/default-logo.png"
+                            }
+                            alt={`${a.company.company_name} logo`}
+                            className="h-20 w-20 md:h-15 md:w-15 object-contain rounded-full border-4 border-white shadow-lg bg-gray-50 transition-transform duration-300 hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.onerror = null;
+                              target.src = "/background/default-logo.png";
+                            }}
+                          />
                       {a.company.company_name}
                     </span>
-                    <span className="mx-2 text-neutral-400">•</span>
+                    </TableCell>
+                    <TableCell>
                     <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                       <User className="w-4 h-4 mr-1 text-gray-400" />
                       {a.company.user
                         ? `${a.company.user.first_name} ${a.company.user.last_name}`
                         : "Unknown User"}
                     </span>
-
+                    </TableCell>
+                    <TableCell>
                     <StatusBadge status={a.status || "pending"} />
+                    </TableCell>
+                    <TableCell className="flex gap-2">
                         <button className="view-btn btn-2 cursor-pointer"
                         onClick={() => handleCompanyClick(a.company, a.status)}
                         >Company Profile</button>
+                        </TableCell>
+                        <TableCell>
                     {/* Chat button */}
                     <ChatButton status={a.status} userId={a.company.user?.id} />
-                  </div>
+                    </TableCell>
+                  </TableRow>
               ))}
-
-            </div>
+              </TableBody>
+              </Table>
           )}
         </div>
-        
+        </div>
         <CompanyDetailsModal
           company={selectedCompany}
           isOpen={isModalOpen}

@@ -1,93 +1,243 @@
 import React from 'react';
+import { Head, usePage, Link } from '@inertiajs/react';
+import AppLayout from '@/layouts/app-layout';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useInitials } from '@/hooks/use-initials';
+import { ArrowLeft } from 'lucide-react';
+import { BreadcrumbItem } from '@/types';
 import type { CompanyDetails } from '@/types/company';
-  type FormatType = "number" | "currency";
+import PermissionGate from '@/components/PermissionGate';
 
-      const formatValue = (value: string | number, type: FormatType = "number") => {
-        if (type === "currency") {
-          const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
-          if (isNaN(num)) return "";
-          return new Intl.NumberFormat("en-PH", {
-            style: "currency",
-            currency: "PHP",
-          }).format(num);
-        }
+type FormatType = "number" | "currency";
 
-        // default: number formatting
-        const strValue = String(value);
-        const cleaned = strValue.replace(/[^0-9.]/g, "");
-        const parts = cleaned.split(".");
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        return parts.join(".");
-      };
+const formatValue = (value: string | number, type: FormatType = "number") => {
+  if (type === "currency") {
+    const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
+    if (isNaN(num)) return "";
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+    }).format(num);
+  }
 
-interface CompanyFullDetailsProps {
-  company: CompanyDetails;
-  onBack: () => void;
-}
+  // default: number formatting
+  const strValue = String(value);
+  const cleaned = strValue.replace(/[^0-9.]/g, "");
+  const parts = cleaned.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+};
 
-const CompanyFullDetails: React.FC<CompanyFullDetailsProps> = ({ company, onBack }) => {
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: "Dashboard", href: "/dashboard" },
+  { title: "All Companies", href: "/list-companies" },
+  { title: "Company Details", href: "#" },
+];
+
+const renderTable = (rows: { key: string; label: string; value: any; format?: "number" | "currency" }[]) => (
+  <table className="w-full text-sm">
+    <tbody>
+      {rows.map(({ key, label, value, format }) => (
+        <tr key={key} className="border-b last:border-b-0">
+          <td className="font-medium text-muted-foreground py-3 pr-6 align-top w-1/3">{label}</td>
+          <td className="py-3 align-top whitespace-pre-wrap">
+            {format === "currency" ? formatValue(value, "currency") : value ?? ""}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+
+const CompanyFullDetails: React.FC = () => {
+  const { props } = usePage<{ company: CompanyDetails }>();
+  const company = props.company;
+  const getInitials = useInitials();
+
   return (
-    <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
-      <button onClick={onBack} className="text-blue-600 hover:underline mb-4">Back to Summary</button>
+    <>
+      <Head title="Company Details" />
+      <div className='bg-across-pages min-h-screen p-5'>
+      {/* Back Button */}
+      <div className="flex justify-start mb-4">
+        <Button
+          onClick={() => window.history.back()}
+          className="inline-flex items-center gap-2 px-4 py-2 mt-6 mx-4 bg-gradient-to-r from-blue-300 to-blue-400 text-white rounded-lg shadow-md hover:from-blue-400 hover:to-blue-500 transition-all duration-200 hover:shadow-lg"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Basic Information</h2>
-        <p><strong>Brand Name:</strong> {company.brand_name}</p>
-        <p><strong>City:</strong> {company.city}</p>
-        <p><strong>State/Province:</strong> {company.state_province}</p>
-        <p><strong>Zip Code:</strong> {company.zip_code}</p>
-        <p><strong>Country:</strong> {company.country}</p>
-        <p><strong>Website:</strong> <a href={company.company_website} target="_blank" rel="noopener noreferrer">{company.company_website}</a></p>
-        <p><strong>Description:</strong> {company.description}</p>
-        <p><strong>Year Founded:</strong> {company.year_founded}</p>
-        <p><strong>Number of Franchise Locations:</strong> {company.num_franchise_locations}</p>
-      </section>
+      {/* Company Header Section */}
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-12 p-6 bg-card rounded-lg border">
+        <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
+          <AvatarImage
+            className="object-contain"
+            src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
+            alt={`${company.brand_name} logo`}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "/storage/logos/default-logo.png";
+            }}
+          />
+          <AvatarFallback className="text-3xl">
+            {getInitials(company.brand_name || company.company_name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-center md:text-left">
+          <h1 className="text-4xl font-bold mb-2">{company.company_name}</h1>
+          {company.brand_name && (
+            <p className="text-lg text-muted-foreground mb-2">{company.brand_name}</p>
+          )}
+          {company.company_website && (
+            <a
+              href={company.company_website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              {company.company_website}
+            </a>
+          )}
+        </div>
+      </div>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Franchise Opportunity</h2>
-        <p><strong>Franchise Type:</strong> {company.opportunity?.franchise_type}</p>
-        <p><strong>Minimum Investment:</strong> {company.opportunity?.min_investment != null ? formatValue(company.opportunity.min_investment, "currency") : 'Not specified'}</p>
-        <p><strong>Franchise Fee:</strong> {company.opportunity?.franchise_fee != null ? formatValue(company.opportunity.franchise_fee, "currency") : 'Not specified'}</p>
-        <p><strong>Royalty Fee Structure:</strong> {company.opportunity?.royalty_fee_structure}</p>
-        <p><strong>Average Annual Revenue:</strong> {company.opportunity?.avg_annual_revenue != null ? formatValue(company.opportunity.avg_annual_revenue, "currency") : 'Not specified'}</p>
-        <p><strong>Target Markets:</strong> {company.opportunity?.target_markets}</p>
-        <p><strong>Training Support:</strong> {company.opportunity?.training_support}</p>
-        <p><strong>Franchise Term:</strong> {company.opportunity?.franchise_term}</p>
-        <p><strong>Unique Selling Points:</strong> {company.opportunity?.unique_selling_points}</p>
-      </section>
+      {/* Content Sections */}
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Basic Information and Company Background side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Basic Information */}
+          <section className="bg-card rounded-lg border p-6">
+            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Basic Information</h2>
+            {renderTable([
+              { key: "description", label: "Description", value: company.description },
+              { key: "year_founded", label: "Year Founded", value: company.year_founded },
+              { key: "num_franchise_locations", label: "Number of Franchise Locations", value: company.num_franchise_locations },
+              { key: "city", label: "City", value: company.city },
+              { key: "state_province", label: "State/Province", value: company.state_province },
+              { key: "zip_code", label: "Zip Code", value: company.zip_code },
+              { key: "country", label: "Country", value: company.country },
+            ])}
+          </section>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Company Background</h2>
-        <p><strong>Industry Sector:</strong> {company.background?.industry_sector}</p>
-        <p><strong>Years in Operation:</strong> {company.background?.years_in_operation}</p>
-        <p><strong>Total Revenue:</strong> {formatValue(company.background?.total_revenue || 0, "currency")}</p>
-        <p><strong>Awards:</strong> {company.background?.awards}</p>
-        <p><strong>Company History:</strong> {company.background?.company_history}</p>
-      </section>
+          {/* Company Background */}
+          <section className="bg-card rounded-lg border p-6">
+            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Company Background</h2>
+            {renderTable([
+              { key: "industry_sector", label: "Industry Sector", value: company.background?.industry_sector },
+              { key: "years_in_operation", label: "Years in Operation", value: company.background?.years_in_operation },
+              { key: "total_revenue", label: "Total Revenue", value: company.background?.total_revenue, format: "currency" },
+              { key: "awards", label: "Awards", value: company.background?.awards },
+              { key: "company_history", label: "Company History", value: company.background?.company_history },
+            ])}
+          </section>
+        </div>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Requirements</h2>
-        <p><strong>Minimum Net Worth:</strong> {company.requirements?.min_net_worth != null ? formatValue(company.requirements.min_net_worth, "currency") : 'Not specified'}</p>
-        <p><strong>Minimum Liquid Assets:</strong> {company.requirements?.min_liquid_assets != null ? formatValue(company.requirements.min_liquid_assets, "currency") : 'Not specified'}</p>
-        <p><strong>Prior Experience:</strong> {company.requirements?.prior_experience ? 'Yes' : 'No'}</p>
-        <p><strong>Experience Type:</strong> {company.requirements?.experience_type}</p>
-        <p><strong>Other Qualifications:</strong> {company.requirements?.other_qualifications}</p>
-      </section>
+        {/* Franchise Opportunity and Requirements side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <details className="bg-card rounded-lg border">
+            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Franchise Opportunity</summary>
+            <div className="p-6 pt-0">
+              {renderTable([
+                { key: "franchise_type", label: "Franchise Type", value: company.opportunity?.franchise_type },
+                { key: "min_investment", label: "Minimum Investment", value: company.opportunity?.min_investment, format: "currency" },
+                { key: "franchise_fee", label: "Franchise Fee", value: company.opportunity?.franchise_fee, format: "currency" },
+                { key: "royalty_fee_structure", label: "Royalty Fee Structure", value: company.opportunity?.royalty_fee_structure },
+                { key: "avg_annual_revenue", label: "Average Annual Revenue", value: company.opportunity?.avg_annual_revenue, format: "currency" },
+                { key: "target_markets", label: "Target Markets", value: company.opportunity?.target_markets },
+                { key: "training_support", label: "Training Support", value: company.opportunity?.training_support },
+                { key: "franchise_term", label: "Franchise Term", value: company.opportunity?.franchise_term },
+                { key: "unique_selling_points", label: "Unique Selling Points", value: company.opportunity?.unique_selling_points },
+              ])}
+            </div>
+          </details>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Marketing Information</h2>
-        <p><strong>Listing Title:</strong> {company.marketing?.listing_title}</p>
-        <p><strong>Listing Description:</strong> {company.marketing?.listing_description}</p>
-        <p><strong>Target Profile:</strong> {company.marketing?.target_profile}</p>
-        <p><strong>Preferred Contact Method:</strong> {company.marketing?.preferred_contact_method}</p>
-      </section>
+          <details className="bg-card rounded-lg border">
+            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Requirements</summary>
+            <div className="p-6 pt-0">
+              {renderTable([
+                { key: "min_net_worth", label: "Minimum Net Worth", value: company.requirements?.min_net_worth, format: "currency" },
+                { key: "min_liquid_assets", label: "Minimum Liquid Assets", value: company.requirements?.min_liquid_assets, format: "currency" },
+                { key: "prior_experience", label: "Prior Experience", value: company.requirements?.prior_experience ? 'Yes' : 'No' },
+                { key: "experience_type", label: "Experience Type", value: company.requirements?.experience_type },
+                { key: "other_qualifications", label: "Other Qualifications", value: company.requirements?.other_qualifications },
+              ])}
+            </div>
+          </details>
+        </div>
 
-      <section className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
-        <p><strong>Contact Name:</strong> {company.user?.first_name} {company.user?.last_name}</p>
-        <p><strong>Email:</strong> {company.user?.email}</p>
-      </section>
-    </div>
+        {/* Marketing Information and Contact Information side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <details className="bg-card rounded-lg border">
+            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Marketing Information</summary>
+            <div className="p-6 pt-0">
+              {renderTable([
+                { key: "listing_title", label: "Listing Title", value: company.marketing?.listing_title },
+                { key: "listing_description", label: "Listing Description", value: company.marketing?.listing_description },
+                { key: "target_profile", label: "Target Profile", value: company.marketing?.target_profile },
+                { key: "preferred_contact_method", label: "Preferred Contact Method", value: company.marketing?.preferred_contact_method },
+              ])}
+            </div>
+          </details>
+
+          <details className="bg-card rounded-lg border">
+            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Contact Information</summary>
+            <div className="p-6 pt-0">
+              {renderTable([
+                { key: "contact_name", label: "Contact Name", value: `${company.user?.first_name} ${company.user?.last_name}` },
+                { key: "email", label: "Email", value: company.user?.email },
+              ])}
+            </div>
+          </details>
+        </div>
+
+        {/* Documents Section - Only visible to admin and company */}
+        <PermissionGate permission="view_company_dashboard" fallback={null}>
+          <section className="bg-card rounded-lg border p-6">
+            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Documents</h2>
+            {company.documents ? (
+              <ul className="space-y-3">
+                {[
+                  { label: "DTI/SBC", path: company.documents.dti_sbc_path },
+                  { label: "BIR 2303", path: company.documents.bir_2303_path },
+                  { label: "IPO Registration", path: company.documents.ipo_registration_path },
+                ].map((doc, index) => (
+                  <li key={index} className="flex items-center justify-between rounded-lg border p-3 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      {doc.path && doc.path.match(/\.(jpg|jpeg|png)$/i) ? (
+                        <img
+                          src={`/storage/${doc.path}`}
+                          alt={doc.label}
+                          className="h-12 w-12 object-cover rounded border dark:border-gray-700"
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{doc.label}</span>
+                      )}
+                    </div>
+                    {doc.path ? (
+                      <Button
+                        variant="secondary"
+                        onClick={() => window.open(`/storage/${doc.path}`, "_blank")}
+                      >
+                        View File
+                      </Button>
+                    ) : (
+                      <span className="text-sm text-gray-500">Not uploaded</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No documents available</p>
+            )}
+          </section>
+        </PermissionGate>
+      </div>
+      </div>
+    </>
   );
 };
 

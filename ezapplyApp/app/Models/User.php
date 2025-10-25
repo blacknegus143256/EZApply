@@ -121,4 +121,15 @@ public function creditTransactions()
     return $this->hasMany(CreditTransaction::class);
 }
 
+    public function checkProfileStatus()
+    {
+        $hasBasicInfo = $this->basicInfo && $this->basicInfo->first_name ? true : false;
+        $hasFinancial = $this->financial && $this->financial->income_source ? true : false;
+
+        return [
+            'complete' => $hasBasicInfo && $hasFinancial,
+            'hasAnyData' => $hasBasicInfo || $hasFinancial,
+        ];
+    }
+
 }

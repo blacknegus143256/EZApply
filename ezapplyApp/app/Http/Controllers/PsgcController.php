@@ -7,24 +7,24 @@ class PsgcController extends Controller
 {
     public function regions()
     {
-        $response = Http::get('https://psgc.cloud/api/regions');
+        $response = Http::get('https://psgc.gitlab.io/api/regions');
         return $response->json();
     }
 
     public function provinces($region)
     {
-        $response = Http::get("https://psgc.cloud/api/regions/{$region}/provinces");
+        $response = Http::get("https://psgc.gitlab.io/api/regions/{$region}/provinces");
         return $response->json();
     }
 
     public function cities($province)
     {
-        $response = Http::get("https://psgc.cloud/api/provinces/{$province}/cities-municipalities");
+        $response = Http::get("https://psgc.gitlab.io/api/provinces/{$province}/cities-municipalities");
         return $response->json();
     }
     public function barangays($city)
     {
-        $response = Http::get("https://psgc.cloud/api/cities-municipalities/{$city}/barangays");
+        $response = Http::get("https://psgc.gitlab.io/api/cities-municipalities/{$city}/barangays");
         return $response->json();
     }
 }

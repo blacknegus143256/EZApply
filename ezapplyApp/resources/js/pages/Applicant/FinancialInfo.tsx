@@ -64,27 +64,25 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 
 	return (
 			<div className="p-4">
-				<div className="mb-6">
-					<h1 className="text-2xl font-bold text-black dark:text-white">Financial Information</h1>
-				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-							Primary Income Source
+							Primary Income Source *
 						</label>
 						<Input
 							type="text"
 							value={data.income_source}
 							onChange={(e) => setData("income_source", e.target.value)}
 							placeholder="e.g., Employment, Business, Freelance"
+							required
 						/>
 						{errors.income_source && (
 							<p className="text-red-600 text-sm mt-1">{errors.income_source}</p>
 						)}
 						</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monthly Income</label>
+						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monthly Income *</label>
 						<Input
 							type="text"
 							inputMode="numeric"
@@ -97,6 +95,7 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 							    onFocus={() => setEditingField("monthly_income")}
     							onBlur={() => setEditingField(null)}
 							placeholder="e.g., 1,000,000"
+							required
 						/>
 						{errors.monthly_income && <p className="text-red-600 text-sm mt-1">{errors.monthly_income}</p>}
 					</div>
@@ -119,7 +118,7 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 						{/* Monthly Expenses */}
 						<div>
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-							Monthly Expenses
+							Monthly Expenses *
 						</label>
 						<Input
 							type="text"
@@ -135,6 +134,7 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 							onFocus={() => setEditingField("monthly_expenses")}
     						onBlur={() => setEditingField(null)}
 							placeholder="e.g., 20,000"
+							required
 						/>
 						{errors.monthly_expenses && (
 							<p className="text-red-600 text-sm mt-1">
@@ -146,7 +146,7 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 						{/* Existing Loans */}
 						<div>
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-							Existing Loans
+							Existing Loans *
 						</label>
 						<Input
 							type="text"
@@ -162,11 +162,12 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
 							    onFocus={() => setEditingField("existing_loans")}
  							   onBlur={() => setEditingField(null)}
 							placeholder="e.g., 100,000"
+							required
 						/>
 						{errors.existing_loans && (
 							<p className="text-red-600 text-sm mt-1">{errors.existing_loans}</p>
 						)}
-						</div> 
+						</div>
 
 					<div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
 						<Button type="submit" disabled={processing} className="px-8">

@@ -1,12 +1,14 @@
-import React from "react";
-import { Head, usePage } from "@inertiajs/react";
+import React, { useEffect, useState } from "react";
+import { Head, usePage, router } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { BreadcrumbItem } from "@/types";
 
 interface ApplicantDetailsProps {
-  applicant: {
+  application: {
     id: number;
     status: string;
     user: {
@@ -16,7 +18,7 @@ interface ApplicantDetailsProps {
         first_name: string;
         last_name: string;
         birth_date: string;
-        phone: number;
+        phone: number | string;
         Facebook?: string;
         LinkedIn?: string;
         Viber?: string;
@@ -40,7 +42,6 @@ interface ApplicantDetailsProps {
   };
 }
 
-
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
   { title: "Company Applicants", href: "/company/applicants" },
@@ -48,120 +49,290 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ApplicantDetails() {
-    const { props } = usePage<{ application: any }>();
-    console.log("Applicant props:", props);
-
-  type FormatType = "number" | "currency";
-
-      const formatValue = (value: string | number, type: FormatType = "number") => {
-        if (type === "currency") {
-          const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
-          if (isNaN(num)) return "";
-          return new Intl.NumberFormat("en-PH", {
-            style: "currency",
-            currency: "PHP",
-          }).format(num);
-        }
-
-        // default: number formatting
-        const strValue = String(value);
-        const cleaned = strValue.replace(/[^0-9.]/g, "");
-        const parts = cleaned.split(".");
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        return parts.join(".");
-      };
-//   const { props } = usePage<{ applicant: ApplicantDetailsProps["applicant"] }>();
+  const { props } = usePage<{ application: ApplicantDetailsProps["application"], auth: { user: { credit?: { balance: number }, credits?: number } }, flash?: { success?: string } }>(); // Added flash type
   const applicant = props.application;
 
+  // UI state
+  const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
+  const [paidFields, setPaidFields] = useState<string[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedField, setSelectedField] = useState<string | null>(null);
+  const [dontAskAgain, setDontAskAgain] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState<number | null>(
+    props.auth?.user?.credit?.balance ?? props.auth?.user?.credits ?? null
+  );
+
+  const cost = 5; 
+
+  const revealField = (fieldKey: string) => {
+    setVisibleFields((prev) => ({ ...prev, [fieldKey]: true }));
+  };
+  
+  const revealBasicProfile = (key: string) => {
+    if (key === 'first_name') {
+      setVisibleFields((prev) => ({ ...prev, 'first_name': true, 'last_name': true }));
+    } else {
+      revealField(key);
+    }
+  };
+
+  const toggleFieldVisibility = (fieldKey: string) => {
+    setVisibleFields((prev) => ({ ...prev, [fieldKey]: !prev[fieldKey] }));
+  };
+
+  const maskValue = (value: any) => "********";
+
+  const formatValue = (value: string | number | undefined, type: "number" | "currency" = "number") => {
+    if (value === undefined || value === null) return "";
+    if (type === "currency") {
+      const num = typeof value === "string" ? parseFloat(String(value).replace(/,/g, "")) : value;
+      if (isNaN(Number(num))) return String(value);
+      return new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(Number(num));
+    }
+    const strValue = String(value);
+    const cleaned = strValue.replace(/[^0-9.]/g, "");
+    const parts = cleaned.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+  };
+
+  const handleViewClick = async (fieldKey: string) => {
+    if (fieldKey === 'first_name' && (visibleFields['first_name'] || visibleFields['last_name'])) return;
+    if (visibleFields[fieldKey]) return; 
+
+    if (dontAskAgain) {
+      revealBasicProfile(fieldKey);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/check-applicant-view/${applicant.id}`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+
+      // Check if the individual field is marked as paid
+      if (data.paid_fields && Array.isArray(data.paid_fields)) {
+         if (fieldKey === 'first_name' && (data.paid_fields.includes('first_name') || data.paid_fields.includes('last_name'))) {
+            revealBasicProfile(fieldKey);
+            return;
+         }
+         if (data.paid_fields.includes(fieldKey)) {
+            revealBasicProfile(fieldKey);
+            return;
+         }
+      }
+
+      setSelectedField(fieldKey);
+      setDialogOpen(true);
+    } catch (err) {
+      console.error("Failed to check field status or fetch already paid fields:", err);
+      alert("Could not check field status. Please try again.");
+    }
+  };
+
+  // Confirming payment
+  const handleConfirmPayment = () => {
+    if (!selectedField) return;
+    setLoading(true);
+
+    router.post("/view-applicant", { application_id: applicant.id, field_key: selectedField }, 
+      {
+        onSuccess: (page) => {
+          revealBasicProfile(selectedField);
+          setDialogOpen(false);
+          setLoading(false);
+
+          const newBalance = page.props?.auth?.user?.credit?.balance ?? page.props?.auth?.user?.credits ?? null;
+          if (newBalance !== undefined) setBalance(newBalance as number);
+
+          if (!paidFields.includes(selectedField)) {
+             setPaidFields((prev) => selectedField === 'first_name' ? [...prev, 'first_name', 'last_name'] : [...prev, selectedField]);
+          }
+          
+          //Alert message
+          const message = page.props?.flash?.success || "info successfully revealed!";
+          alert(message);
+        },
+        onError: (errors) => {
+          setLoading(false);
+          const msg = errors?.balance || errors?.message || "Transaction failed. Please check your credit balance.";
+          
+          //Descriptive error message
+          alert(`Transaction Failed: ${msg}`);
+        },
+        preserveScroll: true,
+        preserveState: true, 
+      }
+    );
+  };
+
+  const renderTable = (rows: { key: string; label: string; value: any; format?: "number" | "currency" }[]) => (
+    <table className="w-full text-sm">
+      <tbody>
+        {rows.map(({ key, label, value, format }) => (
+          <tr key={key} className="border-b">
+            <td className="font-medium py-2 pr-4 align-top">{label}</td>
+            <td className="py-2 pr-4 align-top">
+              {visibleFields[key] || (key === 'first_name' && visibleFields['last_name']) ? (format === "currency" ? formatValue(value, "currency") : value ?? "") : maskValue(value)}
+            </td>
+            <td className="py-2 text-right align-top">
+              {!(visibleFields[key] || (key === 'first_name' && visibleFields['last_name'])) ? (
+                <Button size="sm" variant="outline" onClick={() => handleViewClick(key)}>
+                  View
+                </Button>
+              ) : (
+                <Button size="sm" variant="ghost" onClick={() => toggleFieldVisibility(key)}>
+                  Hide
+                </Button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  useEffect(() => {
+    async function fetchPaidFields() {
+      try {
+        const res = await fetch(`/check-applicant-view/${applicant.id}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        if (Array.isArray(data.paid_fields)) {
+          setPaidFields(data.paid_fields);
+          const revealed: Record<string, boolean> = {};
+          data.paid_fields.forEach((f: string) => (revealed[f] = true));
+          setVisibleFields(revealed);
+        }
+      } catch (err) {
+        console.error("Failed to fetch paid fields:", err);
+      }
+    }
+    fetchPaidFields();
+  }, [applicant.id]);
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applicant Details" />
 
-      {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Basic Info */}
+
         <Card>
           <CardHeader>
-            <CardTitle>
-              {applicant.user?.basicinfo?.first_name}{" "}
-              {applicant.user?.basicinfo?.last_name}
-            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p><strong>Email:</strong> {applicant.user?.email}</p>
-            <p><strong>Phone:</strong> {applicant.user?.basicinfo?.phone}</p>
-            <p><strong>Birthdate:</strong> {new Date(applicant.user?.basicinfo?.birth_date).toLocaleDateString()}</p>
-            <p><strong>Status:</strong> <Badge>{applicant.status}</Badge></p>
-            <p><strong>Facebook:</strong> {applicant.user?.basicinfo?.Facebook}</p>
-            <p><strong>LinkedIn:</strong> {applicant.user?.basicinfo?.LinkedIn}</p>
-            <p><strong>Viber:</strong> {applicant.user?.basicinfo?.Viber}</p>
-          </CardContent>
-        </Card>
-
-        {/* Financial Info */}
-        <Card>
-          <CardHeader><CardTitle>Financial Information</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <p><strong>Income Source:</strong> {applicant.user?.financial?.income_source}</p>
-            <p><strong>Monthly Income:</strong> {formatValue(applicant.user?.financial?.monthly_income, "currency")}</p>
-            <p><strong>Other Income:</strong> {applicant.user?.financial?.other_income}</p>
-            <p><strong>Monthly Expenses:</strong> {formatValue(applicant.user?.financial?.monthly_expenses, "currency")}</p>
-            <p><strong>Existing Loans:</strong> {formatValue(applicant.user?.financial?.existing_loans, "currency")}</p>
-          </CardContent>
-        </Card>
-
-        {/* Affiliations */}
-        <Card>
-          <CardHeader><CardTitle>Affiliations</CardTitle></CardHeader>
           <CardContent>
-            {applicant.user?.affiliations?.length ? (
-              <ul className="list-disc ml-6">
-                {applicant.user.affiliations.map((a, i) => (
-                  <li key={i}>{a.institution} – {a.position}</li>
-                ))}
-              </ul>
+            {renderTable([
+              {key: "first_name", label: "Full Name", value: `${applicant.user?.basicinfo?.first_name} ${applicant.user?.basicinfo?.last_name}` },
+              { key: "email", label: "Email", value: applicant.user?.email },
+              { key: "phone", label: "Phone", value: applicant.user?.basicinfo?.phone },
+              {
+                key: "birth_date",
+                label: "Birthdate",
+                value: applicant.user?.basicinfo?.birth_date
+                  ? new Date(applicant.user?.basicinfo?.birth_date).toLocaleDateString()
+                  : "",
+              },
+              { key: "status", label: "Status", value: <Badge>{applicant.status}</Badge> },
+              { key: "Facebook", label: "Facebook", value: applicant.user?.basicinfo?.Facebook },
+              { key: "LinkedIn", label: "LinkedIn", value: applicant.user?.basicinfo?.LinkedIn },
+              { key: "Viber", label: "Viber", value: applicant.user?.basicinfo?.Viber },
+            ])}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Financial Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {applicant.user?.financial ? (
+              renderTable([
+                { key: "income_source", label: "Income Source", value: applicant.user.financial.income_source },
+                { key: "monthly_income", label: "Monthly Income", value: applicant.user.financial.monthly_income, format: "currency" },
+                { key: "other_income", label: "Other Income", value: applicant.user.financial.other_income },
+                { key: "monthly_expenses", label: "Monthly Expenses", value: applicant.user.financial.monthly_expenses, format: "currency" },
+                { key: "existing_loans", label: "Existing Loans", value: applicant.user.financial.existing_loans, format: "currency" },
+              ])
             ) : (
-              <p>No affiliations</p>
+              <p>No financial information</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Address */}
         <Card>
-          <CardHeader><CardTitle>Address</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Affiliations</CardTitle>
+          </CardHeader>
           <CardContent>
-            <p>
-              {applicant.user?.address?.barangay_name},{" "}
-              {applicant.user?.address?.citymun_name},{" "}
-              {applicant.user?.address?.province_name},{" "}
-              {applicant.user?.address?.region_name}
-            </p>
+            {applicant.user?.affiliations?.length
+              ? renderTable(
+                  applicant.user.affiliations.map((a, i) => ({
+                    key: `affiliation-${i}`,
+                    label: a.institution, 
+                    value: a.position,
+                  }))
+                )
+              : <p>No affiliations</p>}
           </CardContent>
         </Card>
 
-        {/* Attachments (full width) */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Address</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {applicant.user?.address ? (
+              renderTable([
+                { key: "region", label: "Region", value: applicant.user.address.region_name },
+                { key: "province", label: "Province", value: applicant.user.address.province_name },
+                { key: "city", label: "City/Municipality", value: applicant.user.address.citymun_name },
+                { key: "barangay", label: "Barangay", value: applicant.user.address.barangay_name },
+              ])
+            ) : (
+              <p>No address information</p>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="md:col-span-2">
-          <CardHeader><CardTitle>Attachments</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Attachments</CardTitle>
+          </CardHeader>
           <CardContent>
-            {applicant.user?.attachments?.length ? (
-              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {applicant.user.attachments.map((att, i) => (
-                  <li
-                    key={i}
-                    className="p-2 border rounded-lg shadow-sm bg-gray-50"
-                  >
-                    {att.attachment_type}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No attachments</p>
-            )}
+            {applicant.user?.attachments?.length
+              ? renderTable(
+                  applicant.user.attachments.map((att, i) => ({
+                    key: `attachment-${i}`,
+                    label: `Attachment ${i + 1}`,
+                    value: att.attachment_type,
+                  }))
+                )
+              : <p>No attachments</p>}
           </CardContent>
         </Card>
-
       </div>
+
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="p-6 rounded-md max-w-md mx-auto mt-5 bg-white dark:bg-neutral-800">
+          <DialogTitle className="text-lg font-bold mb-4">Confirm Transaction</DialogTitle>
+
+          <p>This will cost <strong>{cost} credits</strong>. Do you want to proceed?</p>
+
+          <div className="mt-4 flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={loading}>Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleConfirmPayment} disabled={loading}>
+              {loading ? "Processing..." : "Proceed"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

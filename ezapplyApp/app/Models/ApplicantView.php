@@ -12,6 +12,7 @@ class ApplicantView extends Model
     protected $fillable = [
         'user_id',
         'application_id',
+        'field_key',
         'paid',
     ];
 

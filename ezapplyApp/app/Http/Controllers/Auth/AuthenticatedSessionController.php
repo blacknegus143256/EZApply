@@ -47,7 +47,7 @@ class AuthenticatedSessionController extends Controller
         // 2. If no 'redirect' parameter, then use your role-based logic
         $user = Auth::user();
         if ($user->role === 'customer') {
-            return redirect()->intended('/easy-apply'); // Fallback for customers
+            return redirect()->intended('/'); // Fallback for customers
         }
 
         return redirect()->intended(route('dashboard', absolute: false)); // Fallback for others
@@ -63,6 +63,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/easy-apply');
+        return redirect('/');
     }
 }
