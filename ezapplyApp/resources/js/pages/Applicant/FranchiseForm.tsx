@@ -397,7 +397,7 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Franchise Application" />
 
-        <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md">
+        <div className="p-6 bg-across-pages dark:bg-neutral-900 rounded-xl shadow-md">
           <section className="hero">
         <h1 className="text-2xl font-bold text-white dark:text-neutral-100 mb-4">
           Looking for a Company to Franchise?
