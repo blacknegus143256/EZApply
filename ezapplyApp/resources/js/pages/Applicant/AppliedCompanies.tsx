@@ -132,7 +132,6 @@ export default function AppliedCompanies() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Company Name</TableHead>
-                      <TableHead>Representative</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Action</TableHead>
                       <TableHead>Chat</TableHead>
@@ -143,8 +142,7 @@ export default function AppliedCompanies() {
               {applications.map((a) => (
                    <TableRow key={a.id}>
                     <TableCell>
-                    <span className="flex items-center font-semibold text-gray-900 dark:text-gray-100">
-                      {/* <Building2 className="w-4 h-4 mr-1 text-blue-500" /> */}
+                    <div className="flex items-center gap-3 font-semibold text-gray-900 dark:text-gray-100">
                           <img
                             src={
                               a.company.marketing?.logo_path
@@ -152,7 +150,7 @@ export default function AppliedCompanies() {
                                 : "/background/default-logo.png"
                             }
                             alt={`${a.company.company_name} logo`}
-                            className="h-20 w-20 md:h-15 md:w-15 object-contain rounded-full border-4 border-white shadow-lg bg-gray-50 transition-transform duration-300 hover:scale-105"
+                            className="h-12 w-12 object-contain rounded-full border-2 border-white shadow-md bg-gray-50 transition-transform duration-300 hover:scale-105"
                             loading="lazy"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -160,21 +158,13 @@ export default function AppliedCompanies() {
                               target.src = "/background/default-logo.png";
                             }}
                           />
-                      {a.company.company_name}
-                    </span>
-                    </TableCell>
-                    <TableCell>
-                    <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <User className="w-4 h-4 mr-1 text-gray-400" />
-                      {a.company.user
-                        ? `${a.company.user.first_name} ${a.company.user.last_name}`
-                        : "Unknown User"}
-                    </span>
+                      <span>{a.company.company_name}</span>
+                    </div>
                     </TableCell>
                     <TableCell>
                     <StatusBadge status={a.status || "pending"} />
                     </TableCell>
-                    <TableCell className="flex gap-2">
+                    <TableCell>
                         <button className="view-btn btn-2 cursor-pointer"
                         onClick={() => handleCompanyClick(a.company, a.status)}
                         >Company Profile</button>

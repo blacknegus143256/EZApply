@@ -364,21 +364,21 @@ const handleApplySingle = (companyId: number, desired_location?: string, deadlin
     return;
       }
       if (confirm("Are you sure you want to apply?")) {
-      router.post(`/applicant/franchise/apply/${companyId}`);
-    }
-  if (applying !== null) return;
-  setApplying(companyId);
-  axios.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date })
-    .then(() => {
-      setApplied((prev) => (prev.includes(companyId) ? prev : [...prev, companyId]));
-      setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' });
-    })
-    .catch((err) => {
-      console.error('Apply failed', err);
-    })
-    .finally(() => {
-      setApplying(null);
-    });
+        if (applying !== null) return;
+        setApplying(companyId);
+        axios.post("/applicant/applications", { company_id: companyId, desired_location, deadline_date })
+          .then(() => {
+            setApplied((prev) => (prev.includes(companyId) ? prev : [...prev, companyId]));
+            setChecked((prev) => prev.filter((id) => id !== companyId)); // Deselect after apply
+            setApplyModal({ open: false, companyId: null, desired_location: '', deadline_date: '' });
+          })
+          .catch((err) => {
+            console.error('Apply failed', err);
+          })
+          .finally(() => {
+            setApplying(null);
+          });
+      }
 };
 
   const handleViewDetails = (e: React.MouseEvent, company: Company) => {
