@@ -13,7 +13,6 @@ import Services from "./services";
 import About from "./about";
 import Contact from "./contact";
 import EzNav from "./ezapply-nav";
-import { Title } from "@radix-ui/react-dialog";
 
 interface Company {
   id: number;

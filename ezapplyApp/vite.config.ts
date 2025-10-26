@@ -21,7 +21,7 @@ export default defineConfig({
         jsx: 'automatic',
     },
     server: {
-        // Allows ngrok tunnels to connect
+        host: '127.0.0.1',
         allowedHosts: ['*.ngrok-free.app'],
     },
 });
