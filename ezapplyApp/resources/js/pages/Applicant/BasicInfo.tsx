@@ -255,21 +255,19 @@ console.log("Initial address prop:", address);
 
   const formatDate = (value?: string) => {
     if (!value) return '';
-    // handle values like '2003-09-18' or '2003-09-18 00:00:00'
-    const iso = value.length > 10 ? value.slice(0, 10) : value;
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso; // fallback
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+    return date.toISOString().split('T')[0];
   };
-  const birthDatePretty = formatDate(data.birth_date);
 
 type PrimitiveFields = Exclude<
   keyof FormData,
   "users_address"
 >;
 
-  const SummaryRow = ({ label, field, type = "text" }: { label: string; field: PrimitiveFields; type?: string }) => {
+  const SummaryRow = ({ label, field, type = "text", formatter }: { label: string; field: PrimitiveFields; type?: string; formatter?: (v:any) => string }) => {
   const value = data[field] as string | number | undefined; 
+  const displayValue = formatter ? formatter(value) : value;
   return(
     <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
       <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
@@ -282,7 +280,7 @@ type PrimitiveFields = Exclude<
         className="max-w-xs"
       />
     ) : (
-      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value || '-'}</span>
+      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{displayValue || '-'}</span>
     )}
     </div>
   );
@@ -303,7 +301,7 @@ type PrimitiveFields = Exclude<
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               <SummaryRow label="First Name" field="first_name"/>
               <SummaryRow label="Last Name" field="last_name" />
-              <SummaryRow label="Birth Date" field="birth_date" type="date"/>
+              <SummaryRow label="Birth Date" field="birth_date" type="date" formatter={formatDate} />
               <SummaryRow label="Phone" field="phone" />
               <SummaryRow label="Facebook" field="Facebook" />
               <SummaryRow label="LinkedIn" field="LinkedIn" />
@@ -384,7 +382,7 @@ type PrimitiveFields = Exclude<
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 <SummaryRow label="First Name" field="first_name" />
                 <SummaryRow label="Last Name" field="last_name" />
-                <SummaryRow label="Birth Date" field="birth_date" />
+                <SummaryRow label="Birth Date" field="birth_date" formatter={formatDate} />
                 <SummaryRow label="Phone" field="phone" />
                 <SummaryRow label="Facebook" field="Facebook" />
                 <SummaryRow label="LinkedIn" field="LinkedIn" />

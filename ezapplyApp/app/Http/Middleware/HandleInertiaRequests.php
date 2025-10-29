@@ -106,7 +106,12 @@ class HandleInertiaRequests extends Middleware
             'hasAnyData' => true,
         ];
     }
-
+     if ($user->hasRole('super_admin')) {
+        return [
+            'complete' => true,
+            'hasAnyData' => true,
+        ];
+    }
     $user->loadMissing([
         'basicInfo',
         'financial',
