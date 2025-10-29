@@ -7,10 +7,16 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   cost: number;
   balance: number;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void> | void;
 };
 
-export default function PaymentConfirmationDialog({ open, onOpenChange, cost, balance, onConfirm }: Props) {
+export default function PaymentConfirmationDialog({
+  open,
+  onOpenChange,
+  cost,
+  balance,
+  onConfirm,
+}: Props) {
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -19,9 +25,14 @@ export default function PaymentConfirmationDialog({ open, onOpenChange, cost, ba
       return;
     }
     setLoading(true);
-    await onConfirm();
-    setLoading(false);
-    onOpenChange(false);
+    try {
+      await onConfirm();
+    } catch (err) {
+      console.error("Purchase failed:", err);
+    } finally {
+      setLoading(false);
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -31,7 +42,7 @@ export default function PaymentConfirmationDialog({ open, onOpenChange, cost, ba
         <p>This will cost <strong>{cost} credits</strong>. Do you want to proceed?</p>
         <div className="mt-4 flex justify-end gap-2">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={loading}>Cancel</Button>
           </DialogClose>
           <Button onClick={handleConfirm} disabled={loading}>
             {loading ? "Processing..." : "Proceed"}

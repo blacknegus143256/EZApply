@@ -1,138 +1,64 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
-import "../../../../css/easyApply.css";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
+    Card, CardContent, CardHeader, CardTitle
 } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User, Mail, Calendar, Settings } from "lucide-react";
+import { Loader2, User, Mail, Calendar, Settings, Building } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import ChatButton from "@/components/ui/chat-button";
-import ViewProfileDialog from "@/components/ViewProfileDialog";
-import { Application } from "@/types/applicants";
+import PaymentConfirmationDialog from "../PaymentConfirm";
+
+
+type CompanyDetails = {
+    id: number;
+    company_name: string;
+    brand_name?: string;
+    city?: string;
+    state_province?: string;
+    zip_code?: string;
+    country?: string;
+    company_website?: string;
+    description?: string;
+    year_founded?: number;
+    num_franchise_locations?: number;
+    status?: string;
+    user?: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        email: string;
+    };
+    opportunity?: any; 
+    background?: any;
+    requirements?: any;
+    marketing?: {
+        listing_title?: string;
+        listing_description?: string;
+        logo_path?: string;
+        target_profile?: string;
+        preferred_contact_method?: string;
+    };
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: "Dashboard", href: "/dashboard" },
     { title: "Company Applicants", href: "/company/applicants" },
 ];
 
-type ApplicantData = {
-    user: any;
-    id: number;
-    status: string;
-    created_at: string;
-};
-
-const statusOptions = ["pending", "approved", "rejected", "interested"];
-
-const ApplicantCard: React.FC<{ 
-    applicant: ApplicantData; 
-    maskValue: (value: any) => string;
-    visibleFields: Record<string, boolean>;
-    handleStatusChange: (id: number, status: string) => void;
-    handleCustomerClick: (application: any) => void;
-}> = ({ applicant, maskValue, visibleFields, handleStatusChange, handleCustomerClick }) => {
-    
-    const firstName = applicant.user?.basicinfo?.first_name ?? "";
-    const lastName = applicant.user?.basicinfo?.last_name ?? "";
-    const fullName = `${firstName} ${lastName}`;
-    const email = applicant.user?.email ?? "N/A";
-    const createdDate = applicant.created_at ? new Date(applicant.created_at).toLocaleDateString() : "N/A";
-
-    const showName = visibleFields?.first_name || visibleFields?.last_name;
-    const showEmail = visibleFields?.email;
-
-    return (
-        <Card className="mb-3 shadow-sm border-2 dark:border-neutral-700">
-            <CardHeader className="p-4 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-500"/>
-                    {showName ? fullName : maskValue("name")} 
-                </CardTitle>
-            </CardHeader>
-
-            <CardContent className="p-4 pt-0 space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                
-                {/* Email */}
-                <div className="flex items-center justify-between border-t pt-3 border-gray-100 dark:border-neutral-800">
-                    <span className="flex items-center gap-2 font-medium">
-                        <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        Email:
-                    </span>
-                    <strong className="text-gray-900 dark:text-white">
-                        {showEmail ? email : maskValue("email")}
-                    </strong>
-                </div>
-
-                {/* Created Date */}
-                <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 font-medium">
-                        <Calendar className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        Applied On:
-                    </span>
-                    <strong className="text-gray-900 dark:text-white">{createdDate}</strong>
-                </div>
-
-                {/* Status*/}
-                <div className="flex flex-col items-start gap-2 border-t pt-3">
-                    <span className="flex items-center gap-2 font-medium">
-                        <Settings className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        Update Status:
-                    </span>
-                    <div className="flex flex-col gap-1 w-full">
-                        <select
-                            value={applicant.status}
-                            onChange={(e) => handleStatusChange(applicant.id, e.target.value)}
-                            className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm p-1.5 w-full"
-                        >
-                            {statusOptions.map((status) => (
-                                <option key={status} value={status}>
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="mt-1 flex justify-center">
-                            {applicant.status === "pending" && <Badge variant="secondary">Pending 🟡</Badge>}
-                            {applicant.status === "approved" && <Badge variant="secondary">Approved 🟢</Badge>}
-                            {applicant.status === "rejected" && <Badge variant="destructive">Rejected 🔴</Badge>}
-                            {applicant.status === "interested" && <Badge variant="outline">Interested 🔵</Badge>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="pt-3 flex flex-col gap-2">
-                    <Button 
-                        onClick={() => handleCustomerClick(applicant as unknown as Application)} 
-                        className="view-btn btn-2 cursor-pointer w-full text-sm"
-                    >
-                        View Applicant Profile
-                    </Button>
-                    <ChatButton status={applicant.status} userId={applicant.user?.id} className="w-full text-sm" />
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
+const PURCHASE_COST = 1; 
+const statusOptions = ["pending", "approved", "rejected", "interested", "paid"]; 
 
 export default function CompanyApplicants() {
     const { props } = usePage<any>();
     const applicants = props.applicants ?? [];
+    const user = props.auth?.user ?? null;
+    const userBalance = props.auth?.user?.credit?.balance ?? props.auth?.user?.credits ?? 0;
 
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
@@ -140,103 +66,68 @@ export default function CompanyApplicants() {
     const [loading, setLoading] = useState(false);
     const [error] = useState<string | null>(null);
 
-    const [selectedApplicant, setSelectedApplicant] = useState<Application | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [paidFieldsMap, setPaidFieldsMap] = useState<Record<number, string[]>>({});
+    const [visibleMap, setVisibleMap] = useState<Record<number, Record<string, boolean>>>({});
 
-    const [visibleFields, setVisibleFields] = useState<Record<number, Record<string, boolean>>>({});
-    const [paidFields, setPaidFields] = useState<Record<number, string[]>>({});
+    const [confirmationOpen, setConfirmationOpen] = useState(false);
+    const [toBuyApplicantId, setToBuyApplicantId] = useState<number | null>(null);
 
-    const maskValue = (value: any) => "********";
+    useEffect(() => {
+        let mounted = true;
+        async function loadPaid() {
+            if (!applicants?.length) return;
+            setLoading(true);
+            try {
+                const promises = applicants.map(async (a: any) => {
+                    const res = await fetch(`/check-applicant-view/${a.id}`);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    return { id: a.id, paid_fields: data.paid_fields || [] };
+                });
+                const results = await Promise.all(promises);
+                if (!mounted) return;
+                const pf: Record<number, string[]> = {};
+                const vm: Record<number, Record<string, boolean>> = {};
+                results.forEach((r) => {
+                    if (r) {
+                        pf[r.id] = r.paid_fields;
+                        vm[r.id] = {};
+                        r.paid_fields.forEach((f: string) => (vm[r.id][f] = true));
+                    }
+                });
+                setPaidFieldsMap(pf);
+                setVisibleMap(vm);
+            } catch (err) {
+                console.error("Failed to load paid fields", err);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        }
+        loadPaid();
+        return () => { mounted = false; };
+    }, [applicants]);
 
     const filteredApplicants = useMemo(() => {
-        return applicants.filter((a: any) =>{
+        return applicants.filter((a: any) => {
             const firstName = a.user?.basicinfo?.first_name ?? "";
             const lastName = a.user?.basicinfo?.last_name ?? "";
             const email = a.user?.email ?? "";
-            const fullName = `${firstName} ${lastName} ${email}`.toLowerCase();
-
-            const matchesSearch = fullName.includes(searchTerm.toLowerCase());
+            const brandName = a.user?.brand_name ?? "";
+            const full = `${firstName} ${lastName} ${email} ${brandName}`.toLowerCase();
+            const matchesSearch = full.includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "" || a.status === statusFilter;
-
-            let matchesCreatedAt = true;
+            let matchesCreated = true;
             if (createdAtFilter) {
-                if (a.created_at) {
-                    matchesCreatedAt = a.created_at.includes(createdAtFilter);
-                } else {
-                    matchesCreatedAt = false;
-                }
+                matchesCreated = a.created_at ? a.created_at.includes(createdAtFilter) : false;
             }
-            return matchesSearch && matchesStatus && matchesCreatedAt;
+            return matchesSearch && matchesStatus && matchesCreated;
         });
     }, [applicants, searchTerm, statusFilter, createdAtFilter]);
 
-        useEffect(() => {
-        let isMounted = true; 
-        
-        async function fetchPaidFields() {
-            if (!isMounted) return;
-
-            setLoading(true);
-            
-            const newPaidFields: Record<number, string[]> = {};
-            const newVisibleFields: Record<number, Record<string, boolean>> = {};
-            
-            try {
-                const fetchPromises = applicants.map(async (applicant: any) => {
-                    const res = await fetch(`/check-applicant-view/${applicant.id}`); 
-                    
-                    if (!res.ok) {
-                        console.error(`API call failed for ID ${applicant.id}. Status: ${res.status}`);
-                        return null;
-                    }
-                    
-                    const data = await res.json();
-                    
-                    if (Array.isArray(data.paid_fields)) {
-                        const revealed: Record<string, boolean> = {};
-                        data.paid_fields.forEach((f: string) => (revealed[f] = true));
-                        
-                        return { 
-                            id: applicant.id, 
-                            paid_fields: data.paid_fields, 
-                            visible_fields: revealed 
-                        };
-                    }
-                    return null;
-                });
-                
-                const results = await Promise.all(fetchPromises);
-                
-                results.forEach(result => {
-                    if (result) {
-                        newPaidFields[result.id] = result.paid_fields;
-                        newVisibleFields[result.id] = result.visible_fields;
-                    }
-                });
-
-                if (isMounted) {
-                    setPaidFields((prev) => ({ ...prev, ...newPaidFields }));
-                    setVisibleFields((prev) => ({ ...prev, ...newVisibleFields }));
-                }
-                
-            } catch (err) {
-                if (isMounted) {
-                    console.error("Critical error during batch fetch:", err);
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
-        }
-
-        if (applicants.length > 0) fetchPaidFields();
-        
-        return () => {
-            isMounted = false;
-        };
-        
-    }, [applicants]);
+    const openBuyDialog = (appId: number) => {
+        setToBuyApplicantId(appId);
+        setConfirmationOpen(true);
+    };
 
     const handleStatusChange = (id: number, status: string) => {
         router.put(`/company/applicants/${id}/status`, { status }, {
@@ -244,18 +135,44 @@ export default function CompanyApplicants() {
         });
     };
 
-    const handleCustomerClick = (application : any) => {
-        setSelectedApplicant(application);
-        setIsDialogOpen(true);
-    }
+    const handleConfirmBuy = async () => {
+        if (!toBuyApplicantId) return;
+        setLoading(true);
+        try {
+            await router.post(
+                "/view-applicant",
+                {
+                    application_id: toBuyApplicantId,
+                    field_key: "basic_profile", 
+                },
+                {
+                    preserveScroll: true,
+                    onStart: () => setLoading(true),
+                    onSuccess: (page) => {
+                        router.reload({ only: ["applicants", "auth"] });
+                    },
+                    onError: (errors) => {
+                        console.error("Buy failed:", errors);
+                        alert(errors?.message || "Purchase failed.");
+                    },
+                    onFinish: () => setLoading(false),
+                }
+            );
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setToBuyApplicantId(null);
+            setConfirmationOpen(false);
+            setLoading(false);
+        }
+    };
 
-    const renderTableRows = () => {
-        if (loading) {
+    const renderRows = () => {
+        if (loading && filteredApplicants.length === 0) {
             return (
                 <TableRow>
                     <TableCell colSpan={5} className="text-center">
-                        <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
-                        Loading applicants...
+                        <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading...
                     </TableCell>
                 </TableRow>
             );
@@ -263,116 +180,92 @@ export default function CompanyApplicants() {
         if (error) {
             return (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center text-red-500">
-                        {error}
-                    </TableCell>
+                    <TableCell colSpan={5} className="text-center text-red-500">{error}</TableCell>
                 </TableRow>
             );
         }
-        if (filteredApplicants.length === 0) {
+        if (!filteredApplicants.length) {
             return (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center text-gray-500">
-                        No applicants found matching your criteria.
-                    </TableCell>
+                    <TableCell colSpan={5} className="text-center text-gray-500">No applicants found matching your criteria.</TableCell>
                 </TableRow>
             );
         }
-        
+
         return filteredApplicants.map((a: any) => {
-            const showName = visibleFields[a.id]?.first_name || visibleFields[a.id]?.last_name;
-            const showEmail = visibleFields[a.id]?.email;
-            
+            const purchased = Array.isArray(paidFieldsMap[a.id]) && paidFieldsMap[a.id].includes("basic_profile");
+            const applicantUserId = a.user?.id ?? null;
             return (
-                <TableRow key={a.user?.id ?? a.id}>
+                <TableRow key={a.id}>
                     <TableCell className="font-medium">
-                        {showName ? 
-                            `${a.user?.basicinfo?.first_name ?? ""} ${a.user?.basicinfo?.last_name ?? ""}` : 
-                            maskValue("name")
-                        }
+                        {a.user?.basicinfo?.first_name ? `${a.user.basicinfo.first_name} ${a.user.basicinfo.last_name}` : "N/A"}
                     </TableCell>
+                    <TableCell>{a.company?.brand_name ?? "N/A"}</TableCell>
                     <TableCell>
-                        {showEmail ? a.user?.email ?? "No email" : maskValue("email")}
-                    </TableCell>
-                    <TableCell>
-                        <select
-                            value={a.status}
-                            onChange={(e) => handleStatusChange(a.id, e.target.value)}
-                            className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm"
-                        >
-                            {statusOptions.map((status) => (
-                                <option key={status} value={status}>
-                                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="mt-1">
-                            {a.status === "pending" && <Badge variant="secondary">Pending 🟡</Badge>}
-                            {a.status === "approved" && <Badge variant="secondary">Approved 🟢</Badge>}
-                            {a.status === "rejected" && <Badge variant="destructive">Rejected 🔴</Badge>}
-                            {a.status === "interested" && <Badge variant="outline">Interested 🔵</Badge>}
+                        <div className="flex flex-col gap-1">
+                            <select
+                                value={a.status}
+                                onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                                className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm px-2 py-1.5 w-full min-w-[150px]"
+                            >
+                                {statusOptions.map((status) => (
+                                    <option key={status} value={status}>
+                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="mt-1">
+                                {a.status === "pending" && <Badge variant="secondary">Pending</Badge>}
+                                {a.status === "approved" && <Badge className="bg-green-500 hover:bg-green-500">Approved</Badge>}
+                                {a.status === "rejected" && <Badge variant="destructive" className="text-white">Rejected</Badge>}
+                                {a.status === "interested" && <Badge variant="outline">Interested</Badge>}
+                                {a.status === "paid" && <Badge className="bg-yellow-600">Paid</Badge>}
+                            </div>
                         </div>
                     </TableCell>
                     <TableCell>{a.created_at ? new Date(a.created_at).toLocaleDateString() : "N/A"}</TableCell>
-                    <TableCell className="min-w-[200px]">
+                    <TableCell className="min-w-[220px]">
                         <div className="flex items-center gap-2">
-                            <Button onClick={() => handleCustomerClick(a as unknown as Application)} className="view-btn btn-2 cursor-pointer">
-                                Profile
-                            </Button>
-                            <ChatButton status={a.status} userId={a.user?.id} />
+                            {purchased ? (
+                                <a href={`/company/applicants/${a.id}/profile`} className="inline-block">
+                                    <Button className="view-btn btn-2">Applicant Profile</Button>
+                                </a>
+                            ) : (
+                                <Button onClick={() => openBuyDialog(a.id)} className="bg-green-600 hover:bg-green-700 text-white">
+                                    Buy Info
+                                </Button>
+                            )}
+                            <ChatButton status={a.status} userId={applicantUserId} />
                         </div>
                     </TableCell>
                 </TableRow>
             );
         });
     };
-    
+
     return (
-        <PermissionGate
-            permission="view_dashboard"
-            role="company"
-            fallback={<div className="p-6">You don't have permission to access this page.</div>}
-        >
+        <PermissionGate permission="view_dashboard" role="company" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Company Applicants" />
                 <div className="bg-across-pages min-h-screen p-5">
                     <Card className="rounded-xl shadow-lg dark:bg-neutral-900">
                         <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 p-4 md:p-6">
                             <CardTitle className="text-2xl font-bold">Company Applicants</CardTitle>
-                            
-                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto items-start"> 
-                                
-                                <Input
-                                    type="text"
-                                    placeholder="Search applicant..."
-                                    className="w-full sm:w-auto min-w-[160px]"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                
-                                <Input
-                                    type="date"
-                                    placeholder="Filter by created date..."
-                                    className="w-full sm:w-auto min-w-[140px]"
-                                    value={createdAtFilter}
-                                    onChange={(e) => setCreatedAtFilter(e.target.value)}
-                                />
-                                
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm px-3 py-2 h-10 w-full sm:w-auto min-w-[120px]"
-                                >
+                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto items-start">
+                                <Input placeholder="Search applicant..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full sm:w-auto min-w-[160px]" />
+                                <Input type="date" placeholder="Filter by created date..." value={createdAtFilter} onChange={(e) => setCreatedAtFilter(e.target.value)} className="w-full sm:w-auto min-w-[140px]" />
+                                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm px-3 py-2 h-10 w-full sm:w-auto min-w-[120px]">
                                     <option value="">All Statuses</option>
-                                    {statusOptions.map((status) => (
-                                        <option key={status} value={status}>
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                                        </option>
-                                    ))}
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="interested">Interested</option>
+                                    <option value="paid">Paid</option>
                                 </select>
                             </div>
                         </CardHeader>
-                        
+
                         <hr className="border-gray-200 dark:border-neutral-800" />
 
                         <CardContent className="p-0">
@@ -381,49 +274,85 @@ export default function CompanyApplicants() {
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead className="min-w-[150px]">Name</TableHead>
-                                            <TableHead className="min-w-[150px]">Email</TableHead>
+                                            <TableHead className="min-w-[150px]">Brand Name</TableHead>
                                             <TableHead className="min-w-[200px]">Status</TableHead>
-                                            <TableHead className="min-w-[120px]">Created At</TableHead>
+                                            <TableHead className="min-w-[120px]">Applied On</TableHead>
                                             <TableHead className="min-w-[220px]">Action</TableHead>
                                         </TableRow>
                                     </TableHeader>
-                                    <TableBody>
-                                        {renderTableRows()}
-                                    </TableBody>
+                                    <TableBody>{renderRows()}</TableBody>
                                 </Table>
                             </div>
 
+                            {/* for mobile */}
                             <div className="md:hidden p-4 space-y-3">
                                 {loading ? (
-                                    <div className="text-center text-gray-500 p-4">
-                                        <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
-                                        Loading applicants...
-                                    </div>
+                                    <div className="text-center text-gray-500 p-4"><Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />Loading applicants...</div>
                                 ) : filteredApplicants.length === 0 ? (
-                                    <p className="text-center text-gray-500 p-4">
-                                        No applicants found matching your criteria.
-                                    </p>
+                                    <p className="text-center text-gray-500 p-4">No applicants found matching your criteria.</p>
                                 ) : (
-                                    filteredApplicants.map((a: any) => (
-                                        <ApplicantCard 
-                                            key={a.user?.id ?? a.id} 
-                                            applicant={a} 
-                                            maskValue={maskValue}
-                                            visibleFields={visibleFields[a.id] || {}}
-                                            handleStatusChange={handleStatusChange}
-                                            handleCustomerClick={handleCustomerClick}
-                                        />
-                                    ))
+                                    filteredApplicants.map((a: any) => {
+                                        const purchased = Array.isArray(paidFieldsMap[a.id]) && paidFieldsMap[a.id].includes("basic_profile");
+                                        return (
+                                            <Card key={a.id} className="mb-3 shadow-sm border-2 dark:border-neutral-700">
+                                                <CardHeader className="p-4 flex items-center justify-between">
+                                                    <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                                        <User className="w-5 h-5 text-blue-500" />
+                                                        {a.user?.basicinfo?.first_name ?? "N/A"} {a.user?.basicinfo?.last_name ?? ""}
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent className="p-4 pt-0 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                                                    
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="flex items-center gap-2 font-medium"><Building className="h-4 w-4" /> Brand Name</span>
+                                                        <strong>{a.company?.brand_name ?? "N/A"}</strong>
+                                                    </div>
+                                                    
+                                                    <div className="flex flex-col gap-1 border-t pt-3">
+                                                         <label className="text-xs font-medium">Application Status</label>
+                                                         <select
+                                                            value={a.status}
+                                                            onChange={(e) => handleStatusChange(a.id, e.target.value)}
+                                                            className="rounded-md border-gray-300 dark:border-neutral-600 dark:bg-neutral-800 text-sm px-2 py-1.5 w-full"
+                                                        >
+                                                            {statusOptions.map((status) => (
+                                                                <option key={status} value={status}>
+                                                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                         <div className="mt-1">
+                                                            {a.status === "pending" && <Badge variant="secondary">Pending</Badge>}
+                                                            {a.status === "approved" && <Badge className="bg-green-500 hover:bg-green-500">Approved</Badge>}
+                                                            {a.status === "rejected" && <Badge variant="destructive" className="text-white">Rejected</Badge>}
+                                                            {a.status === "interested" && <Badge variant="outline">Interested</Badge>}
+                                                            {a.status === "paid" && <Badge className="bg-yellow-600">Paid</Badge>}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="pt-3 flex gap-2">
+                                                        {purchased ? (
+                                                            <a href={`/company/applicants/${a.id}/profile`} className="flex-1"><Button className="w-full">Applicant Profile</Button></a>
+                                                        ) : (
+                                                            <Button onClick={() => openBuyDialog(a.id)} className="bg-green-600 hover:bg-green-700 text-white flex-1">Buy Info</Button>
+                                                        )}
+                                                        <ChatButton status={a.status} userId={a.user?.id} />
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })
                                 )}
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Modal */}
-                    <ViewProfileDialog
-                        open={isDialogOpen}
-                        onOpenChange={setIsDialogOpen}
-                        application={selectedApplicant}
+                    <PaymentConfirmationDialog
+                        open={confirmationOpen}
+                        onOpenChange={setConfirmationOpen}
+                        cost={PURCHASE_COST}
+                        balance={userBalance}
+                        onConfirm={handleConfirmBuy}
                     />
                 </div>
             </AppLayout>
