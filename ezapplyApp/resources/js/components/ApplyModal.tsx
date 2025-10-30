@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useProfileStatus } from '@/hooks/useProfileStatus';
 import { router } from '@inertiajs/react';
-
+import '../../css/easyApply.css';
 interface Region {
   code: string;
   name: string;
@@ -34,6 +34,11 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
   const [cities, setCities] = useState<Region[]>([]);
   const [barangays, setBarangays] = useState<Region[]>([]);
 
+  const [isRegionsLoading, setIsRegionsLoading] = useState(false);
+  const [isProvincesLoading, setIsProvincesLoading] = useState(false);
+  const [isCitiesLoading, setIsCitiesLoading] = useState(false);
+  const [isBarangaysLoading, setIsBarangaysLoading] = useState(false);
+
   const [addressCodes, setAddressCodes] = useState<{
     region_code: string;
     region_name: string;
@@ -58,10 +63,12 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
 
   useEffect(() => {
     if (isOpen && regions.length === 0) {
+      setIsRegionsLoading(true);
       fetch('/psgc/regions')
         .then((res) => res.json())
         .then(setRegions)
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsRegionsLoading(false));
     }
   }, [isOpen]);
 
@@ -81,10 +88,12 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
     setCities([]);
     setBarangays([]);
     if (regionCode) {
+      setIsProvincesLoading(true);
       fetch(`/psgc/regions/${regionCode}/provinces`)
         .then(r => r.json())
         .then(setProvinces)
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsProvincesLoading(false));
     }
   };
 
@@ -102,10 +111,12 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
     setCities([]);
     setBarangays([]);
     if (provinceCode) {
+      setIsCitiesLoading(true);
       fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`)
         .then(r => r.json())
         .then(setCities)
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsCitiesLoading(false));
     }
   };
 
@@ -120,10 +131,12 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
     }));
     setBarangays([]);
     if (cityCode) {
+      setIsBarangaysLoading(true);
       fetch(`/psgc/cities-municipalities/${cityCode}/barangays`)
         .then(r => r.json())
         .then(setBarangays)
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsBarangaysLoading(false));
     }
   };
 
@@ -222,58 +235,103 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs text-neutral-500 mb-1">Region</label>
+                    <div className="relative">
                     <select
                       className="w-full rounded-lg border px-3 py-2"
                       value={addressCodes.region_code}
                       onChange={(e) => onRegionChange(e.target.value)}
+                      disabled={isRegionsLoading}
                     >
+                      {isRegionsLoading ? (
+                        <option value="" disabled>Loading regions...</option>
+                      ) : (
+                        <>
                       <option value="">Select Region</option>
                       {regions.map((r) => (
                         <option key={r.code} value={r.code}>{r.name}</option>
                       ))}
+                      </>
+                      )}
                     </select>
+                      {isRegionsLoading && (
+                      <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-500 mb-1">Province</label>
+                    <div className="relative">
                     <select
                       className="w-full rounded-lg border px-3 py-2"
                       value={addressCodes.province_code}
                       onChange={(e) => onProvinceChange(e.target.value)}
-                      disabled={!addressCodes.region_code}
+                      disabled={!addressCodes.region_code || isProvincesLoading}
                     >
+                      {isProvincesLoading ? (
+                        <option value="" disabled>Loading Provinces...</option>
+                      ) : (
+                        <>
                       <option value="">Select Province</option>
                       {provinces.map((p) => (
                         <option key={p.code} value={p.code}>{p.name}</option>
                       ))}
+                      </>
+                      )}
                     </select>
+                    {isProvincesLoading && (
+                        <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-500 mb-1">City / Municipality</label>
+                    <div className="relative">
                     <select
                       className="w-full rounded-lg border px-3 py-2"
                       value={addressCodes.citymun_code}
                       onChange={(e) => onCityChange(e.target.value)}
-                      disabled={!addressCodes.province_code}
+                      disabled={!addressCodes.province_code || isCitiesLoading}
                     >
+                      {isCitiesLoading ? (
+                        <option value="" disabled>Loading Cities/Municipalities...</option>
+                      ) : (
+                        <>
                       <option value="">Select City/Municipality</option>
                       {cities.map((c) => (
                         <option key={c.code} value={c.code}>{c.name}</option>
                       ))}
+                      </>
+                      )}
                     </select>
+                    {isCitiesLoading && (
+                        <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-500 mb-1">Barangay</label>
+                    <div className="relative">
                     <select
                       className="w-full rounded-lg border px-3 py-2"
                       value={addressCodes.barangay_code}
                       onChange={(e) => onBarangayChange(e.target.value)}
-                      disabled={!addressCodes.citymun_code}
+                      disabled={!addressCodes.citymun_code || isBarangaysLoading}
                     >
+                      {isBarangaysLoading ? (
+                        <option value="" disabled>Loading Barangays...</option>
+                      ) : (
+                        <>
                       <option value="">Select Barangay</option>
                       {barangays.map((b) => (
                         <option key={b.code} value={b.code}>{b.name}</option>
                       ))}
+                      </>
+                      )}
                     </select>
+                    {isBarangaysLoading && (
+                        <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

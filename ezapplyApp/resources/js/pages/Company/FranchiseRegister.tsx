@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from '@inertiajs/react';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
+import { dashboard } from '@/routes'
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import PermissionGate from '@/components/PermissionGate';
@@ -496,6 +496,7 @@ function doSubmit() {
                             citymun_code: (errors as any).citymun_code,
                             barangay_code: (errors as any).barangay_code,
                           }}
+                          showLoading={true}
                         />
                       </div>
 

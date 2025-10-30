@@ -23,13 +23,19 @@ interface AddressFormProps {
     onChange: (address: AddressData) => void;
     errors?: Record<string, string>;
     disabled?: boolean;
+    showLoading?: boolean;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disabled }) => {
+const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disabled, showLoading = false }) => {
     const [regions, setRegions] = useState<{ code: string; name: string }[]>([]);
     const [provinces, setProvinces] = useState<{ code: string; name: string }[]>([]);
     const [citiesMunicipalities, setCitiesMunicipalities] = useState<{ code: string; name: string }[]>([]);
     const [barangays, setBarangays] = useState<{ code: string; name: string }[]>([]);
+
+    const [isRegionsLoading, setIsRegionsLoading] = useState(false);
+    const [isProvincesLoading, setIsProvincesLoading] = useState(false);
+    const [isCitiesLoading, setIsCitiesLoading] = useState(false);
+    const [isBarangaysLoading, setIsBarangaysLoading] = useState(false);
 
     const postalPH = useMemo(() => usePostalPH(), []);
     const { fetchDataLists } = postalPH;
@@ -61,22 +67,26 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
 
 
     useEffect(() => {
+        setIsRegionsLoading(true);
         fetch('/psgc/regions')
             .then(res => res.json())
             .then(data => {
                 setRegions(data.map((region: any) => ({ code: region.code, name: region.name })));
             })
-            .catch(err => console.error('Error fetching regions:', err));
+            .catch(err => console.error('Error fetching regions:', err))
+            .finally(() => setIsRegionsLoading(false));
     }, []);
 
     useEffect(() => {
         if (value.region_code) {
+            setIsProvincesLoading(true);
             fetch(`/psgc/regions/${value.region_code}/provinces`)
                 .then(res => res.json())
                 .then(data => {
                     setProvinces(data.map((province: any) => ({ code: province.code, name: province.name })));
                 })
-                .catch(err => console.error('Error fetching provinces:', err));
+                .catch(err => console.error('Error fetching provinces:', err))
+                .finally(() => setIsProvincesLoading(false));
         } else {
             setProvinces([]);
         }
@@ -84,12 +94,14 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
 
     useEffect(() => {
         if (value.province_code) {
+            setIsCitiesLoading(true);
             fetch(`/psgc/provinces/${value.province_code}/cities-municipalities`)
                 .then(res => res.json())
                 .then(data => {
                     setCitiesMunicipalities(data.map((city: any) => ({ code: city.code, name: city.name })));
                 })
-                .catch(err => console.error('Error fetching cities:', err));
+                .catch(err => console.error('Error fetching cities:', err))
+                .finally(() => setIsCitiesLoading(false));
         } else {
             setCitiesMunicipalities([]);
         }
@@ -97,12 +109,14 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
 
     useEffect(() => {
         if (value.citymun_code) {
+            setIsBarangaysLoading(true);
             fetch(`/psgc/cities-municipalities/${value.citymun_code}/barangays`)
                 .then(res => res.json())
                 .then(data => {
                     setBarangays(data.map((barangay: any) => ({ code: barangay.code, name: barangay.name })));
                 })
-                .catch(err => console.error('Error fetching barangays:', err));
+                .catch(err => console.error('Error fetching barangays:', err))
+                .finally(() => setIsBarangaysLoading(false));
         } else {
             setBarangays([]);
         }
@@ -180,7 +194,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
 
     return (
         <div className="space-y-4">
-            <div>
+            <div className="relative">
                 <Label>Region</Label>
                 <Select
                     value={value.region_code}
@@ -188,7 +202,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                     disabled={disabled}
                 >
                     <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Region" />
+                        <SelectValue placeholder={showLoading && isRegionsLoading ? "Loading..." : "Select Region"} />
                     </SelectTrigger>
                     <SelectContent>
                         {regions.map(region => (
@@ -197,11 +211,14 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                             </SelectItem>
                         ))}
                     </SelectContent>
+                {showLoading && isRegionsLoading && (
+                    <div className="absolute right-8 top-8 w-5 h-5 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                )}
                 </Select>
                 <InputError message={errors?.region_code} />
             </div>
 
-            <div>
+            <div className="relative">
                 <Label>Province</Label>
                 <Select
                     value={value.province_code}
@@ -209,7 +226,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                     disabled={disabled || !value.region_code}
                 >
                     <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Province" />
+                        <SelectValue placeholder={showLoading && isProvincesLoading ? "Loading..." : "Select Province"} />
                     </SelectTrigger>
                     <SelectContent>
                         {provinces.map(province => (
@@ -219,10 +236,13 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                         ))}
                     </SelectContent>
                 </Select>
+                {showLoading && isProvincesLoading && (
+                    <div className="absolute right-8 top-8 w-5 h-5 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                )}
                 <InputError message={errors?.province_code} />
             </div>
 
-            <div>
+            <div className="relative">
                 <Label>City/Municipality</Label>
                 <Select
                     value={value.citymun_code}
@@ -230,7 +250,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                     disabled={disabled || !value.province_code}
                 >
                     <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select City/Municipality" />
+                        <SelectValue placeholder={showLoading && isCitiesLoading ? "Loading..." : "Select City/Municipality"} />
                     </SelectTrigger>
                     <SelectContent>
                         {citiesMunicipalities.map(city => (
@@ -240,10 +260,13 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                         ))}
                     </SelectContent>
                 </Select>
+                {showLoading && isCitiesLoading && (
+                    <div className="absolute right-8 top-8 w-5 h-5 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                )}
                 <InputError message={errors?.citymun_code} />
             </div>
 
-            <div>
+            <div className="relative">
                 <Label>Barangay</Label>
                 <Select
                     value={value.barangay_code}
@@ -251,7 +274,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                     disabled={disabled || !value.citymun_code}
                 >
                     <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Barangay" />
+                        <SelectValue placeholder={showLoading && isBarangaysLoading ? "Loading..." : "Select Barangay"} />
                     </SelectTrigger>
                     <SelectContent>
                         {barangays.map(barangay => (
@@ -261,6 +284,9 @@ const AddressForm: React.FC<AddressFormProps> = ({ value, onChange, errors, disa
                         ))}
                     </SelectContent>
                 </Select>
+                {showLoading && isBarangaysLoading && (
+                    <div className="absolute right-8 top-8 w-5 h-5 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                )}
                 <InputError message={errors?.barangay_code} />
             </div>
             {/* Postal Code (readonly) - commented out */}

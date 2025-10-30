@@ -7,6 +7,7 @@ import { type BreadcrumbItem } from "@/types";
 import { useForm, Head } from "@inertiajs/react";
 import { Input } from "@/components/ui/input";
 import PermissionGate from '@/components/PermissionGate';
+import { useAddressSelection } from '@/hooks/useAddressSelection';
 import '../../../css/easyApply.css';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: "Dashboard", href: dashboard() }];
@@ -62,173 +63,46 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     },
   });
 
-  const [regions, setRegions] = useState<any[]>([]);
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
-  const [barangays, setBarangays] = useState<any[]>([]);
   const [saved, setSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  const {
+    regions,
+    provinces,
+    cities,
+    barangays,
+    isRegionsLoading,
+    isProvincesLoading,
+    isCitiesLoading,
+    isBarangaysLoading,
+    addressCodes,
+    onRegionChange,
+    onProvinceChange,
+    onCityChange,
+    onBarangayChange,
+  } = useAddressSelection({
+    initialAddress: data.users_address,
+    onAddressChange: (address) => setData('users_address', address),
+  });
   
   const isNewUser = !basicInfo;
 
-  useEffect(() => {
-  fetch("/psgc/regions")
-    .then((res) => res.json())
-    .then((data) => setRegions(data))
-    .catch(() => setRegions([]));
-}, []);
 
-useEffect(() => {
-  const { region_code, province_code, citymun_code, barangay_code } = data.users_address;
-
-  if (region_code) {
-    // resolve region name immediately
-    const region = regions.find(r => r.code === region_code);
-    if (region) {
-      setData("users_address", {
-        ...data.users_address,
-        region_name: region.name,
-      });
-    }
-
-    // preload provinces
-    fetch(`/psgc/regions/${region_code}/provinces`)
-      .then((res) => res.json())
-      .then((prov) => {
-        setProvinces(prov as any[]);
-
-        if (province_code) {
-          const province = prov.find((p: any) => p.code === province_code);
-          if (province) {
-            setData("users_address", {
-              ...data.users_address,
-              province_name: province.name,
-            });
-          }
-
-          // preload cities
-          fetch(`/psgc/provinces/${province_code}/cities-municipalities`)
-            .then((res) => res.json())
-            .then((ct) => {
-              setCities(ct as any[]);
-
-              if (citymun_code) {
-                const city = ct.find((c: any) => c.code === citymun_code);
-                if (city) {
-                  setData("users_address", {
-                    ...data.users_address,
-                    citymun_name: city.name,
-                  });
-                }
-
-                // preload barangays
-                fetch(`/psgc/cities-municipalities/${citymun_code}/barangays`)
-                  .then((res) => res.json())
-                  .then((b) => {
-                    setBarangays(b as any[]);
-                    if (barangay_code) {
-                      const brgy = b.find((br: any) => br.code === barangay_code);
-                      if (brgy) {
-                        setData("users_address", {
-                          ...data.users_address,
-                          barangay_name: brgy.name,
-                        });
-                      }
-                    }
-                  })
-                  .catch(() => {});
-              }
-            })
-            .catch(() => {});
-        }
-      })
-      .catch(() => {});
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
 
   const handleRegionChange = (regionCode: string) => {
-    const region = regions.find ((r) => r.code === regionCode)
-    setData("users_address", {
-      ...data.users_address,
-      region_code: regionCode,
-      region_name: region ? region.name : "",
-      province_code: "",
-      province_name: "",
-      citymun_code: "",
-      citymun_name: "",
-      barangay_code: "",
-      barangay_name: ""
-    });
-    setProvinces([]);
-    setCities([]);
-    setBarangays([]);
-    if (regionCode) {
-      fetch(`/psgc/regions/${regionCode}/provinces`)
-        .then((res) => res.json())
-        .then((prov) => setProvinces(prov))
-        .catch(() => setProvinces([]));
-    }
-    else{
-    setProvinces([]);
-    setCities([]);
-    setBarangays([]);
-    }
+    onRegionChange(regionCode);
   };
 
   const handleProvinceChange = (provinceCode: string) => {
-    const province = provinces.find ((p) => p.code === provinceCode)
-    setData("users_address", {
-      ...data.users_address,
-      province_code: provinceCode,
-      province_name: province ? province.name : "",
-      citymun_code: "",
-      citymun_name: "",
-      barangay_code: "",
-      barangay_name: ""
-    });
-    setCities([]);
-    setBarangays([]);
-    if (provinceCode) {
-      fetch(`/psgc/provinces/${provinceCode}/cities-municipalities`)
-        .then((res) => res.json())
-        .then((ct) => setCities(ct))
-        .catch(() => setCities([]));
-    }
-    else{
-    setCities([]);
-    setBarangays([]);
-    }
+    onProvinceChange(provinceCode);
   };
 
   const handleCityChange = (cityCode: string) => {
-    const city = cities.find ((c) => c.code === cityCode)
-    setData("users_address", {
-      ...data.users_address,
-      citymun_code: cityCode,
-      citymun_name: city ? city.name : "",
-      barangay_code: "",
-      barangay_name: ""
-    });
-    setBarangays([]);
-    if (cityCode) {
-      fetch(`/psgc/cities-municipalities/${cityCode}/barangays`)
-        .then((res) => res.json())
-        .then((b) => setBarangays(b))
-        .catch (() => setBarangays([]));
-    }
-    else{
-      setBarangays([]);
-    }
+    onCityChange(cityCode);
   };
 
   const handleBarangayChange = (barangayCode: string) => {
-    const barangay = barangays.find ((b) => b.code === barangayCode)
-    setData("users_address", {
-      ...data.users_address,
-      barangay_code: barangayCode,
-      barangay_name: barangay ? barangay.name : "",
-    });
+    onBarangayChange(barangayCode);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -248,10 +122,10 @@ console.log("Initial address prop:", address);
   };
 
   const findName = (list: any[], code: string) => list.find((x) => x.code === code)?.name || '';
-  const regionName = findName(regions, data.users_address.region_code);
-  const provinceName = findName(provinces, data.users_address.province_code);
-  const cityName = findName(cities, data.users_address.citymun_code);
-  const barangayName = findName(barangays, data.users_address.barangay_code);
+  const regionName = findName(regions, addressCodes.region_code);
+  const provinceName = findName(provinces, addressCodes.province_code);
+  const cityName = findName(cities, addressCodes.citymun_code);
+  const barangayName = findName(barangays, addressCodes.barangay_code);
 
   const formatDate = (value?: string) => {
     if (!value) return '';
@@ -308,58 +182,103 @@ type PrimitiveFields = Exclude<
               <SummaryRow label="Viber" field="Viber" />
               <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Region</span>
+                <div className="relative">
                 <select
-                  value={data.users_address.region_code}
+                  value={addressCodes.region_code}
                   onChange={(e) => handleRegionChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
+                  disabled={isRegionsLoading}
                 >
+                  {isRegionsLoading ? (
+                    <option value="" disabled>Loading regions...</option>
+                  ) : (
+                    <>
                   <option value="">Select Region</option>
                   {regions.map((r) => (
                     <option key={r.code} value={r.code}>{r.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isRegionsLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
               </div>
               <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Province</span>
+                <div className="relative">
                 <select
-                  value={data.users_address.province_code}
+                  value={addressCodes.province_code}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={!data.users_address.region_code}
+                  disabled={!addressCodes.region_code || isProvincesLoading}
                 >
+                  {isProvincesLoading ? (
+                    <option value="" disabled>Loading Provinces...</option>
+                  ) : (
+                    <>
                   <option value="">Select Province</option>
                   {provinces.map((p) => (
                     <option key={p.code} value={p.code}>{p.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isProvincesLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
               </div>
               <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                 <span className="text-sm text-gray-600 dark:text-gray-400">City/Municipality</span>
+                <div className="relative">
                 <select
-                  value={data.users_address.citymun_code}
+                  value={addressCodes.citymun_code}
                   onChange={(e) => handleCityChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={!data.users_address.province_code}
+                  disabled={!addressCodes.province_code || isCitiesLoading}
                 >
+                  {isCitiesLoading ? (
+                    <option value="" disabled>Loading Cities/Municipalities...</option>
+                  ) : (
+                    <>
                   <option value="">Select City/Municipality</option>
                   {cities.map((c) => (
                     <option key={c.code} value={c.code}>{c.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isCitiesLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
               </div>
               <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Barangay</span>
+                <div className="relative">
                 <select
-                  value={data.users_address.barangay_code}
+                  value={addressCodes.barangay_code}
                   onChange={(e) => handleBarangayChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={!data.users_address.citymun_code}
+                  disabled={!addressCodes.citymun_code || isBarangaysLoading}
                 >
+                  {isBarangaysLoading ? (
+                    <option value="" disabled>Loading Barangays...</option>
+                  ) : (
+                    <>
                   <option value="">Select Barangay</option>
                   {barangays.map((b) => (
                     <option key={b.code} value={b.code}>{b.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isBarangaysLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
               </div>
             </div>
             <div className="flex justify-end mt-4">
@@ -492,65 +411,113 @@ type PrimitiveFields = Exclude<
             <div className="border p-4 rounded space-y-4">
               <div>
                 <label className="block text-sm font-medium">Region</label>
+                <div className="relative">
                 <select
                   name="users_address.region_code"
-                  value={data.users_address.region_code}
+                  value={addressCodes.region_code}
                   onChange={(e) => handleRegionChange(e.target.value)}
                   className="w-full border rounded px-3 py-2"
+                  disabled={isRegionsLoading}
                 >
+                  {isRegionsLoading ? (
+                    <option value="" disabled>Loading regions...</option>
+                  ) : (
+                    <>
                   <option value="">Select Region</option>
                   {regions.map((r) => (
                     <option key={r.code} value={r.code}>{r.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isRegionsLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
                 <ErrorText message={(errors as any)["users_address.region_code"]} />
               </div>
 
               <div>
                 <label className="block text-sm font-medium">Province</label>
+                <div className="relative">
                 <select
                   name="users_address.province_code"
-                  value={data.users_address.province_code}
+                  value={addressCodes.province_code}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                   className="w-full border rounded px-3 py-2"
+                  disabled={!addressCodes.region_code || isProvincesLoading}
                 >
+                  {isProvincesLoading ? (
+                    <option value="" disabled>Loading Provinces...</option>
+                  ) : (
+                    <>
                   <option value="">Select Province</option>
                   {provinces.map((p) => (
                     <option key={p.code} value={p.code}>{p.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isProvincesLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
                 <ErrorText message={(errors as any)["users_address.province_code"]} />
               </div>
 
               <div>
                 <label className="block text-sm font-medium">City / Municipality</label>
+                <div className="relative">
                 <select
                   name="users_address.citymun_code"
-                  value={data.users_address.citymun_code}
+                  value={addressCodes.citymun_code}
                   onChange={(e) => handleCityChange(e.target.value)}
                   className="w-full border rounded px-3 py-2"
+                  disabled={!addressCodes.province_code || isCitiesLoading}
                 >
+                  {isCitiesLoading ? (
+                    <option value="" disabled>Loading Cities/Municipalities...</option>
+                  ) : (
+                    <>
                   <option value="">Select City/Municipality</option>
                   {cities.map((c) => (
                     <option key={c.code} value={c.code}>{c.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isCitiesLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
                 <ErrorText message={(errors as any)["users_address.citymun_code"]} />
               </div>
 
               <div>
                 <label className="block text-sm font-medium">Barangay</label>
+                <div className="relative">
                 <select
                   name="users_address.barangay_code"
-                  value={data.users_address.barangay_code}
+                  value={addressCodes.barangay_code}
                   onChange={(e) => handleBarangayChange(e.target.value)}
                   className="w-full border rounded px-3 py-2"
+                  disabled={!addressCodes.citymun_code || isBarangaysLoading}
                 >
+                  {isBarangaysLoading ? (
+                    <option value="" disabled>Loading Barangays...</option>
+                  ) : (
+                    <>
                   <option value="">Select Barangay</option>
                   {barangays.map((b) => (
                     <option key={b.code} value={b.code}>{b.name}</option>
                   ))}
+                  </>
+                  )}
                 </select>
+                {isBarangaysLoading && (
+                  <div className="loader absolute right-2 top-1/2 -translate-y-1/2 scale-[0.4]"></div>
+                )}
+                </div>
                 <ErrorText message={(errors as any)["users_address.barangay_code"]} />
               </div>
             </div>
