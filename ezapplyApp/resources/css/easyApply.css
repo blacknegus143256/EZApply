@@ -815,7 +815,6 @@
 
 @media (max-width: 480px) {
   .ezapply-nav {
-    flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
   }

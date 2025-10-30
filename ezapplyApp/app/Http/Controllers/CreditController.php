@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\UserCredit;
 use App\Models\ApplicantView;
 use App\Models\CreditTransaction;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -26,13 +25,13 @@ class CreditController extends Controller
             ->orderBy('created_at', 'desc')
             ->get(); 
 
-        return Inertia::render('Credits/balancePage', [
+        return inertia('Credits/balancePage', [
             'balance' => $credits,
             'credit_transactions' => $credit_transactions, 
         ]);
     }
 
-    public function viewApplicant(Request $request)
+    public function buyInfo(Request $request, $applicationId)
     {
         $user = auth()->user();
         if (!$user) {
@@ -42,117 +41,167 @@ class CreditController extends Controller
             ], 401);
         }
 
-        $applicationId = $request->input('application_id');
-        $fieldKey = $request->input('field_key'); 
-        $cost = 5;
+        // price
+        $cost = 1;
 
-        if (!$applicationId || !$fieldKey) {
-            return back()->withErrors([
-                'message' => 'Missing application ID or field key.',
-            ]);
+        // Basic permission check
+        $application = DB::table('applications')->where('id', $applicationId)->first();
+
+        if (!$application) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Application not found.',
+            ], 404);
         }
 
-        $basicProfileFields = ['first_name', 'last_name'];
+        $isCompany = isset($user->role) && $user->role === 'company';
+        $isOwner = isset($application->user_id) && $application->user_id === $user->id;
 
-        $alreadyViewedSpecificField = ApplicantView::where('user_id', $user->id)
+        if (!($isCompany || $isOwner)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You are not authorized to purchase this applicant.',
+            ], 403);
+        }
+
+        $alreadyPurchased = ApplicantView::where('user_id', $user->id)
             ->where('application_id', $applicationId)
-            ->where('field_key', $fieldKey)
+            ->where('field_key', 'package')
             ->exists();
 
-            $allBasicFieldsViewed = false;
-        if ($fieldKey === 'basic_profile') {
-            $existingBasicViews = ApplicantView::where('user_id', $user->id)
-                ->where('application_id', $applicationId)
-                ->whereIn('field_key', $basicProfileFields)
-                ->pluck('field_key')
-                ->toArray();
-            $allBasicFieldsViewed = count(array_diff($basicProfileFields, $existingBasicViews)) === 0;
-        }
-
-        if ($alreadyViewedSpecificField || ($fieldKey === 'basic_profile' && $allBasicFieldsViewed)) {
-            return back()->with('success', 'You already paid to view this field.')
-                ->with('already_paid', true);
-        }
-
-        $userCredit = UserCredit::firstOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0]
-        );
-
-        if ($userCredit->balance < $cost) {
-            return back()->withErrors([
-                'balance' => 'Insufficient credits. Current balance: ' . $userCredit->balance,
+        if ($alreadyPurchased) {
+            $userCredit = UserCredit::firstOrCreate(['user_id' => $user->id], ['balance' => 0]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Package already purchased.',
+                'new_balance' => $userCredit->balance,
+                'already_paid' => true,
             ]);
         }
 
         try {
-            DB::transaction(function () use ($userCredit, $cost, $user, $applicationId, $fieldKey, $basicProfileFields) {
+            $newBalance = null;
+            DB::transaction(function () use ($user, $applicationId, $cost, &$newBalance) {
+                $userCredit = UserCredit::where('user_id', $user->id)->lockForUpdate()->first();
+                if (!$userCredit) {
+                    $userCredit = UserCredit::create([
+                        'user_id' => $user->id,
+                        'balance' => 0,
+                    ]);
+                }
+
+                if ($userCredit->balance < $cost) {
+                    throw new \Exception("Insufficient credits. Current balance: {$userCredit->balance}");
+                }
+
                 $userCredit->balance -= $cost;
                 $userCredit->save();
 
-                $description = '';
-                if ($fieldKey === 'basic_profile') {
-                    foreach ($basicProfileFields as $profileFieldKey) {
-                        ApplicantView::firstOrCreate(
-                            [
-                                'user_id' => $user->id,
-                                'application_id' => $applicationId,
-                                'field_key' => $profileFieldKey,
-                            ],
-                            ['paid' => true]
-                        );
-                    }
-                    $description = "Viewed basic profile of applicant ID: {$applicationId}";
-                } else {
-                    ApplicantView::create([
-                        'user_id' => $user->id,
-                        'application_id' => $applicationId,
-                        'field_key' => $fieldKey,
-                        'paid' => true,
-                    ]);
-                    $description = "Viewed {$fieldKey} of applicant ID: {$applicationId}";
-                }
+                ApplicantView::create(attributes: [
+                    'user_id' => $user->id,
+                    'application_id' => $applicationId,
+                    'field_key' => 'package',
+                    'paid' => true,
+                ]);
 
                 CreditTransaction::create([
                     'user_id' => $user->id,
                     'amount' => $cost,
                     'type' => 'usage',
-                    'description' => $description,
-                    'metadata' => [
+                    'description' => "Purchased package (full applicant profile) for application ID: {$applicationId}",
+                    'metadata' => json_encode([
                         'application_id' => $applicationId,
-                        'field_key' => $fieldKey,
-                    ],
+                        'package' => true,
+                    ]),
                 ]);
+                
+                $newBalance = $userCredit->balance;
             });
 
-            return back()->with('success', 'Field successfully revealed! ' . $cost . ' credits deducted.')
-                ->with('new_balance', $userCredit->balance);
-
-        } catch (\Exception $e) {
-            Log::error("Credit transaction failed for user {$user->id}, applicant {$applicationId}, field {$fieldKey}: " . $e->getMessage());
-            return back()->withErrors([
-                'message' => 'Failed to process payment. Please try again.',
+            return response()->json([
+                'status' => 'success',
+                'message' => "Package purchased. {$cost} credits deducted.",
+                'new_balance' => $newBalance,
             ]);
-        }
-    }
-
-    public function checkApplicantView($applicationId)
-    {
-        $user = auth()->user();
-        if (!$user) {
+        } catch (\Exception $e) {
+            Log::error("Buy package failed for user {$user->id}, app {$applicationId}: " . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'User not authenticated.',
-            ], 401);
+                'message' => $e->getMessage() ?: 'Failed to process purchase.',
+            ], 400);
         }
-
-        $views = ApplicantView::where('user_id', $user->id)
-            ->where('application_id', $applicationId)
-            ->pluck('field_key')
-            ->toArray();
-
-        return response()->json([
-            'paid_fields' => $views,
-        ]);
     }
+
+public function viewApplicant(Request $request)
+{
+    $user = auth()->user(); 
+    $applicationId = $request->application_id;
+    $cost = 1; 
+
+    $existingView = ApplicantView::where('company_id', $user->id)
+        ->where('application_id', $applicationId)
+        ->first();
+
+    if ($existingView) {
+        return response()->json(['message' => 'You already bought this info.'], 200);
+    }
+
+    $application = \App\Models\Application::find($applicationId);
+    if (!$application) {
+        return response()->json(['message' => 'Application not found.'], 404);
+    }
+
+    $credit = UserCredit::where('user_id', $user->id)->first();
+
+    if (!$credit || $credit->balance < $cost) {
+        return response()->json(['message' => 'Insufficient balance.'], 400);
+    }
+
+    $credit->balance -= $cost;
+    $credit->save();
+
+    ApplicantView::create([
+        'company_id' => $user->id,
+        'user_id' => $application->user_id, 
+        'application_id' => $applicationId,
+        'field_key' => 'basic_profile',
+    ]);
+
+    CreditTransaction::create([
+        'user_id' => $user->id,
+        'amount' => -$cost,
+        'type' => 'purchase_info',
+        'description' => "Purchased applicant info (Application ID: {$applicationId})",
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Applicant info purchased successfully.',
+        'new_balance' => $credit->balance,
+    ]);
+}
+
+
+public function checkApplicantView($applicationId)
+{
+    $user = auth()->user();
+
+    if (!$user) {
+        return response()->json(['error' => 'Not authenticated'], 401);
+    }
+
+    $view = ApplicantView::where('company_id', $user->id)
+        ->where('application_id', $applicationId)
+        ->whereIn('field_key', ['basic_profile', 'package'])
+        ->get();
+
+    $paidFields = $view->pluck('field_key')->toArray();
+
+    return response()->json([
+        'paid_fields' => $paidFields,
+        'already_purchased' => !empty($paidFields),
+    ]);
+}
+
+
 }

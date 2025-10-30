@@ -16,7 +16,7 @@ import { edit } from '@/routes/profile';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Settings',
         href: edit().url,
     },
 ];
@@ -26,11 +26,11 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
+            <Head title="Settings" />
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Profile information" description="Update your name and email address" />
+                    <HeadingSmall title="User Profile" description="Update your name and email address" />
 
                     <Form
                         {...ProfileController.update.form()}
@@ -41,20 +41,38 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-                                    <Input
-                                        id="name"
-                                        className="mt-1 block w-full"
-                                        defaultValue={auth.user.name}
-                                        name="name"
-                                        required
-                                        autoComplete="name"
-                                        placeholder="Full name"
-                                    />
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="first_name">First Name</Label>
 
-                                    <InputError className="mt-2" message={errors.name} />
+                                        <Input
+                                            id="first_name"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.first_name} 
+                                            name="first_name"
+                                            required
+                                            autoComplete="given-name"
+                                            placeholder="First Name"
+                                        />
+                                        <InputError className="mt-2" message={errors.first_name} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="last_name">Last Name</Label>
+
+                                        <Input
+                                            id="last_name"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.last_name}
+                                            name="last_name"
+                                            required
+                                            autoComplete="family-name"
+                                            placeholder="Last Name"
+                                        />
+
+                                        <InputError className="mt-2" message={errors.last_name} />
+                                    </div>
                                 </div>
 
                                 <div className="grid gap-2">
@@ -73,6 +91,90 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                                     <InputError className="mt-2" message={errors.email} />
                                 </div>
+
+                                <div className="grid gap-2">
+
+                                    <Label htmlFor="phone">Phone Number</Label>
+
+                                    <Input
+                                        id="phone"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.phone}
+                                        name="phone"
+                                        required
+                                        autoComplete="tel"
+                                        placeholder="Phone Number"
+                                    />
+
+                                    <InputError className="mt-2" message={errors.phone} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="address">Address</Label>
+
+                                    <Input
+                                        id="address"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.address}
+                                        name="address"
+                                        required
+                                        autoComplete="street-address"
+                                        placeholder="Address"
+                                    />
+
+                                    <InputError className="mt-2" message={errors.address} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="roles">Roles</Label>
+
+                                    <Input
+                                        id="roles"
+                                        className="mt-1 block w-full bg-neutral-100 dark:bg-neutral-800"
+                                        value={auth.user.role}
+                                        name="roles"
+                                        disabled
+                                    />
+
+                                    <InputError className="mt-2" message={errors.roles} />
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor='facebook'>Facebook</Label>
+                                        <Input
+                                            id="facebook"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.facebook}
+                                            name="facebook"
+                                            placeholder="Facebook"
+                                        />
+                                        <InputError className="mt-2" message={errors.facebook} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor='linkedin'>LinkedIn</Label>
+                                        <Input
+                                            id="linkedin"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.linkedin}
+                                            name="linkedin"
+                                            placeholder="LinkedIn"
+                                        />
+                                        <InputError className="mt-2" message={errors.linkedin} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor='viber'>Viber</Label>
+                                        <Input
+                                            id="viber"
+                                            className="mt-1 block w-full"
+                                            defaultValue={auth.user.viber}
+                                            name="viber"
+                                            placeholder="Viber"
+                                        />
+                                        <InputError className="mt-2" message={errors.viber} />
+                                    </div>
+                                </div>
+
 
                                 {mustVerifyEmail && auth.user.email_verified_at === null && (
                                     <div>

@@ -10,23 +10,21 @@ class ApplicantView extends Model
     use HasFactory;
 
     protected $fillable = [
+        'company_id',
         'user_id',
         'application_id',
         'field_key',
         'paid',
     ];
-
-    /**
-     * The company user who viewed the profile
-     */
+    public function company()
+    {
+        return $this->belongsTo(User::class, 'company_id');
+    }
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * The application that was viewed
-     */
     public function application()
     {
         return $this->belongsTo(Application::class);

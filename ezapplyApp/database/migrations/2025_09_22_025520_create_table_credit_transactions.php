@@ -17,7 +17,7 @@ return new class extends Migration
                     ->constrained()
                     ->onDelete('cascade');
                 $table->integer('amount');
-                $table->enum('type', ['signup_bonus', 'top_up', 'usage', 'refund']);
+                $table->enum('type', ['signup_bonus', 'top_up', 'purchase_info', 'refund']);
                 $table->string('description')->nullable();
                 $table->json('metadata')->nullable();
                 $table->timestamps();
