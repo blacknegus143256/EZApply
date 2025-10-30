@@ -828,8 +828,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 130px;
-  height: 40px;
+  min-width: 75px;
+  height: 35px;
   color: #fff;
   border-radius: 5px;
   padding: 0.5rem 1.5rem;

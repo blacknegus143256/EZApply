@@ -41,6 +41,7 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
     Route::get('/companies/{id}/details', [CompanyController::class, 'details'])->name('companies.details');
+    Route::get('/api/companies', [CompanyController::class, 'apiIndex'])->name('api.companies.index');
     
     Route::get('/company/logos', function () {
     $companies = \App\Models\Company::where('status', 'approved')

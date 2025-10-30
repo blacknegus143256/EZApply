@@ -16,7 +16,7 @@ import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 import { useProfileStatus } from '@/hooks/useProfileStatus';
 import ApplyModal from '@/components/ApplyModal';
 import axios from 'axios';
-
+import WelcomeModal from "@/components/WelcomeModal";
 interface Company {
   id: number;
   company_name: string;
@@ -225,6 +225,7 @@ export default function ImprovedEasyApplyLanding() {
       <Head title="EZ Apply PH" />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <EzNav user={users} />
+        <WelcomeModal />
         
         {/* Hero Section */}
         <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">

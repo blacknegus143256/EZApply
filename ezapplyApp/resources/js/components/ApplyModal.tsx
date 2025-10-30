@@ -60,6 +60,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
   });
 
   const [deadlineDate, setDeadlineDate] = useState('');
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (isOpen && regions.length === 0) {
@@ -356,6 +357,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
                   type="date"
                   className="mt-1 block w-full rounded-lg border px-3 py-2"
                   value={deadlineDate}
+                  min={today}
                   onChange={(e) => setDeadlineDate(e.target.value)}
                 />
               )}
