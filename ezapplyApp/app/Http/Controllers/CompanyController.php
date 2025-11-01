@@ -238,6 +238,16 @@ class CompanyController extends Controller
         return response()->json($companies);
     }
 
+    public function apiIndex()
+    {
+        // Get user's companies for API access (used by frontend to check existing companies)
+        $companies = Company::where('user_id', Auth::id())
+            ->select('id', 'company_name')
+            ->get();
+
+        return response()->json($companies);
+    }
+
     public function updateStatus(Request $request, Company $company)
     {
         $validated = $request->validate([

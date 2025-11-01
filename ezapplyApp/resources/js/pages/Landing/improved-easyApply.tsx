@@ -13,6 +13,7 @@ import Services from "./services";
 import About from "./about";
 import Contact from "./contact";
 import EzNav from "./ezapply-nav";
+import WelcomeModal from "@/components/WelcomeModal";
 
 interface Company {
   id: number;
@@ -199,6 +200,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
       <Head title="EZ Apply PH" />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <EzNav user={users} />
+        <WelcomeModal />
         
         {/* Hero Section */}
         <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">

@@ -203,6 +203,7 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
   const containerRef = useRef<HTMLDivElement>(null);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [companyNameLocked, setCompanyNameLocked] = useState(false);
 
   // Preview state for file uploads
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -227,6 +228,27 @@ export default function FranchiseRegister({ initialData, companyId }: { initialD
       if (ipoPreview) URL.revokeObjectURL(ipoPreview);
     };
   }, [logoPreview, dtiSbcPreview, bir2303Preview, ipoPreview]);
+
+  // Fetch existing companies to determine if company name should be locked
+  useEffect(() => {
+    if (!companyId) { // Only for new registrations, not edits
+      fetch('/api/companies')
+        .then(response => response.json())
+        .then(companies => {
+          if (companies && companies.length > 0) {
+            // Pre-fill with first company's name and lock the field
+            setData('company_name', companies[0].company_name);
+            setCompanyNameLocked(true);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching companies:', error);
+        });
+    } else {
+      // For editing existing franchises, lock the company name field
+      setCompanyNameLocked(true);
+    }
+  }, [companyId, setData]);
 
   function validateStep(step: number) {
     const requiredFields: Record<number, (keyof typeof data)[]> = {
@@ -439,7 +461,9 @@ function doSubmit() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="company_name">Company Name *</Label>
+                          <Label htmlFor="company_name">
+                            Company Name * {companyNameLocked && <span className="text-sm text-gray-500"></span>}
+                          </Label>
                           <Input
                             id="company_name"
                             name="company_name"
@@ -447,6 +471,7 @@ function doSubmit() {
                             onChange={(e) => setData('company_name', e.target.value)}
                             placeholder="Enter your company name"
                             required
+                            disabled={companyNameLocked}
                           />
                           <ErrorText message={(errors as any).company_name} />
                         </div>
@@ -789,7 +814,7 @@ function doSubmit() {
                             </p>
                             {dtiSbcPreview || data.existing_dti_sbc ? (
                               dtiSbcPreview ? (
-                                dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
+                                data.dti_sbc?.type === 'application/pdf' ? (
                                   <embed
                                     src={dtiSbcPreview}
                                     type="application/pdf"
@@ -829,7 +854,7 @@ function doSubmit() {
                         {!companyId && dtiSbcPreview && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
                             <p className="text-sm text-gray-600 mb-2">DTI/SBC preview:</p>
-                            {dtiSbcPreview.toLowerCase().endsWith('.pdf') ? (
+                            {data.dti_sbc?.type === 'application/pdf' ? (
                               <embed
                                 src={dtiSbcPreview}
                                 type="application/pdf"
@@ -873,7 +898,7 @@ function doSubmit() {
                             </p>
                             {bir2303Preview || data.existing_bir_2303 ? (
                               bir2303Preview ? (
-                                bir2303Preview.toLowerCase().endsWith('.pdf') ? (
+                                data.bir_2303?.type === 'application/pdf' ? (
                                   <embed
                                     src={bir2303Preview}
                                     type="application/pdf"
@@ -913,7 +938,7 @@ function doSubmit() {
                         {!companyId && bir2303Preview && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
                             <p className="text-sm text-gray-600 mb-2">BIR 2303 preview:</p>
-                            {bir2303Preview.toLowerCase().endsWith('.pdf') ? (
+                            {data.bir_2303?.type === 'application/pdf' ? (
                               <embed
                                 src={bir2303Preview}
                                 type="application/pdf"
@@ -957,7 +982,7 @@ function doSubmit() {
                             </p>
                             {ipoPreview || data.existing_ipo_registration ? (
                               ipoPreview ? (
-                                ipoPreview.toLowerCase().endsWith('.pdf') ? (
+                                data.ipo_registration?.type === 'application/pdf' ? (
                                   <embed
                                     src={ipoPreview}
                                     type="application/pdf"
@@ -997,7 +1022,7 @@ function doSubmit() {
                         {!companyId && ipoPreview && (
                           <div className="mb-2 p-2 bg-gray-50 rounded border">
                             <p className="text-sm text-gray-600 mb-2">IPO Registration preview:</p>
-                            {ipoPreview.toLowerCase().endsWith('.pdf') ? (
+                            {data.ipo_registration?.type === 'application/pdf' ? (
                               <embed
                                 src={ipoPreview}
                                 type="application/pdf"

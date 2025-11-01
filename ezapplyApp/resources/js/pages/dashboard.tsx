@@ -10,12 +10,12 @@ import { useProfileStatus } from '@/hooks/useProfileStatus';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Building2, 
-  Users, 
-  FileText, 
-  MessageCircle, 
-  CreditCard, 
+import {
+  Building2,
+  Users,
+  FileText,
+  MessageCircle,
+  CreditCard,
   BarChart3,
   Plus,
   Eye,
@@ -30,6 +30,8 @@ import {
   Clock
 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import CompanyWelcomeModal from '@/components/CompanyWelcomeModal';
+import ApplicantWelcomeModal from '@/components/ApplicantWelcomeModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
@@ -290,6 +292,12 @@ export default function Dashboard({ stats }: DashboardProps) {
     <ErrorBoundary>
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title="Dashboard" />
+        <PermissionGate role="company">
+          <CompanyWelcomeModal initialDelay={3000} />
+        </PermissionGate>
+        <PermissionGate role="customer">
+          <ApplicantWelcomeModal initialDelay={3000} />
+        </PermissionGate>
         <div className="min-h-screen bg-across-pages p-6 flex flex-col gap-8">
           <div className="flex h-full flex-1 flex-col gap-8 overflow-x-auto rounded-xl p-6 bg-white/50 backdrop-blur-sm">
             {/* Welcome Section */}
