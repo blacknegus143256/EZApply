@@ -161,7 +161,9 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
-                                <div className="grid gap-2">
+                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                                    <div className="grid gap-2">
                                     <Label htmlFor="first_name">First Name</Label>
 
                                     <Input
@@ -170,14 +172,14 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                         defaultValue={basicInfo?.first_name || ''}
                                         name="first_name"
                                         required
-                                        autoComplete="given-name"
+                                        autoComplete="first-name"
                                         placeholder="First name"
                                     />
 
-                                    <InputError className="mt-2" message={errors.first_name} />
+                                    <InputError className="mt-2" message={errors.last_name} />
                                 </div>
 
-                                <div className="grid gap-2">
+                                    <div className="grid gap-2">
                                     <Label htmlFor="last_name">Last Name</Label>
 
                                     <Input
@@ -191,6 +193,7 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                     />
 
                                     <InputError className="mt-2" message={errors.last_name} />
+                                </div>
                                 </div>
 
                                 <div className="grid gap-2">
@@ -403,20 +406,17 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                             <div className="grid gap-2">
                                 <Label htmlFor="role">Role</Label>
 
-                                {/* Replaced <select> with a static <div> for display */}
                                 <div
                                     id="role"
                                     name="role"
                                     className="border rounded-md px-3 py-2 h-11 border-gray-300 bg-gray-50 text-sm flex items-center"
                                     tabIndex={3}
                                 >
-                                    {/* Display the user's first role name */}
                                     <span className="text-gray-700 font-medium">
                                         {auth.user.roles[0]?.name}
                                     </span>
                                 </div>
 
-                                {/* The InputError component remains to show any potential error messages */}
                                 <InputError message={(errors as any).role} className="mt-2" />
                             </div>
 
@@ -435,89 +435,6 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                     />
 
                                     <InputError className="mt-2" message={errors.email} />
-                                </div>
-
-                                <div className="grid gap-2">
-
-                                    <Label htmlFor="phone">Phone Number</Label>
-
-                                    <Input
-                                        id="phone"
-                                        className="mt-1 block w-full"
-                                        defaultValue={auth.user.phone}
-                                        name="phone"
-                                        required
-                                        autoComplete="tel"
-                                        placeholder="Phone Number"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.phone} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="address">Address</Label>
-
-                                    <Input
-                                        id="address"
-                                        className="mt-1 block w-full"
-                                        defaultValue={auth.user.address}
-                                        name="address"
-                                        required
-                                        autoComplete="street-address"
-                                        placeholder="Address"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.address} />
-                                </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="roles">Roles</Label>
-
-                                    <Input
-                                        id="roles"
-                                        className="mt-1 block w-full bg-neutral-100 dark:bg-neutral-800"
-                                        value={auth.user.role}
-                                        name="roles"
-                                        disabled
-                                    />
-
-                                    <InputError className="mt-2" message={errors.roles} />
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor='facebook'>Facebook</Label>
-                                        <Input
-                                            id="facebook"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.facebook}
-                                            name="facebook"
-                                            placeholder="Facebook"
-                                        />
-                                        <InputError className="mt-2" message={errors.facebook} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor='linkedin'>LinkedIn</Label>
-                                        <Input
-                                            id="linkedin"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.linkedin}
-                                            name="linkedin"
-                                            placeholder="LinkedIn"
-                                        />
-                                        <InputError className="mt-2" message={errors.linkedin} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor='viber'>Viber</Label>
-                                        <Input
-                                            id="viber"
-                                            className="mt-1 block w-full"
-                                            defaultValue={auth.user.viber}
-                                            name="viber"
-                                            placeholder="Viber"
-                                        />
-                                        <InputError className="mt-2" message={errors.viber} />
-                                    </div>
                                 </div>
 
 
