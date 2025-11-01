@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Head, usePage, router } from "@inertiajs/react";
+import axios from "axios";
 import {
     Card, CardContent, CardHeader, CardTitle
 } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User, Mail, Calendar, Settings, Building } from "lucide-react";
+import { Loader2, User, Mail, Calendar, Settings, Building, CheckCircle, XCircle } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
 import { BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
@@ -54,6 +55,44 @@ const breadcrumbs: BreadcrumbItem[] = [
 const PURCHASE_COST = 1; 
 const statusOptions = ["pending", "approved", "rejected", "interested", "paid"]; 
 
+type StatusMessageDialogProps = {
+    open: boolean;
+    onClose: () => void;
+    title: string;
+    message: string;
+    status: 'success' | 'error';
+}
+
+const StatusMessageDialog: React.FC<StatusMessageDialogProps> = ({ open, onClose, title, message, status }) => {
+    if (!open) return null;
+
+    const isSuccess = status === 'success';
+    const bgColor = isSuccess ? 'bg-green-500' : 'bg-red-500';
+    const Icon = isSuccess ? CheckCircle : XCircle;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+            <div 
+                className="w-full max-w-sm rounded-xl bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden transform transition-all"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className={`p-4 text-white ${bgColor} flex items-center gap-3`}>
+                    <Icon className="h-6 w-6" />
+                    <h3 className="text-lg font-semibold">{title}</h3>
+                </div>
+                <div className="p-6">
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">{message}</p>
+                    <div className="flex justify-end">
+                        <Button onClick={onClose} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white">
+                            Close
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function CompanyApplicants() {
     const { props } = usePage<any>();
     const applicants = props.applicants ?? [];
@@ -71,6 +110,12 @@ export default function CompanyApplicants() {
 
     const [confirmationOpen, setConfirmationOpen] = useState(false);
     const [toBuyApplicantId, setToBuyApplicantId] = useState<number | null>(null);
+
+    const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+    const [dialogTitle, setDialogTitle] = useState('');
+    const [dialogMessage, setDialogMessage] = useState('');
+    const [dialogStatus, setDialogStatus] = useState<'success' | 'error'>('success');
+
 
     useEffect(() => {
         let mounted = true;
@@ -138,31 +183,38 @@ export default function CompanyApplicants() {
     const handleConfirmBuy = async () => {
         if (!toBuyApplicantId) return;
         setLoading(true);
+        setConfirmationOpen(false); // Close confirmation modal immediately
+
         try {
-            await router.post(
-                "/view-applicant",
-                {
-                    application_id: toBuyApplicantId,
-                    field_key: "basic_profile", 
-                },
-                {
-                    preserveScroll: true,
-                    onStart: () => setLoading(true),
-                    onSuccess: (page) => {
-                        router.reload({ only: ["applicants", "auth"] });
-                    },
-                    onError: (errors) => {
-                        console.error("Buy failed:", errors);
-                        alert(errors?.message || "Purchase failed.");
-                    },
-                    onFinish: () => setLoading(false),
-                }
-            );
-        } catch (err) {
-            console.error(err);
+            const response = await axios.post("/view-applicant", {
+                application_id: toBuyApplicantId,
+                field_key: "basic_profile", 
+            });
+
+            // SUCCESS HANDLER: Set modal state based on JSON response
+            const { message, new_balance } = response.data;
+            setDialogTitle('Purchase Complete');
+            setDialogMessage(message || `Applicant info purchased successfully. Your new balance is ${new_balance} credits.`);
+            setDialogStatus('success');
+            setIsMessageDialogOpen(true);
+
+            // Reload page data to reflect the purchased field and updated balance
+            router.reload({ only: ["applicants", "auth"] });
+            
+        } catch (err: any) {
+            console.error("Buy failed:", err);
+            
+            // ERROR HANDLER: Set modal state based on error response
+            const errorMessage = err.response?.data?.message 
+                                || "Purchase failed. Please try again.";
+            
+            setDialogTitle('Purchase Failed');
+            setDialogMessage(errorMessage);
+            setDialogStatus('error');
+            setIsMessageDialogOpen(true);
+
         } finally {
             setToBuyApplicantId(null);
-            setConfirmationOpen(false);
             setLoading(false);
         }
     };
@@ -354,6 +406,16 @@ export default function CompanyApplicants() {
                         balance={userBalance}
                         onConfirm={handleConfirmBuy}
                     />
+                    
+                    {/* NEW STATUS MESSAGE DIALOG INTEGRATION */}
+                    <StatusMessageDialog
+                        open={isMessageDialogOpen}
+                        onClose={() => setIsMessageDialogOpen(false)}
+                        title={dialogTitle}
+                        message={dialogMessage}
+                        status={dialogStatus}
+                    />
+
                 </div>
             </AppLayout>
         </PermissionGate>

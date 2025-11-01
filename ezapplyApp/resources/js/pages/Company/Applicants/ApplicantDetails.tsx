@@ -42,7 +42,7 @@ interface ApplicantDetailsProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
-  { title: "Company Applicants", href: "/company/applicants" },
+  { title: "Company Applicants", href: "/company-applicants" },
   { title: "Applicant Details", href: "#" },
 ];
 
