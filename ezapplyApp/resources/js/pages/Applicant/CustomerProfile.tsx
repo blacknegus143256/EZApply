@@ -4,8 +4,9 @@ import AppLayout from "@/layouts/app-layout";
 import { dashboard } from "@/routes";
 import { type BreadcrumbItem } from "@/types";
 import PermissionGate from "@/components/PermissionGate";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { useProfileStatus } from '@/hooks/useProfileStatus';
+import { useEffect } from 'react';
 
 import BasicInfo from "./BasicInfo";
 import Affiliations from "./Affiliations";
@@ -34,6 +35,16 @@ export default function CustomerProfile( {
 }: CustomerProfileProps) {
   const { isProfileComplete, hasAnyData } = useProfileStatus();
   const { props } = usePage();
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectTo = urlParams.get('redirect');
+
+  useEffect(() => {
+    if (isProfileComplete && redirectTo === 'franchise') {
+      localStorage.removeItem('profileRedirect');
+      // Use window.location for a full page reload to ensure state restoration
+      window.location.href = '/applicant/franchise';
+    }
+  }, [isProfileComplete, redirectTo]);
 
   console.log("CustomerProfile - Profile Status:", { isProfileComplete, hasAnyData });
   console.log("CustomerProfile - Inertia props:", props);

@@ -8,6 +8,22 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    first_name: string;
+    last_name: string;
+    credits: number;
+    roles: {
+        id: number;
+        name: string;
+        permissions: {
+            id: number;
+            name: string;
+        }[];
+    }[];
+    userType: 'company' | 'customer';
+    complete: boolean;
+    hasAnyData: boolean;
+    basicInfo: unknown;
+    financial: unknown;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

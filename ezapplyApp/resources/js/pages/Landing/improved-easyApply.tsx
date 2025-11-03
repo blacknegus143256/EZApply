@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Head, Link, usePage } from "@inertiajs/react";
-import { Search, Filter, MapPin, Calendar, DollarSign, Building2, CheckCircle, Loader2 } from "lucide-react";
+import { Head, Link, usePage, router } from "@inertiajs/react";
+import { Search, Filter, Building2, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import Services from "./services";
 import About from "./about";
 import Contact from "./contact";
 import EzNav from "./ezapply-nav";
+import CompanyCard from "@/components/CompanyCard";
+import CompanyDetailsModal from '@/components/CompanyDetailsModal';
+import { useProfileStatus } from '@/hooks/useProfileStatus';
+import ApplyModal from '@/components/ApplyModal';
+import axios from 'axios';
 import WelcomeModal from "@/components/WelcomeModal";
-
 interface Company {
   id: number;
   company_name: string;
@@ -25,7 +27,7 @@ interface Company {
   description?: string;
   year_founded?: number;
   num_franchise_locations?: number;
-  status?: string;
+  status: string;
   opportunity?: {
     franchise_type?: string;
     min_investment?: number;
@@ -37,33 +39,83 @@ interface Company {
   };
 }
 
-export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
+export default function ImprovedEasyApplyLanding() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [checked, setChecked] = useState<number[]>([]);
+  const [checked, setChecked] = useState<number[]>(() => {
+    const saved = localStorage.getItem("pendingApplications");
+    if (saved) {
+      try {
+        const ids = JSON.parse(saved);
+        return Array.isArray(ids) ? ids : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [type, setType] = useState("all");
   const [amount, setAmount] = useState("all");
-  const [visibleCount, setVisibleCount] = useState(3);
 
-  const handleCheck = (companyId: number) => {
-    setChecked((prev) =>
-      prev.includes(companyId)
-        ? prev.filter((id) => id !== companyId)
-        : [...prev, companyId]
-    );
-  };
+  const [open, setOpen] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleApplySelected = ({ user }: { user?: any }) => {
-    const isVerified =
-    !!user && typeof user === "object" && Object.keys(user).length > 0;
-    if (checked.length === 0) return;
-    console.log("Applying to companies:", checked);
-    if(!isVerified){
-      window.location.href = '/login';
+  const { auth } = usePage().props as { auth?: { user?: { id: number; name: string; email: string } } };
+  const users = auth?.user;
+
+  const { isProfileComplete } = useProfileStatus();
+
+  const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
+
+  const [budget, setBudget] = useState<number | ''>('');
+  const [applicationFilter, setApplicationFilter] = useState('all');
+  const [applied, setApplied] = useState<number[]>([]);
+
+  const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null}>({ open: false, companyId: null });
+  // Bulk apply modal
+  const [bulkModal, setBulkModal] = useState<{open: boolean}>({ open: false });
+  const [numberToShow, setNumberToShow] = useState(3);
+
+
+  const handleViewDetails = (company: Company) => {
+    if (!users) {
+      setRedirectUrl(`/companies/${company.id}`);
+      setOpen(true);
+    } else {
+      setSelectedCompany(company);
+      setIsModalOpen(true);
     }
   };
+
+  const handleDialogChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen && redirectUrl) {
+      window.location.href = `/login?redirect=${encodeURIComponent(
+        redirectUrl
+      )}`;
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCompany(null);
+  };
+
+  const handleCheck = (companyId: number) => {
+    setChecked(prev => {
+      const updated = prev.includes(companyId)
+        ? prev.filter(id => id !== companyId)
+        : [...prev, companyId];
+      localStorage.setItem("pendingApplications", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -83,18 +135,61 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
     fetchCompanies();
   }, []);
 
+  useEffect(() => {
+    // Restore form state if coming back from profile
+    const savedState = localStorage.getItem("franchiseFormState");
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      setChecked(state.checked || []);
+      setBudget(state.budget || '');
+      setType(state.type || 'all');
+      setApplicationFilter(state.applicationFilter || 'all');
+      localStorage.removeItem("franchiseFormState");
+    }
+
+    // Cleanup profile redirect flag if it exists
+    localStorage.removeItem("profileRedirect");
+  }, []);
+
+  // Fetch applied company IDs
+  useEffect(() => {
+    if (users) {
+      axios.get("/api/applied-company-ids")
+        .then((res) => {
+          setApplied(res.data);
+          // Filter out already applied companies from checked state
+          setChecked(prev => prev.filter(id => !res.data.includes(id)));
+        })
+        .catch((err) => {
+          console.error("Error fetching applied company IDs:", err);
+        });
+    }
+  }, [users]);
+
   // Extract franchise types dynamically
   const franchiseTypes = Array.from(
     new Set(companies.map((c) => c.opportunity?.franchise_type).filter(Boolean))
   );
 
-  // Filtering logic
-  let filtered = companies.filter((c) => c.status === "approved");
+  // Start with all companies
+  let filtered = companies;
 
-  if (type !== "all") {
+  filtered = filtered.filter((c) => c.status === 'approved');
+
+
+
+  // Filter by type
+  if (type !== 'all') {
     filtered = filtered.filter((c) => c.opportunity?.franchise_type === type);
   }
+  if (budget !== '') {
+    filtered = filtered.filter((c) => {
+      // Assuming c.opportunity.min_investment is a number
+      return (c.opportunity?.min_investment?? Infinity) <= budget;
+    });
+  }
 
+  // Filter by investment amount
   if (amount !== "all") {
     filtered = filtered.filter((c) => {
       const value = c.opportunity?.min_investment || 0;
@@ -105,95 +200,25 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
     });
   }
 
+  // Filter by application status
+  if (applicationFilter === 'applied') {
+    filtered = filtered.filter((c) => applied.includes(c.id));
+  } else if (applicationFilter === 'not-applied') {
+    filtered = filtered.filter((c) => !applied.includes(c.id));
+  }
+
+  // Search filter
   filtered = filtered.filter((c) =>
-    (c.company_name ?? "").toLowerCase().includes(search.toLowerCase())
+    (c.company_name ?? '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const { auth } = usePage().props as any;
-  const users = auth?.user;
+  // Store total filtered before slicing
+  const totalFiltered = filtered.length;
 
-  const formatInvestment = (amount: number) => {
-    if (amount >= 1000000) {
-      return `₱${(amount / 1000000).toFixed(1)}M`;
-    }
-    return `₱${amount.toLocaleString()}`;
-  };
+  // Limit to numberToShow companies for landing page
+  filtered = filtered.slice(0, numberToShow);
 
-  const CompanyCard = ({ company }: { company: Company }) => (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md hover:-translate-y-1 bg-white/80 backdrop-blur-sm">
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              checked={checked.includes(company.id)}
-              onCheckedChange={() => handleCheck(company.id)}
-              className="mt-1 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-            />
-            <div className="flex-1">
-              <CardTitle className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                {company.company_name}
-              </CardTitle>  
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 text-sm">
-                  
-        <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-          {company.marketing?.listing_description || company.description || 'No description available'}
-        </p>
-          <div className="flex items-center gap-3 text-gray-600">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <MapPin className="h-4 w-4 text-blue-600" />
-            </div>
-            <span className="truncate font-medium">
-              {[company.city, company.state_province, company.country]
-                .filter(Boolean)
-                .join(', ') || 'Location not specified'}
-            </span>
-          </div>
-          
-          {company.year_founded && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <Calendar className="h-4 w-4 text-green-600" />
-              </div>
-              <span className="font-medium">Est. {company.year_founded}</span>
-            </div>
-          )}
-          
-          {company.opportunity?.min_investment && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <DollarSign className="h-4 w-4 text-yellow-600" />
-              </div>
-              <span className="font-medium">From {formatInvestment(company.opportunity.min_investment)}</span>
-            </div>
-          )}
-          
-          {company.opportunity?.franchise_type && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <Building2 className="h-4 w-4 text-purple-600" />
-              </div>
-              <span className="font-medium">{company.opportunity.franchise_type}</span>
-            </div>
-          )}
-        </div>
-        
-        <div className="pt-3 border-t border-gray-100">
-          <Button 
-            variant="outline" 
-            className="w-full group-hover:bg-blue-50 group-hover:border-blue-200 group-hover:text-blue-700 transition-all duration-200"
-          >
-            View Details
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+
 
   return (
     <ErrorBoundary>
@@ -262,7 +287,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
             </div>
             
             <Card className="shadow-lg border-0">
-              <CardContent className="p-8">
+              <div className="p-8">
                 <div className="space-y-6">
                   <div className="relative">
                     <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -288,7 +313,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
                           <SelectItem value="all">All Types</SelectItem>
                         {franchiseTypes.map((t) => (
                           <SelectItem key={t} value={t}>
-                            {t}
+                            {t || 'Unknown'}
                           </SelectItem>
                         ))}
                         </SelectContent>
@@ -315,9 +340,9 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
                   </div>
                   
                   <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="text-sm text-gray-600">
-                      {filtered.length} companies found
-                    </div>
+                  <div className="text-sm text-gray-600">
+                    {totalFiltered} companies found
+                  </div>
                     <Button 
                       variant="outline" 
                       onClick={() => {
@@ -331,7 +356,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
                     </Button>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           </div>
         </section>
@@ -351,7 +376,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg p-6 shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{filtered.length}</div>
+                  <div className="text-2xl font-bold text-blue-600">{totalFiltered}</div>
                   <div className="text-sm text-gray-600">Companies Found</div>
                 </div>
                 {checked.length > 0 && (
@@ -363,13 +388,27 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
               </div>
               
               {checked.length > 0 && (
-                <Button 
-                  onClick={handleApplySelected} 
-                  className="mt-4 sm:mt-0 bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg font-semibold shadow-lg"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!users) {
+                      setOpen(true);
+                    } else if (!isProfileComplete) {
+                      setShowProfileIncompleteModal(true);
+                    } else {
+                      setBulkModal({ open: true });
+                    }
+                  }}
+                  className={`apply-selected-btn ${
+                    !users
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : !isProfileComplete
+                      ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                      : ''
+                  }`}
                 >
-                  <CheckCircle className="mr-2 h-5 w-5" />
-                  Apply to Selected ({checked.length})
-                </Button>
+                  Apply Selected ({checked.length})
+                </button>
               )}
             </div>
 
@@ -392,7 +431,7 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
               </div>
             ) : error ? (
               <Card>
-                <CardContent className="py-12 text-center">
+                <div className="py-12 text-center">
                   <div className="text-destructive mb-4">
                     <Filter className="h-12 w-12 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold">Failed to load companies</h3>
@@ -401,29 +440,51 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
                   <Button onClick={() => window.location.reload()}>
                     Try Again
                   </Button>
-                </CardContent>
+                </div>
               </Card>
             ) : filtered.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center">
+                <div className="py-12 text-center">
                   <div className="text-muted-foreground mb-4">
                     <Search className="h-12 w-12 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold">No companies found</h3>
                     <p>Try adjusting your search criteria</p>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filtered.slice(0, visibleCount).map((company) => (
-                    <CompanyCard key={company.id} company={company} />
+                  {filtered.map((company) => (
+                    <CompanyCard
+                      key={company.id}
+                      company={company}
+                      checked={checked.includes(company.id)}
+                      onCheck={handleCheck}
+                      applied={applied.includes(company.id)}
+                      onApply={(companyId) => setApplyModal({ open: true, companyId })}
+                      onCancelApply={(companyId) => setApplied((prev) => prev.filter((id) => id !== companyId))}
+                      onViewDetails={(company) => handleViewDetails(company)}
+                      isProfileComplete={isProfileComplete}
+                      onProfileIncomplete={() => setShowProfileIncompleteModal(true)}
+                      onLoginRequired={() => setOpen(true)}
+                      variant="default"
+                      showApplyButtons={true}
+                      showCancelButton={true}
+                      isLoggedIn={!!users}
+                    />
                   ))}
                 </div>
-                
-                {filtered.length > visibleCount && (
-                  <div className="text-center mt-8">
-                    <Link href={'/list-companies'} className="text-blue-600 hover:underline">More Companies</Link>
+
+                {/* Show More Button */}
+                {filtered.length >= numberToShow && (
+                  <div className="text-center mt-6">
+                    <button
+                      onClick={() => setNumberToShow(prev => prev + 3)}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Show More Companies
+                    </button>
                   </div>
                 )}
               </>
@@ -434,6 +495,92 @@ export default function ImprovedEasyApplyLanding({ user }: { user?: any }) {
         <Services />
         <About />
         <Contact />
+
+        {/* Dialog modal */}
+        <Dialog open={open} onOpenChange={handleDialogChange}>
+          <DialogContent className="dialog-content">
+            <DialogTitle>Please Log In</DialogTitle>
+            <p>You must be logged in to apply for franchises.</p>
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  router.get('/register');
+                }}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+              >
+                Register
+              </button>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  router.get('/login?redirect=' + encodeURIComponent(redirectUrl || window.location.pathname));
+                }}
+                className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded"
+              >
+                Log In
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Apply modal */}
+        <ApplyModal
+          isOpen={applyModal.open}
+          onClose={() => setApplyModal({ open: false, companyId: null })}
+          companyId={applyModal.companyId || undefined}
+          onApplySuccess={(appliedIds) => {
+            setApplied((prev) => Array.from(new Set([...prev, ...appliedIds])));
+          }}
+        />
+
+        {/* Bulk Apply modal */}
+        <ApplyModal
+          isOpen={bulkModal.open}
+          onClose={() => setBulkModal({ open: false })}
+          companyIds={checked}
+          onApplySuccess={(appliedIds) => {
+            setApplied((prev) => Array.from(new Set([...prev, ...appliedIds])));
+            setChecked([]);
+          }}
+        />
+        {showProfileIncompleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-2 text-red-600">
+                Incomplete Profile
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                You cannot apply yet because your profile is incomplete. You need to fill in your Basic Information (first name) and Financial Information (income source).
+                Would you like to Fill it now?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowProfileIncompleteModal(false)}
+                  className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowProfileIncompleteModal(false);
+                    router.get('/applicant/profile');
+                  }}
+                  className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                >
+                 Fill Up Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Company Details Modal */}
+        <CompanyDetailsModal
+          company={selectedCompany}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
       </div>
     </ErrorBoundary>
   );

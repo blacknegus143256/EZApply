@@ -1,125 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import "../../../css/AllCompanies.css";
 import EzNav from './ezapply-nav';
-import { usePage } from '@inertiajs/react';
+import { usePage, router } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import CompanyDetailsModal from '@/components/CompanyDetailsModal';
+import { useProfileStatus } from '@/hooks/useProfileStatus';
+import ApplyModal from '@/components/ApplyModal';
+import CompanyCard from '@/components/CompanyCard';
+import axios from 'axios';
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, DollarSign, Building2 } from "lucide-react";
 
-const formatInvestment = (amount?: number) => {
-  if (amount == null || isNaN(amount)) return "N/A";
-  try {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `₱${amount.toLocaleString()}`;
-  }
-};
 
-const CompanyCard = ({
-  company,
-  checked,
-  onCheck,
-  onViewDetails,
-}: {
-  company: any;
-  checked: boolean;
-  onCheck: () => void;
-  onViewDetails: (e: React.MouseEvent) => void;
-}) => {
-  return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md hover:-translate-y-1 bg-white/80 backdrop-blur-sm p-0">
-      <CardHeader className="pb-4 px-4 pt-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3 w-full">
-            <Checkbox
-              checked={checked}
-              onCheckedChange={() => onCheck()}
-              className="mt-1 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-            />
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                {company.company_name}
-              </CardTitle>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
+interface Company {
+  id: number;
+  company_name: string;
+  brand_name?: string;
+  description?: string;
+  year_founded?: number;
+  city?: string;
+  state_province?: string;
+  country?: string;
+  status: string;
+  marketing?: {
+    logo_path?: string;
+    listing_description?: string;
+  };
+  opportunity?: {
+    franchise_type?: string;
+    min_investment?: number;
+  };
+}
 
-      <CardContent className="space-y-4 px-4 pb-4 pt-0">
-        <div className="grid grid-cols-1 gap-3 text-sm">
-          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-            {company.marketing?.listing_description ||
-              company.description ||
-              "No description available"}
-          </p>
 
-          <div className="flex items-center gap-3 text-gray-600">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <MapPin className="h-4 w-4 text-blue-600" />
-            </div>
-            <span className="truncate font-medium">
-              {[company.city, company.state_province, company.country]
-                .filter(Boolean)
-                .join(", ") || "Location not specified"}
-            </span>
-          </div>
 
-          {company.year_founded && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <Calendar className="h-4 w-4 text-green-600" />
-              </div>
-              <span className="font-medium">Est. {company.year_founded}</span>
-            </div>
-          )}
 
-          {company.opportunity?.min_investment !== undefined && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <div className="p-2 bg-yellow-50 rounded-lg">
-                <DollarSign className="h-4 w-4 text-yellow-600" />
-              </div>
-              <span className="font-medium">
-                From {formatInvestment(company.opportunity.min_investment)}
-              </span>
-            </div>
-          )}
 
-          {company.opportunity?.franchise_type && (
-            <div className="flex items-center gap-3 text-gray-600">
-              <div className="p-2 bg-purple-50 rounded-lg">
-                <Building2 className="h-4 w-4 text-purple-600" />
-              </div>
-              <span className="font-medium">
-                {company.opportunity.franchise_type}
-              </span>
-            </div>
-          )}
-        </div>
 
-        <div className="pt-3 border-t border-gray-100">
-          <Button
-            variant="outline"
-            className="w-full group-hover:bg-blue-50 group-hover:border-blue-200 group-hover:text-blue-700 transition-all duration-200"
-            onClick={onViewDetails}
-          >
-            View Details
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
-const AllCompanies = ({ user }: { user?: any }) => {
-  const [companies, setCompanies] = useState<any[]>([]);
+
+
+const AllCompanies = () => {
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [checked, setChecked] = useState<number[]>([]);
 
   const [filterType, setFilterType] = useState("All");
@@ -129,14 +50,28 @@ const AllCompanies = ({ user }: { user?: any }) => {
 
   const [open, setOpen] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { auth } = usePage().props as any;
+  const { auth } = usePage().props as { auth?: { user?: { id: number; name: string; email: string } } };
   const users = auth?.user;
 
-  const handleViewDetails = (e: React.MouseEvent, company: any) => {
-    e.preventDefault();
+  const { isProfileComplete } = useProfileStatus();
+
+  const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
+
+  const [search] = useState('');
+  const [budget, setBudget] = useState<number | ''>('');
+  const [type, setType] = useState('all');
+  const [applicationFilter, setApplicationFilter] = useState('all');
+  const [applied, setApplied] = useState<number[]>([]);
+
+  const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null}>({ open: false, companyId: null });
+  // Bulk apply modal
+  const [bulkModal, setBulkModal] = useState<{open: boolean}>({ open: false });
+
+
+  const handleViewDetails = (company: Company) => {
     if (!users) {
       setRedirectUrl(`/companies/${company.id}`);
       setOpen(true);
@@ -170,13 +105,60 @@ const AllCompanies = ({ user }: { user?: any }) => {
       .catch((err) => console.error("Error fetching companies:", err));
   }, []);
 
+
+
+  useEffect(() => {
+    // Restore form state if coming back from profile
+    const savedState = localStorage.getItem("franchiseFormState");
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      setChecked(state.checked || []);
+      setBudget(state.budget || '');
+      setType(state.type || 'all');
+      setApplicationFilter(state.applicationFilter || 'all');
+      localStorage.removeItem("franchiseFormState");
+    }
+
+    // Restore pending applications
+    const saved = localStorage.getItem("pendingApplications");
+    if (saved) {
+      const ids = JSON.parse(saved);
+      if (Array.isArray(ids) && ids.length > 0) {
+        // Filter out already applied companies
+        const filteredIds = ids.filter((id: number) => !applied.includes(id));
+        setChecked(filteredIds); // ✅ restore previously selected companies, excluding applied ones
+      }
+    }
+    // Cleanup profile redirect flag if it exists
+    localStorage.removeItem("profileRedirect");
+  }, [applied]);
+
+  // Fetch applied company IDs
+  useEffect(() => {
+    if (users) {
+      axios.get("/api/applied-company-ids")
+        .then((res) => {
+          setApplied(res.data);
+        })
+        .catch((err) => {
+          console.error("Error fetching applied company IDs:", err);
+        });
+    }
+  }, [users]);
+
   const handleCheck = (companyId: number) => {
-    setChecked((prev) =>
-      prev.includes(companyId)
-        ? prev.filter((id) => id !== companyId)
-        : [...prev, companyId]
-    );
+    setChecked(prev => {
+      const updated = prev.includes(companyId)
+        ? prev.filter(id => id !== companyId)
+        : [...prev, companyId];
+      localStorage.setItem("pendingApplications", JSON.stringify(updated));
+      return updated;
+    });
   };
+
+
+
+
 
   const franchiseTypes = [
     "All",
@@ -185,9 +167,37 @@ const AllCompanies = ({ user }: { user?: any }) => {
     ),
   ];
 
-  // Filtering logic
-  let filtered = companies.filter((c) => c.status === "approved");
+  // Start with all companies
+  let filtered = companies;
 
+  filtered = filtered.filter((c) => c.status === 'approved');
+
+  // Filter by type
+  if (type !== 'all') {
+    filtered = filtered.filter((c) => c.opportunity?.franchise_type === type);
+  }
+  if (budget !== '') {
+    filtered = filtered.filter((c) => {
+      // Assuming c.opportunity.min_investment is a number
+      return (c.opportunity?.min_investment?? Infinity) <= budget;
+    });
+  }
+
+  // Filter by investment amount
+
+  // Filter by application status
+  if (applicationFilter === 'applied') {
+    filtered = filtered.filter((c) => applied.includes(c.id));
+  } else if (applicationFilter === 'not-applied') {
+    filtered = filtered.filter((c) => !applied.includes(c.id));
+  }
+
+  // Search filter
+  filtered = filtered.filter((c) =>
+    (c.company_name ?? '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Additional filters from original
   if (filterType !== "All") {
     filtered = filtered.filter(
       (c) => c.opportunity?.franchise_type === filterType
@@ -232,6 +242,60 @@ const AllCompanies = ({ user }: { user?: any }) => {
             <h2>All Companies</h2>
             <p>Explore our diverse range of investments across various industries.</p>
 
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium">Budget</label>
+                <input
+                  name="budget"
+                  type="number"
+                  value={budget}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setBudget(value === '' ? '' : Number(value))}}
+                  className="mt-1 block w-full rounded-lg border px-3 py-2 bg-white text-black"
+                  placeholder="Enter your budget"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Franchise Type / Category</label>
+                <select
+                  id="ezapply-type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="ezapply__filter-select w-full bg-white"
+                  title="Select company type"
+                >
+                  <option value="all">All Types</option>
+                  {franchiseTypes.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Application Status</label>
+                <select
+                  value={applicationFilter}
+                  onChange={(e) => setApplicationFilter(e.target.value)}
+                  className="ezapply__filter-select w-full bg-white"
+                  title="Filter by application status"
+                >
+                  <option value="all">All Companies</option>
+                  <option value="applied">Applied</option>
+                  <option value="not-applied">Not Applied</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Company Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Jollibee"
+                  value={filterCompanyName}
+                  onChange={(e) => setFilterCompanyName(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border px-3 py-2 bg-white text-black"
+                />
+              </div>
+            </div>
+
             <div className="filter-section-container">
               <div className="filter-group">
                 <label htmlFor="companyType">Type:</label>
@@ -247,18 +311,6 @@ const AllCompanies = ({ user }: { user?: any }) => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="filter-group">
-                <label htmlFor="companyName">Company Name:</label>
-                <input
-                  type="text"
-                  id="companyName"
-                  placeholder="e.g., Jollibee"
-                  value={filterCompanyName}
-                  onChange={(e) => setFilterCompanyName(e.target.value)}
-                  className="filter-input"
-                />
               </div>
 
               <div className="filter-group">
@@ -292,33 +344,55 @@ const AllCompanies = ({ user }: { user?: any }) => {
         <div className="all-companies-page">
           <div className="company-list-container">
             {filtered.length === 0 ? (
-              <div className="no-results">No companies found.</div>
+              <div className="ezapply__no-companies">No companies found.</div>
             ) : (
               <div className="company-grid">
                 {filtered.map((company) => (
-                  <div key={company.id} className="company-card-wrapper">
-                    <CompanyCard
-                      company={company}
-                      checked={checked.includes(company.id)}
-                      onCheck={() => handleCheck(company.id)}
-                      onViewDetails={(e) => handleViewDetails(e, company)}
-                    />
-                  </div>
+                  <CompanyCard
+                    key={company.id}
+                    company={company}
+                    checked={checked.includes(company.id)}
+                    onCheck={handleCheck}
+                    applied={applied.includes(company.id)}
+                    onApply={(companyId) => setApplyModal({ open: true, companyId })}
+                    onCancelApply={(companyId) => setApplied((prev) => prev.filter((id) => id !== companyId))}
+                    onViewDetails={(company) => handleViewDetails(company)}
+                    isProfileComplete={isProfileComplete}
+                    onProfileIncomplete={() => setShowProfileIncompleteModal(true)}
+                    onLoginRequired={() => setOpen(true)}
+                    variant="default"
+                    showApplyButtons={true}
+                    showCancelButton={true}
+                    isLoggedIn={!!users}
+                  />
                 ))}
-              </div>
-            )}
+                  </div>
+               )}
           </div>
-        </div>
 
-        <div className="ezapply__submit-row">
-          <button
-            type="button"
-            className="ezapply-submit-btn"
-            disabled={checked.length === 0}
-            onClick={() => alert(`Selected company IDs: ${checked.join(", ")}`)}
-          >
-            Submit Selected
-          </button>
+          {checked.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!users) {
+                  setOpen(true);
+                } else if (!isProfileComplete) {
+                  setShowProfileIncompleteModal(true);
+                } else {
+                  setBulkModal({ open: true });
+                }
+              }}
+              className={`apply-selected-btn ${
+                !users
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : !isProfileComplete
+                  ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                  : ''
+              }`}
+            >
+              Apply Selected ({checked.length})
+            </button>
+          )}
         </div>
       </div>
 
@@ -326,9 +400,80 @@ const AllCompanies = ({ user }: { user?: any }) => {
       <Dialog open={open} onOpenChange={handleDialogChange}>
         <DialogContent className="dialog-content">
           <DialogTitle>Please Log In</DialogTitle>
-          <p>You must be logged in to view company details.</p>
+          <p>You must be logged in to apply for franchises.</p>
+          <div className="flex justify-end gap-3 mt-4">
+            <button
+              onClick={() => {
+                setOpen(false);
+                router.get('/register');
+              }}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+            >
+              Register
+            </button>
+            <button
+              onClick={() => {
+                setOpen(false);
+                router.get('/login?redirect=' + encodeURIComponent(redirectUrl || window.location.pathname));
+              }}
+              className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded"
+            >
+              Log In
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
+
+      {/* Apply modal */}
+      <ApplyModal
+        isOpen={applyModal.open}
+        onClose={() => setApplyModal({ open: false, companyId: null })}
+        companyId={applyModal.companyId || undefined}
+        onApplySuccess={(appliedIds) => {
+          setApplied((prev) => Array.from(new Set([...prev, ...appliedIds])));
+        }}
+      />
+
+      {/* Bulk Apply modal */}
+      <ApplyModal
+        isOpen={bulkModal.open}
+        onClose={() => setBulkModal({ open: false })}
+        companyIds={checked}
+        onApplySuccess={(appliedIds) => {
+          setApplied((prev) => Array.from(new Set([...prev, ...appliedIds])));
+          setChecked([]);
+        }}
+      />
+      {showProfileIncompleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-2 text-red-600">
+              Incomplete Profile
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              You cannot apply yet because your profile is incomplete. You need to fill in your Basic Information (first name) and Financial Information (income source).
+              Would you like to Fill it now?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowProfileIncompleteModal(false)}
+                className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowProfileIncompleteModal(false);
+                  router.get('/applicant/profile');
+                }}
+                className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+              >
+               Fill Up Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Company Details Modal */}
       <CompanyDetailsModal
