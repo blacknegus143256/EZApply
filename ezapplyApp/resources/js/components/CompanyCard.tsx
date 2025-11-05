@@ -206,7 +206,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
           <img
             src={
               company.marketing?.logo_path
-                ? `/storage/${company.marketing.logo_path}`
+              ? company.marketing.logo_path.startsWith("http")
+              ? company.marketing.logo_path
+                : `/storage/${company.marketing.logo_path}`
                 : "/background/default-logo.png"
             }
             alt={`${company.company_name} logo`}
