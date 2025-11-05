@@ -15,6 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import company from "@/routes/company";
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: "Dashboard", href: "/dashboard" },
@@ -93,7 +94,9 @@ function ApplicationCard({ application, handleCompanyClick }: {
                     <img
                         src={
                             company.marketing?.logo_path
-                                ? `/storage/${company.marketing.logo_path}`
+                            ? company.marketing.logo_path.startsWith("http")
+                            ? company.marketing.logo_path
+                                : `/storage/${company.marketing.logo_path}`
                                 : "/background/default-logo.png"
                         }
                         alt={`${company.company_name} logo`}
@@ -343,7 +346,9 @@ export default function AppliedCompanies() {
                                                                 <img
                                                                     src={
                                                                         a.company.marketing?.logo_path
-                                                                            ? `/storage/${a.company.marketing.logo_path}`
+                                                                        ? a.company.marketing.logo_path.startsWith("http")
+                                                                        ? a.company.marketing.logo_path
+                                                                            : `/storage/${a.company.marketing.logo_path}`
                                                                             : "/background/default-logo.png"
                                                                     }
                                                                     alt={`${a.company.company_name} logo`}
