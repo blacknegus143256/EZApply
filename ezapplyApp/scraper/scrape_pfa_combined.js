@@ -3,6 +3,29 @@ import fs from "fs/promises";
 
 const BASE_URL = "https://www.pfa.org.ph/members";
 
+function normalizeMoney(value) {
+  if (!value) return null;
+  let str = value.toString().trim().toUpperCase();
+
+  // remove symbols
+  str = str.replace(/[^0-9.,KM\-– ]/g, "");
+
+  // handle ranges like "3M - 5M"
+  if (str.includes("-") || str.includes("–")) {
+    const parts = str.split(/[-–]/).map((p) => normalizeMoney(p.trim()));
+    return Math.round((parts[0] + (parts[1] || parts[0])) / 2); // average
+  }
+
+  // detect "M" or "K"
+  let num = parseFloat(str.replace(/,/g, ""));
+  if (isNaN(num)) return null;
+
+  if (str.includes("M")) num *= 1_000_000;
+  else if (str.includes("K")) num *= 1_000;
+
+  return Math.round(num);
+}
+
 // ✅ Auto-scroll to load all companies
 async function autoScroll(page) {
   await page.evaluate(async () => {
@@ -70,6 +93,10 @@ async function autoScroll(page) {
       } catch {
         console.warn("⚠️ No structured info found for", m.name);
       }
+      
+      if (info["CAPITAL INVESTMENT"]) info["CAPITAL INVESTMENT"] = normalizeMoney(info["CAPITAL INVESTMENT"]);
+      if (info["FRANCHISE FEE"]) info["FRANCHISE FEE"] = normalizeMoney(info["FRANCHISE FEE"]);
+
 
       // extra info (description/contact)
       const extra = await page.evaluate(() => {
