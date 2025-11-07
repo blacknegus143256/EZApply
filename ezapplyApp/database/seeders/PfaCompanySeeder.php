@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\UserCredit;
 use App\Models\Company;
 use App\Models\CompanyOpportunity;
 use App\Models\CompanyBackground;
@@ -38,8 +39,15 @@ class PfaCompanySeeder extends Seeder
                     ['email' => $email],
                     [
                         'password' => bcrypt('password123'),
-                        'credits' => 0,
+                        'credits' => 200,
                     ]
+                );
+
+                $user->assignRole('company');
+                
+                UserCredit::updateOrCreate(
+                    ['user_id' => $user->id],
+                    ['balance' => 200]
                 );
 
                 // DEFAULTS: ensure fields that might be NON-NULL in DB are present

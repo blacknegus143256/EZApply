@@ -85,7 +85,7 @@ const FranchiseForm = () => {
   // const [companies, setCompanies] = useState<Company[]>([]);
   const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
 
-  const [search] = useState('');
+  const [search, setSearch] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
   const [type, setType] = useState('all');
@@ -230,6 +230,17 @@ const franchiseTypes = Array.from(
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+            <label className="block text-sm font-medium">Company Name</label>
+            <input
+              name="company_name"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="mt-1 block w-full rounded-lg border px-3 py-2 bg-white text-black"
+              placeholder="Search for Company"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium">Budget</label>
             <input
