@@ -70,12 +70,12 @@ class CompanyController extends Controller
             'experience_type'          => 'nullable|string|max:255',
             'other_qualifications'     => 'nullable|string',
 
-            // Step 5 — company_marketings
-            'listing_title'            => 'nullable|string|max:255',
-            'listing_description'      => 'nullable|string',
-            'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'target_profile'           => 'nullable|string|max:255',
-            'preferred_contact_method' => 'nullable|string|max:50',
+        // Step 5 — company_marketings
+        'listing_title'            => 'nullable|string|max:255',
+        'listing_description'      => 'nullable|string',
+        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,gif,webp,bmp,tiff,svg|max:5120',
+        'target_profile'           => 'nullable|string|max:255',
+        'preferred_contact_method' => 'nullable|string|max:50',
 
              // Step 6 — required documents
             'dti_sbc'           => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -366,7 +366,7 @@ public function update(Request $request, Company $company)
         // Step 5 — company_marketings
         'listing_title'            => 'nullable|string|max:255',
         'listing_description'      => 'nullable|string',
-        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,gif,webp,bmp,tiff,svg|max:5120',
         'target_profile'           => 'nullable|string|max:255',
         'preferred_contact_method' => 'nullable|string|max:50',
 

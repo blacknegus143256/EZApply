@@ -76,11 +76,11 @@ const CompanyFullDetails: React.FC = () => {
         <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
           <AvatarImage
             className="object-contain"
-            src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
+            src={company.marketing?.logo_path ? (company.marketing.logo_path.startsWith('http') ? company.marketing.logo_path : `/storage/${company.marketing.logo_path}`) : "/background/default-logo.png"}
             alt={`${company.brand_name} logo`}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.src = "/storage/logos/default-logo.png";
+              target.src = "/background/default-logo.png";
             }}
           />
           <AvatarFallback className="text-3xl">
