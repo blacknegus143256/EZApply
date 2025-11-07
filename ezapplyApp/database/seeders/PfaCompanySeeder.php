@@ -81,7 +81,7 @@ class PfaCompanySeeder extends Seeder
                 CompanyOpportunity::updateOrCreate(
                     ['company_id' => $company->id],
                     [
-                        'franchise_type' => $item['franchise_type'] ?? 'Franchise',
+                        'franchise_type' => $item['franchise_type'] ?? $this->guessIndustry($companyName),
                         'min_investment' => self::parseMoney($item['CAPITAL INVESTMENT'] ?? $price),
                         'franchise_fee' => self::parseMoney($item['FRANCHISE FEE'] ?? null),
                         'royalty_fee_structure' => $item['ROYALTY FEE'] ?? '5% of monthly gross sales',
