@@ -38,9 +38,11 @@ class PfaCompanySeeder extends Seeder
                     ['email' => $email],
                     [
                         'password' => bcrypt('password123'),
-                        'credits' => 0,
+                        'credits' => 200,
                     ]
                 );
+
+                $user->assignRole('company');
 
                 // DEFAULTS: ensure fields that might be NON-NULL in DB are present
                 $defaults = [
