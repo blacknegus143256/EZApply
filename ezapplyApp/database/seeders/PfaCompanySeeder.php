@@ -20,7 +20,7 @@ class PfaCompanySeeder extends Seeder
         $path = database_path('seeders/data/pfa_members_combined.json');
 
         if (!File::exists($path)) {
-            $this->command->error("❌ JSON file not found at: {$path}");
+            $this->command->error(" JSON file not found at: {$path}");
             return;
         }
 
@@ -38,11 +38,16 @@ class PfaCompanySeeder extends Seeder
                     ['email' => $email],
                     [
                         'password' => bcrypt('password123'),
-                        'credits' => 0,
                     ]
                 );
+                $user = User::where('email', $email)->first();
+                $user->assignRole('company');
+                $user->markEmailAsVerified();
+                $user->credit()->firstOrCreate(['balance' => 200]);
 
-                // DEFAULTS: ensure fields that might be NON-NULL in DB are present
+                // Company attributes
+                
+
                 $defaults = [
                     'brand_name' => $companyName,
                     'city' => $item['city'] ?? $item['citymun_name'] ?? '',
@@ -65,7 +70,6 @@ class PfaCompanySeeder extends Seeder
                     'status' => 'approved',
                 ];
 
-                // Ensure company_name is present (this is one of your actual DB columns)
                 $companyAttrs = array_merge([
                     'user_id' => $user->id,
                     'company_name' => $companyName,
@@ -139,14 +143,14 @@ class PfaCompanySeeder extends Seeder
                     ]
                 );
 
-                $this->command->info("✅ Seeded: {$companyName}");
+                $this->command->info("Seeded: {$companyName}. Roles assigned: {$user->roles}");
             } catch (\Exception $e) {
-                $this->command->warn("⚠️ Failed to seed company: " . ($item['name'] ?? 'unknown'));
+                $this->command->warn("Failed to seed company: " . ($item['name'] ?? 'unknown'));
                 $this->command->warn($e->getMessage());
             }
         }
 
-        $this->command->info("🎉 Finished seeding PFA companies!");
+        $this->command->info(" Finished seeding PFA companies!");
     }
 
     private static function parseMoney($value)

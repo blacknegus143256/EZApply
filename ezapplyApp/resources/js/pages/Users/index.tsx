@@ -71,7 +71,6 @@ function deleteUser(id: number){
                         <Table>
                             <TableHeader className='bg-gray-100 '>
                                 <TableRow>
-                                    <TableHead>ID</TableHead>
                                     <TableHead>Name</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
@@ -80,9 +79,8 @@ function deleteUser(id: number){
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {users.data.map((user, index) => (
+                                {users.data.map((user) => (
                                     <TableRow>
-                                        <TableCell>{index+1}</TableCell>
                                         <TableCell>{user.first_name} {user.last_name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell className='flex flex-wrap gap-1'>

@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Application;
 use Inertia\Inertia;
+use App\Models\BasicInfo;
 
 
 class CompanyController extends Controller
@@ -232,10 +233,10 @@ class CompanyController extends Controller
             'requirements',
             'marketing',
             'documents',
-            'user',
+            'user.basicinfo',
         ])->get();
 
-        return response()->json($companies);
+        return response()->json($companies);   
     }
 
     public function apiIndex()

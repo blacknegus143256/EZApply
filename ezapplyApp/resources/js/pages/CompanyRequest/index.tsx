@@ -18,15 +18,6 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import CompanyDetails from '../Company/CompanyDetails';
 import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 
 
@@ -43,6 +34,7 @@ interface Company {
   description: string;
   created_at: string;
   status?: 'pending' | 'approved' | 'rejected'; 
+  agent_name?: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -88,7 +80,7 @@ export default function Roles({ roles }: { roles: any }) {
         status: c.status || 'pending',
       }));
       setCompanies(withStatus);
-      setLoading(false);
+      setLoading(false);      
     })
     .catch((err) => {
       console.error("Error fetching companies:", err);
@@ -144,12 +136,11 @@ function handleCloseModal() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>ID</TableHead>
+                                    <TableHead>Agent Name</TableHead>
                                     <TableHead>Company Name</TableHead>
                                     <TableHead>Date Created</TableHead>
                                     <TableHead>Action</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Session</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -180,7 +171,9 @@ function handleCloseModal() {
       )
       .map((company) => (
         <TableRow key={company.id}>
-          <TableCell>{company.id}</TableCell>
+          <TableCell>
+            {company.agent_name || 'N/A'}
+          </TableCell>
           <TableCell>{company.company_name}</TableCell>
           <TableCell>
             {new Date(company.created_at).toLocaleDateString()}
@@ -250,17 +243,7 @@ function handleCloseModal() {
               <Badge variant="destructive">Rejected</Badge>
             )}
           </TableCell>
-          <TableCell>
-            {company.status === "approved" && (
-              <span className="text-green-500 text-lg">🟢</span>
-            )}
-            {company.status === "pending" && (
-              <span className="text-yellow-500 text-lg">🟡</span>
-            )}
-            {company.status === "rejected" && (
-              <span className="text-red-500 text-lg">🔴</span>
-            )}
-          </TableCell>
+
         </TableRow>
       ))
   )}

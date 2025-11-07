@@ -10,32 +10,26 @@ import {
 import { Button } from "@/components/ui/button";
 import AppLogoIcon from './app-logo-icon';
 
-// Define the component props
 interface WelcomeModalProps {
-  // Milliseconds delay before the modal first shows
   initialDelay?: number;
 }
 
 const WelcomeModal: React.FC<WelcomeModalProps> = ({ initialDelay = 2000 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Effect to handle the initial delayed display of the modal
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Check if a flag exists in localStorage to prevent showing again
       const hasSeenModal = localStorage.getItem('ezapply_welcome_seen');
       if (!hasSeenModal) {
         setIsVisible(true);
       }
     }, initialDelay);
 
-    return () => clearTimeout(timer); // Cleanup the timer
+    return () => clearTimeout(timer); 
   }, [initialDelay]);
 
-  // Function to close the modal and set a flag in local storage
   const handleClose = () => {
     setIsVisible(false);
-    // Prevents the modal from showing again on subsequent visits/reloads
     localStorage.setItem('ezapply_welcome_seen', 'true');
   };
 
@@ -71,10 +65,3 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ initialDelay = 2000 }) => {
 };
 
 export default WelcomeModal;
-
-// --- Example Usage in another file (e.g., App.tsx) ---
-/*
-import WelcomeModal from './WelcomeModal';
-// ... inside your component render
-<WelcomeModal initialDelay={2500} />
-*/

@@ -76,7 +76,6 @@ export default function ImprovedEasyApplyLanding() {
   const [applied, setApplied] = useState<number[]>([]);
 
   const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null}>({ open: false, companyId: null });
-  // Bulk apply modal
   const [bulkModal, setBulkModal] = useState<{open: boolean}>({ open: false });
   const [numberToShow, setNumberToShow] = useState(3);
 
@@ -136,7 +135,6 @@ export default function ImprovedEasyApplyLanding() {
   }, []);
 
   useEffect(() => {
-    // Restore form state if coming back from profile
     const savedState = localStorage.getItem("franchiseFormState");
     if (savedState) {
       const state = JSON.parse(savedState);
@@ -147,17 +145,14 @@ export default function ImprovedEasyApplyLanding() {
       localStorage.removeItem("franchiseFormState");
     }
 
-    // Cleanup profile redirect flag if it exists
     localStorage.removeItem("profileRedirect");
   }, []);
 
-  // Fetch applied company IDs
   useEffect(() => {
     if (users) {
       axios.get("/api/applied-company-ids")
         .then((res) => {
           setApplied(res.data);
-          // Filter out already applied companies from checked state
           setChecked(prev => prev.filter(id => !res.data.includes(id)));
         })
         .catch((err) => {
@@ -166,30 +161,25 @@ export default function ImprovedEasyApplyLanding() {
     }
   }, [users]);
 
-  // Extract franchise types dynamically
   const franchiseTypes = Array.from(
     new Set(companies.map((c) => c.opportunity?.franchise_type).filter(Boolean))
   );
 
-  // Start with all companies
   let filtered = companies;
 
   filtered = filtered.filter((c) => c.status === 'approved');
 
 
 
-  // Filter by type
   if (type !== 'all') {
     filtered = filtered.filter((c) => c.opportunity?.franchise_type === type);
   }
   if (budget !== '') {
     filtered = filtered.filter((c) => {
-      // Assuming c.opportunity.min_investment is a number
       return (c.opportunity?.min_investment?? Infinity) <= budget;
     });
   }
 
-  // Filter by investment amount
   if (amount !== "all") {
     filtered = filtered.filter((c) => {
       const value = c.opportunity?.min_investment || 0;

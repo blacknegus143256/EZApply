@@ -11,7 +11,7 @@ use Inertia\Inertia;
 class BasicInfoController extends Controller
 {
 
-        public function getBasicInfo($user)
+    public function getBasicInfo($user)
     {
         $basicInfo = $user->basicInfo;
         $address   = $user->address;

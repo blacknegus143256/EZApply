@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User; 
 
 class Company extends Model
 {
@@ -37,7 +38,11 @@ class Company extends Model
         'status' => 'pending',
     ];
 
-    // Relationships (1–1)
+
+    protected $appends = [
+        'agent_name',
+    ];
+
     public function opportunity() { return $this->hasOne(CompanyOpportunity::class); }
     public function background()  { return $this->hasOne(CompanyBackground::class); }
     public function requirements(){ return $this->hasOne(CompanyRequirement::class); }
@@ -46,12 +51,24 @@ class Company extends Model
     public function documents()   { return $this->hasOne(CompanyDocument::class); }
 
     public function applications()
-{
-    return $this->hasMany(Application::class);
-}
+    {
+        return $this->hasMany(Application::class);
+    }
 
-public function applicants()
-{
-    return $this->belongsToMany(User::class, 'applications');
-}
+    public function applicants()
+    {
+        return $this->belongsToMany(User::class, 'applications');
+    }
+
+    protected function getAgentNameAttribute(): string
+    {
+        $basicInfo = optional($this->user)->basicInfo;
+
+        if ($basicInfo) {
+            return "{$basicInfo->first_name} {$basicInfo->last_name}";
+        }
+        return 'N/A';
+        
+      //  return optional($this->user)->email ?? 'N/A';
+    }
 }

@@ -116,27 +116,23 @@ function ApplicationCard({ application, handleCompanyClick }: {
             </div>
 
                 <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 border-t pt-3 mt-3">
-                    <div className="flex items-center">
-                        <User className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Representative: <strong>{repName}</strong></span>
-                    </div>
                     {application.desired_location && (
                         <div className="flex items-center">
                             <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                            <span>Location: {application.desired_location}</span>
+                            <span><strong>Location:</strong> {application.desired_location}</span>
                         </div>
                     )}
                     <div className="flex items-center">
                         <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Brand: {application.company.brand_name || 'N/A'}</span>
+                        <span><strong>Brand:</strong> {application.company.brand_name || 'N/A'}</span>
                     </div>
                     <div className="flex items-center">
                         <Building2 className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Franchise Type: {application.company.opportunity?.franchise_type || 'N/A'}</span>
+                        <span><strong>Franchise Type:</strong> {application.company.opportunity?.franchise_type || 'N/A'}</span>
                     </div>
                     <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>Applied: {application.created_at ? new Date(application.created_at).toLocaleDateString() : 'N/A'}</span>
+                        <span><strong> Applied: </strong> {application.created_at ? new Date(application.created_at).toLocaleDateString() : 'N/A'}</span>
                     </div>
                 </div>
 
@@ -285,27 +281,29 @@ export default function AppliedCompanies() {
                                                 <option value="interested">Interested</option>
                                             </select>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <div className="relative">
+                                        <div className="flex flex-col gap-3 md:flex-row md:gap-2 w-full md:w-auto">
+                                            
+                                            <div className="relative w-full md:w-auto">
                                                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
                                                     type="date"
                                                     placeholder="From"
                                                     value={startDateFilter}
                                                     onChange={(e) => setStartDateFilter(e.target.value)}
-                                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-100 text-sm"
+                                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-100 text-sm w-full"
                                                 />
                                             </div>
-                                            <div className="relative">
+                                            <div className="relative w-full md:w-auto">
                                                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
                                                     type="date"
                                                     placeholder="To"
                                                     value={endDateFilter}
                                                     onChange={(e) => setEndDateFilter(e.target.value)}
-                                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-100 text-sm"
+                                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-100 text-sm w-full"
                                                 />
                                             </div>
+                                            
                                         </div>
                                     </div>
                                 </div>

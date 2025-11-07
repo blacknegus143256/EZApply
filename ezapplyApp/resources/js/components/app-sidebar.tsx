@@ -27,10 +27,10 @@ const mainNavItems: NavItem[] = [
         permission: 'view_customer_dashboard',
      },
     {
-    title: 'Applied Companies',
-    href: '/applicant/franchise/appliedcompanies',
-    icon: MessageCircle,
-    permission: 'view_customer_dashboard',
+        title: 'Applied Companies',
+        href: '/applicant/franchise/appliedcompanies',
+        icon: MessageCircle,
+        permission: 'view_customer_dashboard',
     },
     {
         title: 'My Companies',
