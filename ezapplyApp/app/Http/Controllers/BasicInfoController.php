@@ -63,7 +63,7 @@ class BasicInfoController extends Controller
         
         // Create or update address
         
-        $address = \App\Models\UserAddress::updateOrCreate(
+        $address = UserAddress::updateOrCreate(
             ['user_id' => $user->id],
         
     [

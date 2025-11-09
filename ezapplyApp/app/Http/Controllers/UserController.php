@@ -6,33 +6,58 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
+use App\Models\UserAddress;
+use App\Models\BasicInfo;
+use Illuminate\Support\Facades\Hash;
+
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $users = User::with('roles') // eager load roles using Spatie
-            ->latest()
-            ->paginate(5)
-            ->withQueryString()
-            ->through(fn($user) => [
-                'id'          => $user->id,
-                'first_name'  => $user->first_name,
-                'last_name'   => $user->last_name,
-                'email'       => $user->email,
-                'phone_number'=> $user->phone_number,
-                'address'     => $user->address,
-                'roles'       => $user->roles->pluck('name')->join(', ') ?: '—', // show role names
-                'created_at'  => $user->created_at->format('d-m-Y'),
-            ]);
+public function index(Request $request)
+{
+    $search = $request->input('search');
+    $roleFilter = $request->input('role');
 
-        return Inertia::render('Users/index', [
-            'users' => $users
-        ]);
+    $usersQuery = User::with(['roles', 'basicInfo.address'])->latest();
+
+    if ($search) {
+        $usersQuery->whereHas('basicInfo', function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%");
+        })->orWhere('email', 'like', "%{$search}%");
     }
+
+    if ($roleFilter && $roleFilter !== 'all') {
+    $usersQuery->whereHas('roles', function ($q) use ($roleFilter) {
+        $q->where('name', $roleFilter);
+    });
+}
+
+    $users = $usersQuery->paginate(5)->withQueryString()->through(fn($user) => [
+        'id'          => $user->id,
+        'first_name'  => $user->basicInfo->first_name ?? '',
+        'last_name'   => $user->basicInfo->last_name ?? '',
+        'email'       => $user->email,
+        'phone_number'=> $user->basicInfo->phone ?? '',
+        'address'     => $user->basicInfo->address->full_address ?? '',
+        'roles'       => $user->roles->pluck('name')->join(', ') ?: '—', 
+        'created_at'  => $user->created_at->format('d-m-Y'),
+    ]);
+
+    $roles = Role::pluck('name'); 
+
+    return Inertia::render('Users/index', [
+        'users'   => $users,
+        'roles'   => $roles,
+        'filters' => $request->only(['search', 'role']),
+    ]);
+}
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -47,37 +72,65 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'first_name'            => 'required|string|max:255',
-            'last_name'             => 'required|string|max:255',
-            'email'                 => 'required|email|unique:users,email',
-            'phone_number'          => 'required|string|max:255',
-            'address'               => 'required|string|max:255',
-            'roles'                 => 'array',
-            'roles.*'               => 'string|exists:roles,name',
-            'password'              => 'required|string|max:255',
-            'password_confirmation' => 'required|string|max:255|same:password',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'birth_date' => 'required|date',
+        'phone' => 'required|string|max:20',
+        'Facebook' => 'nullable|string|max:255',
+        'LinkedIn' => 'nullable|string|max:255',
+        'Viber' => 'nullable|string|max:255',
+        'description' => 'nullable|string',
+        'users_address' => 'required|array',
+        'users_address.region_code' => 'required|string',
+        'users_address.region_name' => 'required|string',
+        'users_address.province_code' => 'required|string',
+        'users_address.province_name' => 'required|string',
+        'users_address.citymun_code' => 'required|string',
+        'users_address.citymun_name' => 'required|string',
+        'users_address.barangay_code' => 'required|string',
+        'users_address.barangay_name' => 'required|string',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|confirmed|min:8',
+    ]);
 
-        // Create user
-        $user = User::create([
-            'first_name'   => $request->first_name,
-            'last_name'    => $request->last_name,
-            'email'        => $request->email,
-            'phone_number' => $request->phone_number,
-            'address'      => $request->address,
-            'password'     => bcrypt($request->password),
-        ]);
+    $user = User::create([
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+    ]);
 
-        if ($request->has('roles') && count($request->roles) > 0) {
-            // Assign multiple roles via Spatie
-            $user->syncRoles($request->roles);
-        }
+    $address = UserAddress::create([
+        'user_id' => $user->id,
+        'region_code' => $request->input('users_address.region_code'),
+        'region_name' => $request->input('users_address.region_name'),
+        'province_code' => $request->input('users_address.province_code'),
+        'province_name' => $request->input('users_address.province_name'),
+        'citymun_code' => $request->input('users_address.citymun_code'),
+        'citymun_name' => $request->input('users_address.citymun_name'),
+        'barangay_code' => $request->input('users_address.barangay_code'),
+        'barangay_name' => $request->input('users_address.barangay_name'),
+    ]);
 
-        return to_route('users.index')->with('message', 'User Created Successfully');
+    $user->basicInfo()->create([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'birth_date' => $request->birth_date,
+        'phone' => $request->phone,
+        'Facebook' => $request->Facebook,
+        'LinkedIn' => $request->LinkedIn,
+        'Viber' => $request->Viber,
+        'address_id' => $address->id,
+    ]);
+
+    if ($request->has('roles') && count($request->roles) > 0) {
+        $user->syncRoles($request->roles);
     }
+
+    return to_route('users.index')->with('message', 'User Created Successfully');
+}
+
 
     /**
      * Display the specified resource.
@@ -94,7 +147,7 @@ class UserController extends Controller
     {
         //
         return Inertia::render('Users/edit', [
-            'user' => $user->load('roles'),
+            'user' => $user->load(['roles', 'basicInfo', 'address']),
             'roles' => Role::all()->pluck('name')
         ]);
     }
@@ -102,35 +155,68 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
-    {
-        //
-        $request->validate([
-            'first_name'            => 'required|string|max:255',
-            'last_name'             => 'required|string|max:255',
-            'email'                 => 'required|email|unique:users,email,' .$user->id,
-            'phone_number'          => 'required|string|max:255',
-            'address'               => 'required|string|max:255',
-            'roles'                 => 'array',
-            'roles.*'               => 'string|exists:roles,name',
+public function update(Request $request, User $user)
+{
+    $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'birth_date' => 'required|date',
+        'phone_number' => 'required|string|max:20',
+        'facebook' => 'nullable|string|max:255',
+        'linkedin' => 'nullable|string|max:255',
+        'viber' => 'nullable|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'roles' => 'required|array',
+        'password' => 'nullable|string|min:6|confirmed',
+        'region_code' => 'required|string',
+        'region_name' => 'required|string',
+        'province_code' => 'required|string',
+        'province_name' => 'required|string',
+        'citymun_code' => 'required|string',
+        'citymun_name' => 'required|string',
+        'barangay_code' => 'required|string',
+        'barangay_name' => 'required|string',
+    ]);
 
+    $user->update([
+        'email' => $request->email,
+    ]);
+
+    if ($user->basicInfo) {
+    $user->basicInfo->update([
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'birth_date' => $request->birth_date,
+        'phone' => $request->phone_number,
+        'Facebook' => $request->facebook,
+        'LinkedIn' => $request->linkedin,
+        'Viber' => $request->viber,
+    ]);
+}
+
+    if ($user->address) {
+        $user->address->update([
+            'region_code' => $request->region_code,
+            'region_name' => $request->region_name,
+            'province_code' => $request->province_code,
+            'province_name' => $request->province_name,
+            'citymun_code' => $request->citymun_code,
+            'citymun_name' => $request->citymun_name,
+            'barangay_code' => $request->barangay_code,
+            'barangay_name' => $request->barangay_name,
         ]);
-
-
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->email = $request->email;
-        $user->phone_number = $request->phone_number;
-        $user->address = $request->address;
-        $user->save();
-
-        if ($request->has('roles')){
-            $user->syncRoles($request->roles);
-            
-        }
-
-        return to_route('users.index')->with('message', 'User Updated Successfully');
     }
+
+    if ($request->filled('password')) {
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+    }
+
+    $user->syncRoles($request->roles);
+
+    return to_route('users.index')->with('message', 'User updated successfully.');
+}
 
     /**
      * Remove the specified resource from storage.

@@ -39,6 +39,10 @@ class BasicInfo extends Model
     /**
      * Get the address associated with the basic info.
      */
+    public function basicInfo()
+{
+    return $this->hasOne(BasicInfo::class, 'user_id');
+}
     public function address(): BelongsTo
     {
         return $this->belongsTo(UserAddress::class, 'address_id');
