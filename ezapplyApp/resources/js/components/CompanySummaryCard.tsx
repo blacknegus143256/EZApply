@@ -38,7 +38,7 @@ const CompanySummaryCard: React.FC<CompanySummaryCardProps> = ({
   }
 
   const displayName = company.brand_name && company.brand_name !== company.company_name
-    ? `${company.company_name} (${company.brand_name})`
+    ? ` ${company.brand_name}(${company.company_name})`
     : company.company_name;
 
   const displayDescription = company.marketing?.listing_description || company.description || 'No description available';

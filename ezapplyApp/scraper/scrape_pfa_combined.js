@@ -99,16 +99,81 @@ async function autoScroll(page) {
 
 
       // extra info (description/contact)
-      const extra = await page.evaluate(() => {
-        const description =
+      let extra = await page.evaluate(() => {
+        const descriptionText =
           document.querySelector('[data-hook="description"]')?.innerText?.trim() ||
           document.querySelector('[data-hook="product-description"]')?.innerText?.trim() ||
           "";
-        const contact = Array.from(document.querySelectorAll("p"))
-          .map((p) => p.innerText)
-          .find((t) => t.match(/@|contact|tel|email|www|address|facebook/i)) || "";
-        return { description, contact };
-      });
+    const lines = descriptionText
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && l !== " ");
+  const details = {
+    company_name: null,
+    address: null,
+    contact_number: null,
+    email: null,
+    contact_person: null,
+    designation: null,
+    website: null,
+    company_profile: null,
+    raw_description: descriptionText,
+  };
+
+  for (const line of lines) {
+    if (!details.company_name) {
+      details.company_name = line;
+      continue;
+    }
+
+    // Contact Person
+    if (/Person/i.test(line)) {
+      details.contact_person = line.replace(/Contact\s*Person\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+
+    // Email
+    if (/@/.test(line)) {
+      details.email = line.replace(/Email\s*(:)?\s*/i, "").trim();
+      continue;
+    }
+    // Contact Number
+    if (/Contact\s*(No\.|Number)?/i.test(line) || /Tel/i.test(line)) {
+      details.contact_number = line
+        .replace(/(Contact\s*(No\.|Number)?|Tel(\.|ephone)?)(:)?\s*/i, "")
+        .trim();
+      continue;
+    }
+
+
+    // Designation
+    if (/Designation/i.test(line)) {
+      details.designation = line.replace(/Designation\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+    // Website
+    if (/WEBSITE/i.test(line)) {
+      details.website = line.replace(/WEBSITE\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+    // Company Profile
+    if (/COMPANY PROFILE/i.test(line)) {
+      details.company_profile = line.replace(/COMPANY PROFILE\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+    // Address (fallback)
+    if (!details.address && /City|Ave|Street|St\.|Road|Bldg|Barangay|Brgy/i.test(line)) {
+      details.address = line;
+      continue;
+    }
+  }
+
+  return details;
+});
 
       detailed.push({ ...m, ...info, ...extra });
     } catch (err) {
