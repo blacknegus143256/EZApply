@@ -32,7 +32,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Users({ users} : {users : User}) {
 
-
+const [loading, setLoading] = useState(true);
+const [deleting, setDeleting] = useState(false);
 const {flash} = usePage<{flash: {message?: string}}>().props; 
 
 useEffect(() => {
@@ -42,9 +43,18 @@ useEffect(() => {
     }
 }, [flash.message])
 
+useEffect(() => {
+  if (users && users.data) {
+    setLoading(false);
+  }
+}, [users]);
+
 function deleteUser(id: number){
     if(confirm('Are you sure you want to delete this user?')){
-        router.delete(`/users/${id}`); 
+    setDeleting(true);
+        router.delete(`/users/${id}`,{
+            onFinish: () => setDeleting(false),
+    }); 
     }
 }
 
@@ -55,6 +65,11 @@ function deleteUser(id: number){
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Permission" />
                 <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {deleting && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/70 dark:bg-neutral-900/60 rounded-xl">
+                        <div className="loader scale-100"></div>
+                    </div>
+                    )}
                 <Card>
                     <CardHeader className='flex justify-between items-center'>
                         <CardTitle>User Management</CardTitle>
@@ -80,7 +95,16 @@ function deleteUser(id: number){
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {users.data.map((user, index) => (
+                                {loading ? (
+                                <TableRow>
+                                <TableCell colSpan={6} className="text-center py-10">
+                                    <div className="flex flex-col items-center justify-center gap-2">
+                                    <div className="loader scale-100"></div>
+                                    <span className="text-sm text-gray-500">Loading users...</span>
+                                    </div>
+                                </TableCell>
+                                </TableRow>
+                            ) : users.data.map((user, index) => (
                                     <TableRow>
                                         <TableCell>{index+1}</TableCell>
                                         <TableCell>{user.first_name} {user.last_name}</TableCell>
@@ -100,7 +124,8 @@ function deleteUser(id: number){
                                                 </Link>
                                             </Can>
                                             <Can permission="delete_users">
-                                                <Button variant={'destructive'} className='ml-2' onClick={()=> deleteUser(user.id)}>Delete</Button>
+                                                <Button variant={'destructive'} className='ml-2' 
+                                                 disabled={loading} onClick={()=> deleteUser(user.id)}>Delete</Button>
                                             </Can>
                                         </TableCell>
                                     </TableRow>

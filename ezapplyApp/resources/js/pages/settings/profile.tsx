@@ -25,7 +25,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Profile({ mustVerifyEmail, status, basicInfo, address }: { mustVerifyEmail: boolean; status?: string; basicInfo?: any; address?: any }) {
     const { auth } = usePage<SharedData>().props;
-
+    const [loadingRegions, setLoadingRegions] = useState(true);
+    const [loadingProvinces, setLoadingProvinces] = useState(false);
+    const [loadingCities, setLoadingCities] = useState(false);
+    const [loadingBarangays, setLoadingBarangays] = useState(false);
     const [regions, setRegions] = useState<{ code: string; name: string }[]>([]);
     const [provinces, setProvinces] = useState<{ code: string; name: string }[]>([]);
     const [citiesMunicipalities, setCitiesMunicipalities] = useState<{ code: string; name: string }[]>([]);
@@ -43,22 +46,37 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
     });
 
     useEffect(() => {
+    setLoadingRegions(true);
         fetch('/psgc/regions')
             .then(res => res.json())
             .then(data => {
-                setRegions(data.map((region: any) => ({ code: region.code, name: region.name })));
+                const mapped = (data.map((region: any) => ({ code: region.code, name: region.name })));
+                setRegions(mapped);
+                if (addressData.region_code) {
+                const match = mapped.find(r => r.code === addressData.region_code);
+                if (match) {
+                    setAddressData(prev => ({
+                    ...prev,
+                    region_name: match.name,
+                    }));
+                }
+                }
+                
             })
-            .catch(err => console.error('Error fetching regions:', err));
+            .catch(err => console.error('Error fetching regions:', err))
+        .finally(() => setLoadingRegions(false));
     }, []);
 
     useEffect(() => {
         if (addressData.region_code) {
+        setLoadingProvinces(true);
             fetch(`/psgc/regions/${addressData.region_code}/provinces`)
                 .then(res => res.json())
                 .then(data => {
                     setProvinces(data.map((province: any) => ({ code: province.code, name: province.name })));
                 })
-                .catch(err => console.error('Error fetching provinces:', err));
+                .catch(err => console.error('Error fetching provinces:', err))
+            .finally(() => setLoadingProvinces(false));
         } else {
             setProvinces([]);
         }
@@ -66,12 +84,14 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
     useEffect(() => {
         if (addressData.province_code) {
+        setLoadingCities(true);
             fetch(`/psgc/provinces/${addressData.province_code}/cities-municipalities`)
                 .then(res => res.json())
                 .then(data => {
                     setCitiesMunicipalities(data.map((city: any) => ({ code: city.code, name: city.name })));
                 })
-                .catch(err => console.error('Error fetching cities:', err));
+                .catch(err => console.error('Error fetching cities:', err))
+            .finally(() => setLoadingCities(false));
         } else {
             setCitiesMunicipalities([]);
         }
@@ -79,12 +99,14 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
     useEffect(() => {
         if (addressData.citymun_code) {
+        setLoadingBarangays(true);
             fetch(`/psgc/cities-municipalities/${addressData.citymun_code}/barangays`)
                 .then(res => res.json())
                 .then(data => {
                     setBarangays(data.map((barangay: any) => ({ code: barangay.code, name: barangay.name })));
                 })
-                .catch(err => console.error('Error fetching barangays:', err));
+                .catch(err => console.error('Error fetching barangays:', err))
+            .finally(() => setLoadingBarangays(false));
         } else {
             setBarangays([]);
         }
@@ -280,6 +302,7 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <Label>Region</Label>
+                                            <div className="relative">
                                             <Select
                                                 value={addressData.region_code}
                                                 onValueChange={handleRegionChange}
@@ -287,14 +310,23 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                                 <SelectTrigger className="w-full">
                                                     <SelectValue placeholder="Select Region" />
                                                 </SelectTrigger>
-                                                <SelectContent>
-                                                    {regions.map(region => (
+                                                <SelectContent>    
+                                                    {loadingRegions ? (
+                                                        <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+                                                    ) : (
+                                                    regions.map(region => (
                                                         <SelectItem key={region.code} value={region.code}>
                                                             {region.name}
                                                         </SelectItem>
-                                                    ))}
+                                                    ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
+                                            {loadingRegions && 
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-neutral-900/50 rounded-md"><div className="loader scale-25 ml-1" />
+                                            </div>}
+                                            </div>
+                                            
                                             <InputError message={errors['users_address.region_code']} />
                                             <Input
                                                 type="hidden"
@@ -310,6 +342,7 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
                                         <div>
                                             <Label>Province</Label>
+                                            <div className="relative">
                                             <Select
                                                 value={addressData.province_code}
                                                 onValueChange={handleProvinceChange}
@@ -319,13 +352,24 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                                     <SelectValue placeholder="Select Province" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {provinces.map(province => (
+                                                        {loadingProvinces ? (
+                                                        <div className="flex flex-col items-center justify-center p-3">
+                                                        <div className="loader mb-2"></div>
+                                                        <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+                                                        </div>
+                                                    ) : (
+                                                    provinces.map(province => (
                                                         <SelectItem key={province.code} value={province.code}>
                                                             {province.name}
                                                         </SelectItem>
-                                                    ))}
+                                                    ))
+                                                    )}
                                                 </SelectContent>
-                                            </Select>
+                                            </Select>                                           
+                                            {loadingProvinces && 
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-neutral-900/50 rounded-md"><div className="loader scale-25 ml-1" />
+                                            </div>}
+                                            </div>
                                             <InputError message={errors['users_address.province_code']} />
                                             <Input
                                                 type="hidden"
@@ -341,6 +385,7 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
                                         <div>
                                             <Label>City/Municipality</Label>
+                                            <div className="relative">
                                             <Select
                                                 value={addressData.citymun_code}
                                                 onValueChange={handleCityMunicipalityChange}
@@ -350,13 +395,24 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                                     <SelectValue placeholder="Select City/Municipality" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {citiesMunicipalities.map(city => (
+                                                        {loadingCities ? (
+                                                        <div className="flex flex-col items-center justify-center p-3">
+                                                        <div className="loader mb-2"></div>
+                                                        <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+                                                        </div>
+                                                    ) : (
+                                                    citiesMunicipalities.map(city => (
                                                         <SelectItem key={city.code} value={city.code}>
                                                             {city.name}
                                                         </SelectItem>
-                                                    ))}
+                                                    ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
+                                            {loadingCities && 
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-neutral-900/50 rounded-md"><div className="loader scale-25 ml-1" />
+                                            </div>}
+                                            </div>
                                             <InputError message={errors['users_address.citymun_code']} />
                                             <Input
                                                 type="hidden"
@@ -372,6 +428,7 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
                                         <div>
                                             <Label>Barangay</Label>
+                                            <div className="relative">
                                             <Select
                                                 value={addressData.barangay_code}
                                                 onValueChange={handleBarangayChange}
@@ -381,13 +438,24 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                                     <SelectValue placeholder="Select Barangay" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {barangays.map(barangay => (
+                                                        {loadingBarangays ? (
+                                                        <div className="flex flex-col items-center justify-center p-3">
+                                                        <div className="loader mb-2"></div>
+                                                        <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+                                                        </div>
+                                                    ) : (
+                                                    barangays.map(barangay => (
                                                         <SelectItem key={barangay.code} value={barangay.code}>
                                                             {barangay.name}
                                                         </SelectItem>
-                                                    ))}
+                                                    ))
+                                                )}
                                                 </SelectContent>
                                             </Select>
+                                            {loadingBarangays && 
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-neutral-900/50 rounded-md"><div className="loader scale-25 ml-1" />
+                                            </div>}
+                                            </div>
                                             <InputError message={errors['users_address.barangay_code']} />
                                             <Input
                                                 type="hidden"
