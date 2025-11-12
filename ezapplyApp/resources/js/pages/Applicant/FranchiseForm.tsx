@@ -85,7 +85,7 @@ const FranchiseForm = () => {
   // const [companies, setCompanies] = useState<Company[]>([]);
   const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
 
-  const [search] = useState('');
+  const [search, setSearch] = useState('');
   const [checked, setChecked] = useState<number[]>([]);
   const [budget, setBudget] = useState<number | ''>('');
   const [type, setType] = useState('all');
@@ -95,6 +95,7 @@ const FranchiseForm = () => {
   const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | undefined}>({ open: false, companyId: undefined });
   // Bulk apply modal
   const [bulkModal, setBulkModal] = useState<{open: boolean}>({ open: false });
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
 
 
   const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
@@ -102,6 +103,8 @@ const FranchiseForm = () => {
   
   useEffect(() => {
     // Fetch companies
+    setLoadingCompanies(true);
+    setTimeout(() => setLoadingCompanies(false), 1000); 
 
     // Fetch applied company IDs
     axios.get("/api/applied-company-ids")
@@ -179,7 +182,7 @@ if (applicationFilter === 'applied') {
 
 // Search filter
 filtered = filtered.filter((c) =>
-  (c.company_name ?? '').toLowerCase().includes(search.toLowerCase())
+  (c.brand_name ?? '').toLowerCase().includes(search.toLowerCase())
 );
 
 const franchiseTypes = Array.from(
@@ -230,6 +233,17 @@ const franchiseTypes = Array.from(
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+            <label className="block text-sm font-medium">Brand Name</label>
+            <input
+              name="brand_name"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="mt-1 block w-full rounded-lg border px-3 py-2 bg-white text-black"
+              placeholder="Search for Brand Name"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium">Budget</label>
             <input
@@ -296,9 +310,14 @@ const franchiseTypes = Array.from(
             
           <div className="all-companies-page">
             <div className="company-list-container">
-            {filtered.length === 0 ? (
+            {loadingCompanies ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="loader scale-75"></div>
+                <span className="ml-2 text-gray-600">Loading companies...</span>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="ezapply__no-companies">No companies found.</div>
-            ) : (    
+            ) : (
             <div className="company-grid">
               {filtered.map((company) => (
                 <CompanyCard
@@ -329,7 +348,10 @@ const franchiseTypes = Array.from(
             {applyModal.open && (
               <ApplyModal
                 isOpen={applyModal.open}
-                onClose={() => setApplyModal({ open: false, companyId: undefined })}
+                onClose={() => {
+                  setApplyModal({ open: false, companyId: undefined });
+                  setApplying(null);
+                }}
                 companyId={applyModal.companyId}
                 onApplySuccess={(appliedIds) => {
                   setApplied((prev) => [...prev, ...appliedIds]);

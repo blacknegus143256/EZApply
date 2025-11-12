@@ -3,6 +3,29 @@ import fs from "fs/promises";
 
 const BASE_URL = "https://www.pfa.org.ph/members";
 
+function normalizeMoney(value) {
+  if (!value) return null;
+  let str = value.toString().trim().toUpperCase();
+
+  // remove symbols
+  str = str.replace(/[^0-9.,KM\-– ]/g, "");
+
+  // handle ranges like "3M - 5M"
+  if (str.includes("-") || str.includes("–")) {
+    const parts = str.split(/[-–]/).map((p) => normalizeMoney(p.trim()));
+    return Math.round((parts[0] + (parts[1] || parts[0])) / 2); // average
+  }
+
+  // detect "M" or "K"
+  let num = parseFloat(str.replace(/,/g, ""));
+  if (isNaN(num)) return null;
+
+  if (str.includes("M")) num *= 1_000_000;
+  else if (str.includes("K")) num *= 1_000;
+
+  return Math.round(num);
+}
+
 // ✅ Auto-scroll to load all companies
 async function autoScroll(page) {
   await page.evaluate(async () => {
@@ -70,18 +93,87 @@ async function autoScroll(page) {
       } catch {
         console.warn("⚠️ No structured info found for", m.name);
       }
+      
+      if (info["CAPITAL INVESTMENT"]) info["CAPITAL INVESTMENT"] = normalizeMoney(info["CAPITAL INVESTMENT"]);
+      if (info["FRANCHISE FEE"]) info["FRANCHISE FEE"] = normalizeMoney(info["FRANCHISE FEE"]);
+
 
       // extra info (description/contact)
-      const extra = await page.evaluate(() => {
-        const description =
+      let extra = await page.evaluate(() => {
+        const descriptionText =
           document.querySelector('[data-hook="description"]')?.innerText?.trim() ||
           document.querySelector('[data-hook="product-description"]')?.innerText?.trim() ||
           "";
-        const contact = Array.from(document.querySelectorAll("p"))
-          .map((p) => p.innerText)
-          .find((t) => t.match(/@|contact|tel|email|www|address|facebook/i)) || "";
-        return { description, contact };
-      });
+    const lines = descriptionText
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && l !== " ");
+  const details = {
+    company_name: null,
+    address: null,
+    contact_number: null,
+    email: null,
+    contact_person: null,
+    designation: null,
+    website: null,
+    company_profile: null,
+    raw_description: descriptionText,
+  };
+
+  for (const line of lines) {
+    if (!details.company_name) {
+      details.company_name = line;
+      continue;
+    }
+
+    // Contact Person
+    if (/Person/i.test(line)) {
+      details.contact_person = line.replace(/Contact\s*Person\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+
+    // Email
+    if (/@/.test(line)) {
+      details.email = line.replace(/Email\s*(:)?\s*/i, "").trim();
+      continue;
+    }
+    // Contact Number
+    if (/Contact\s*(No\.|Number)?/i.test(line) || /Tel/i.test(line)) {
+      details.contact_number = line
+        .replace(/(Contact\s*(No\.|Number)?|Tel(\.|ephone)?)(:)?\s*/i, "")
+        .trim();
+      continue;
+    }
+
+
+    // Designation
+    if (/Designation/i.test(line)) {
+      details.designation = line.replace(/Designation\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+    // Website
+    if (/WEBSITE/i.test(line)) {
+      details.website = line.replace(/WEBSITE\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+    // Company Profile
+    if (/COMPANY PROFILE/i.test(line)) {
+      details.company_profile = line.replace(/COMPANY PROFILE\s*:?\s*/i, "").trim();
+      continue;
+    }
+
+    // Address (fallback)
+    if (!details.address && /City|Ave|Street|St\.|Road|Bldg|Barangay|Brgy/i.test(line)) {
+      details.address = line;
+      continue;
+    }
+  }
+
+  return details;
+});
 
       detailed.push({ ...m, ...info, ...extra });
     } catch (err) {
