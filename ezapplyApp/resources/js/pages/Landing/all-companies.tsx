@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import "../../../css/AllCompanies.css";
+import '../../../css/easyApply.css';
 import EzNav from './ezapply-nav';
 import { usePage, router } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -41,6 +42,7 @@ interface Company {
 
 const AllCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
   const [checked, setChecked] = useState<number[]>([]);
 
   const [filterType, setFilterType] = useState("All");
@@ -100,8 +102,12 @@ const AllCompanies = () => {
       .then((data) => {
         console.log("Fetched companies:", data);
         setCompanies(data);
+        setLoading(false);
       })
-      .catch((err) => console.error("Error fetching companies:", err));
+      .catch((err) => {
+        console.error("Error fetching companies:", err);
+        setLoading(false);
+      });
   }, []);
 
 
@@ -332,7 +338,12 @@ const AllCompanies = () => {
 
         <div className="all-companies-page">
           <div className="company-list-container">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="loader scale-75"></div>
+                <span className="ml-2 text-gray-600">Loading companies...</span>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="ezapply__no-companies">No companies found.</div>
             ) : (
               <div className="company-grid">
@@ -357,7 +368,6 @@ const AllCompanies = () => {
                 ))}
                   </div>
                )}
-          </div>
 
           {checked.length > 0 && (
             <button
@@ -470,6 +480,7 @@ const AllCompanies = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
+      </div>
     </>
   );
 };

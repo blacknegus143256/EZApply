@@ -1,4 +1,12 @@
 export interface CompanyDetails {
+  agents?: Array<{
+    id: number;
+    email: string;
+    basicInfo?: {
+      first_name: string;
+      last_name: string;
+    };
+  }>;
   id: number;
   company_name: string;
   brand_name?: string;

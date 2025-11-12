@@ -27,7 +27,7 @@ interface AttachmentsProps {
 
 export default function Attachments({ attachments = [] }: AttachmentsProps) {
 	const { data, setData, post, processing, errors, reset } = useForm<{ attachment_type: string; attachment: File | null }>({
-		attachment_type: "resume",
+		attachment_type: "Resume/CV",
 		attachment: null,
 	});
 

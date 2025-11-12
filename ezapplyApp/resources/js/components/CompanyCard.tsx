@@ -114,7 +114,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
               />
               <div className="flex-1">
                 <CardTitle className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                  {company.company_name}
+                  {company.brand_name}
                 </CardTitle>
               </div>
             </div>
@@ -225,7 +225,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 
       <div className="flex-1 min-w-0">
         <h3 className="text-xl font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-          {company.company_name}
+          {company.brand_name}
         </h3>
       </div>
 
