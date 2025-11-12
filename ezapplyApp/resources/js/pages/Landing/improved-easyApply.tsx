@@ -413,21 +413,9 @@ export default function ImprovedEasyApplyLanding() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-6 bg-muted rounded mb-2" />
-                      <div className="h-4 bg-muted rounded w-3/4" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-muted rounded" />
-                        <div className="h-4 bg-muted rounded w-2/3" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="flex justify-center items-center py-8">
+                <div className="loader scale-75"></div>
+                <span className="ml-2 text-gray-600">Loading companies...</span>
               </div>
             ) : error ? (
               <Card>

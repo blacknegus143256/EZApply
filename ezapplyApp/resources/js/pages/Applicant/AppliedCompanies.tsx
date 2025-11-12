@@ -161,6 +161,7 @@ export default function AppliedCompanies() {
     const { props } = usePage<PageProps>();
     const applications = props.applications ?? [];
     const [selectedCompany, setSelectedCompany] = useState<CompanyDetails | null>(null);
+      const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -223,7 +224,14 @@ export default function AppliedCompanies() {
         setIsModalOpen(false);
         setSelectedCompany(null);
     };
-
+    useEffect(() => {
+    if (applications) {
+        const timer = setTimeout(() => {
+        setLoading(false);
+        }, 400);
+        return () => clearTimeout(timer);
+    }
+    }, [applications]);
     return (
         <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
             <AppLayout breadcrumbs={breadcrumbs}>
@@ -311,8 +319,14 @@ export default function AppliedCompanies() {
                                 </div>
                             </div>
                         )}
-
-                        {applications.length === 0 ? (
+                        {loading ? (
+                        <div className="p-6 flex flex-col items-center justify-center">
+                            <div className="loader scale-75"></div>
+                            <div className="mt-4 text-center text-gray-600 dark:text-gray-300">
+                            Loading company details...
+                            </div>
+                        </div>
+                       ) : applications.length === 0 ? (
                             <p className="text-neutral-600 dark:text-neutral-400">
                                 No applications yet. Go back and apply to companies to see them here.
                             </p>
