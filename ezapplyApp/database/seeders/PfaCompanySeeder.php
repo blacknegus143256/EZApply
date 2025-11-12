@@ -21,7 +21,7 @@ class PfaCompanySeeder extends Seeder
         $path = database_path('seeders/data/pfa_members_combined.json');
 
         if (!File::exists($path)) {
-            $this->command->error("❌ JSON file not found at: {$path}");
+            $this->command->error(" JSON file not found at: {$path}");
             return;
         }
 
@@ -43,7 +43,24 @@ class PfaCompanySeeder extends Seeder
                 $brandName = trim($item['name'] ?? 'Unknown Brand');
                 $price = $item['price'] ?? null;
 
-                $userId = null;
+                // Create or find a user for the company (unique email per company)
+                $email = Str::slug($companyName) . '@pfa-demo.com';
+                $user = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'password' => bcrypt('password123'),
+                        'credits' => 200,
+                    ]
+                );
+
+                $user->assignRole('company');
+                
+                UserCredit::updateOrCreate(
+                    ['user_id' => $user->id],
+                    ['balance' => 200]
+                );
+
+                $userId = $user->id;
 
                 // DEFAULTS: ensure fields that might be NON-NULL in DB are present
                 $defaults = [
@@ -147,14 +164,14 @@ class PfaCompanySeeder extends Seeder
                     ]
                 );
 
-                $this->command->info("✅ Seeded: {$companyName}");
+                $this->command->info("Seeded: {$companyName}. User ID: {$userId}");
             } catch (\Exception $e) {
-                $this->command->warn("⚠️ Failed to seed company: " . ($item['name'] ?? 'unknown'));
+                $this->command->warn("Failed to seed company: " . ($item['name'] ?? 'unknown'));
                 $this->command->warn($e->getMessage());
             }
         }
 
-        $this->command->info("🎉 Finished seeding PFA companies!");
+        $this->command->info(" Finished seeding PFA companies!");
     }
 
 private static function parseMoney($value)

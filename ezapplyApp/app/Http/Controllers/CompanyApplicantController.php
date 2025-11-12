@@ -12,6 +12,7 @@ class CompanyApplicantController extends Controller
     {
         $application = Application::with([
             'user.basicinfo',
+        //    'user.basicInfo',
             'user.affiliations',
             'user.financial',
             'user.attachments',

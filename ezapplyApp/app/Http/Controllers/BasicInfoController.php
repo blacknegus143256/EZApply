@@ -11,7 +11,7 @@ use Inertia\Inertia;
 class BasicInfoController extends Controller
 {
 
-        public function getBasicInfo($user)
+    public function getBasicInfo($user)
     {
         $basicInfo = $user->basicInfo;
         $address   = $user->address;
@@ -63,7 +63,7 @@ class BasicInfoController extends Controller
         
         // Create or update address
         
-        $address = \App\Models\UserAddress::updateOrCreate(
+        $address = UserAddress::updateOrCreate(
             ['user_id' => $user->id],
         
     [

@@ -16,7 +16,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Application;
 use Inertia\Inertia;
-
+use App\Models\BasicInfo;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 class CompanyController extends Controller
 {
@@ -206,22 +208,32 @@ class CompanyController extends Controller
         return response()->json($company);
     }
 
-    public function details($id)
-    {
-        // Load company + all related data for page rendering
-        $company = Company::with([
-            'opportunity',
-            'background',
-            'requirements',
-            'marketing',
-            'documents',
-            'user',
-        ])->findOrFail($id);
+public function details($id)
+{
+    // Load the company and eager load its assigned agents
+    $company = Company::with(['agents.basicInfo', 'user'])->findOrFail($id);
 
-        return Inertia::render('Company/CompanyFullDetails', [
-            'company' => $company,
-        ]);
-    }
+    // Get all agents (for dropdown or selection), using their basicInfo if available
+    $allAgents = User::role('company') 
+        ->with('basicInfo')
+        ->get()
+        ->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->basicInfo
+                    ? $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name
+                    : $user->email,
+                'email' => $user->email,
+            ];
+        });
+
+    return Inertia::render('Company/CompanyFullDetails', [
+        'company' => $company,
+        'allAgents' => $allAgents,
+    ]);
+}
+
+
 
     public function index()
     {
@@ -232,15 +244,27 @@ class CompanyController extends Controller
             'requirements',
             'marketing',
             'documents',
-            'user',
+            'user.basicInfo',
         ])->get();
 
-        return response()->json($companies);
+        // Map companies to ensure agent_name is included
+        $companiesWithAgentName = $companies->map(function ($company) {
+            $companyArray = $company->toArray();
+            // Ensure agent_name is included (it should be from $appends, but let's be explicit)
+            if (!isset($companyArray['agent_name'])) {
+                $basicInfo = optional($company->user)->basicInfo;
+                $companyArray['agent_name'] = $basicInfo 
+                    ? "{$basicInfo->first_name} {$basicInfo->last_name}" 
+                    : 'N/A';
+            }
+            return $companyArray;
+        });
+
+        return response()->json($companiesWithAgentName);   
     }
 
     public function apiIndex()
     {
-        // Get user's companies for API access (used by frontend to check existing companies)
         $companies = Company::where('user_id', Auth::id())
             ->select('id', 'company_name')
             ->get();
@@ -260,12 +284,36 @@ class CompanyController extends Controller
         return back()->with('success', 'Company status updated successfully.');
     }
 
-    public function myCompanies()
+public function myCompanies()
 {
-    $companies = Company::where('user_id', Auth::id())
-    ->with(['opportunity','background','requirements','marketing', 'documents'])
-    ->get(['id', 'company_name', 'brand_name', 'year_founded', 'country','status', 'created_at', 'user_id']);
-    return inertia('Company/CompanyRegistered', compact('companies'));
+    $user = Auth::user();
+    
+    $companies = collect();
+
+    if ($user->hasRole('super_admin')) {
+
+        $companies = Company::with(['opportunity', 'background', 'requirements', 'marketing', 'documents'])
+            ->get(['id', 'company_name', 'brand_name', 'year_founded', 'country', 'status', 'created_at', 'user_id']);
+
+    } elseif ($user->hasRole('company')) {
+
+        $ownedCompanies = $user->companies()
+            ->with(['opportunity', 'background', 'requirements', 'marketing', 'documents'])
+            ->select('companies.id', 'companies.company_name', 'companies.brand_name', 'companies.year_founded', 'companies.country', 'companies.status', 'companies.created_at', 'companies.user_id')
+            ->get();
+        
+
+            $assignedCompanies = $user->assignedCompanies()
+            ->with(['opportunity', 'background', 'requirements', 'marketing', 'documents'])
+            ->select('companies.id', 'companies.company_name', 'companies.brand_name', 'companies.year_founded', 'companies.country', 'companies.status', 'companies.created_at', 'companies.user_id')
+            ->get();
+        
+        $companies = $ownedCompanies->concat($assignedCompanies)->unique('id')->values();
+    } else {
+        $companies = collect();
+    }
+
+    return Inertia::render('Company/CompanyRegistered', compact('companies'));
 }
 
    public function companyApplicants()
@@ -279,7 +327,7 @@ class CompanyController extends Controller
     // Get applicants that applied to this company
     $applicants = Application::with([
         'user',
-        'user.basicinfo',
+        'user.basicInfo',
         'company'
         ])
         ->whereIn('company_id',$companyIds)
@@ -378,8 +426,9 @@ public function update(Request $request, Company $company)
 
     $logoPath = optional($company->marketing)->logo_path;
     if ($request->hasFile('logo')) {
-        $logoPath = $request->file('logo')->store('logos', 'public');
-    }
+    Storage::disk('public')->delete($company->marketing->logo_path ?? '');
+    $logoPath = $request->file('logo')->store('logos', 'public');
+}
 
     $dtiSbcPath = optional($company->documents)->dti_sbc_path;
     if ($request->hasFile('dti_sbc')) {
@@ -491,4 +540,31 @@ public function update(Request $request, Company $company)
         'company' => $company ,
     ]);
 }
+
+public function assignAgents(Request $request, Company $company)
+{
+    // Only super-admin can assign agents
+    abort_unless(Auth::user()->hasRole('super_admin'), 403, 'Only super-admin can assign agents.');
+
+    $request->validate([
+        'agent_ids' => 'required|array',
+        'agent_ids.*' => 'exists:users,id',
+    ]);
+
+    $agentIds = array_filter($request->agent_ids, fn($id) => $id !== $company->user_id);
+
+    if (is_null($company->user_id) && !empty($agentIds)) {
+        $company->user_id = reset($agentIds);
+        $company->save();
+        $agentIds = array_diff($agentIds, [$company->user_id]);
+    }
+
+    // Sync the rest of the agents
+    $company->agents()->sync($agentIds);
+
+    return redirect()->back()->with('success', 'Agents assigned successfully!');
+}
+
+
+
 }

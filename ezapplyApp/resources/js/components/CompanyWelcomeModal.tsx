@@ -10,32 +10,26 @@ import {
 import { Button } from "@/components/ui/button";
 import AppLogoIcon from './app-logo-icon';
 
-// Define the component props
 interface CompanyWelcomeModalProps {
-  // Milliseconds delay before the modal first shows
   initialDelay?: number;
 }
 
-const CompanyWelcomeModal: React.FC<CompanyWelcomeModalProps> = ({ initialDelay = 2000 }) => {
+const CompanyWelcomeModal: React.FC<CompanyWelcomeModalProps> = ({ initialDelay = 1000 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Effect to handle the initial delayed display of the modal
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Check if a flag exists in localStorage to prevent showing again
       const hasSeenModal = localStorage.getItem('ezapply_company_welcome_seen');
       if (!hasSeenModal) {
         setIsVisible(true);
       }
     }, initialDelay);
 
-    return () => clearTimeout(timer); // Cleanup the timer
+    return () => clearTimeout(timer); 
   }, [initialDelay]);
 
-  // Function to close the modal and set a flag in local storage
   const handleClose = () => {
     setIsVisible(false);
-    // Prevents the modal from showing again on subsequent visits/reloads
     localStorage.setItem('ezapply_company_welcome_seen', 'true');
   };
 
@@ -71,10 +65,3 @@ const CompanyWelcomeModal: React.FC<CompanyWelcomeModalProps> = ({ initialDelay 
 };
 
 export default CompanyWelcomeModal;
-
-// --- Example Usage in another file (e.g., Dashboard.tsx) ---
-/*
-import CompanyWelcomeModal from './CompanyWelcomeModal';
-// ... inside your component render (only for company users)
-<CompanyWelcomeModal initialDelay={2500} />
-*/

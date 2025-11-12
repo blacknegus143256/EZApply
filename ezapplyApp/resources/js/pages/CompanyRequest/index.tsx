@@ -18,15 +18,6 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import CompanyDetails from '../Company/CompanyDetails';
 import CompanyDetailsModal from '@/components/CompanyDetailsModal';
 
 
@@ -43,6 +34,7 @@ interface Company {
   description: string;
   created_at: string;
   status?: 'pending' | 'approved' | 'rejected'; 
+  agent_name?: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -82,13 +74,20 @@ export default function Roles({ roles }: { roles: any }) {
       return res.json();
     })
     .then((data: Company[]) => {
-
-      const withStatus = data.map((c) => ({
-        ...c,
-        status: c.status || 'pending',
-      }));
+      console.log('Fetched companies data:', data); // Debug log
+      console.log('First company agent_name:', data[0]?.agent_name); // Debug log
+      
+      const withStatus = data.map((c) => {
+        const company = {
+          ...c,
+          status: c.status || 'pending',
+          agent_name: c.agent_name || 'N/A', // Explicitly preserve agent_name
+        };
+        console.log('Mapped company:', company.id, 'agent_name:', company.agent_name); // Debug
+        return company;
+      });
       setCompanies(withStatus);
-      setLoading(false);
+      setLoading(false);      
     })
     .catch((err) => {
       console.error("Error fetching companies:", err);
@@ -144,12 +143,11 @@ function handleCloseModal() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>ID</TableHead>
+                                    <TableHead>Agent Name</TableHead>
                                     <TableHead>Company Name</TableHead>
                                     <TableHead>Date Created</TableHead>
                                     <TableHead>Action</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Session</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -178,9 +176,13 @@ function handleCloseModal() {
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
-      .map((company) => (
+      .map((company) => {
+        console.log('Rendering company:', company.id, 'agent_name:', company.agent_name); // Debug
+        return (
         <TableRow key={company.id}>
-          <TableCell>{company.id}</TableCell>
+          <TableCell>
+            {company.agent_name ?? 'N/A'}
+          </TableCell>
           <TableCell>{company.company_name}</TableCell>
           <TableCell>
             {new Date(company.created_at).toLocaleDateString()}
@@ -250,19 +252,10 @@ function handleCloseModal() {
               <Badge variant="destructive">Rejected</Badge>
             )}
           </TableCell>
-          <TableCell>
-            {company.status === "approved" && (
-              <span className="text-green-500 text-lg">🟢</span>
-            )}
-            {company.status === "pending" && (
-              <span className="text-yellow-500 text-lg">🟡</span>
-            )}
-            {company.status === "rejected" && (
-              <span className="text-red-500 text-lg">🔴</span>
-            )}
-          </TableCell>
+
         </TableRow>
-      ))
+        );
+      })
   )}
 </TableBody>
 

@@ -204,9 +204,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    
+    Route::get('/users/searchAgents', [UserController::class, 'searchAgents'])->name('users.all');
 
     
+    //Assigning Agents
+    Route::post('/company/{company}/assign-agents', [CompanyController::class, 'assignAgents'])->name('company.assignAgents');    
     //Company Requests
     Route::get('/company-requests', [CompanyRequestController::class, 'index'])->name('company.requests');
     Route::post('/company-requests/{id}/approve', [CompanyRequestController::class, 'approveCompany'])->name('company.approve');

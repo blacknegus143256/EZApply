@@ -69,7 +69,6 @@ const AllCompanies = () => {
   const [applied, setApplied] = useState<number[]>([]);
 
   const [applyModal, setApplyModal] = useState<{open: boolean; companyId: number | null}>({ open: false, companyId: null });
-  // Bulk apply modal
   const [bulkModal, setBulkModal] = useState<{open: boolean}>({ open: false });
 
 
@@ -114,7 +113,6 @@ const AllCompanies = () => {
 
 
   useEffect(() => {
-    // Restore form state if coming back from profile
     const savedState = localStorage.getItem("franchiseFormState");
     if (savedState) {
       const state = JSON.parse(savedState);
@@ -125,21 +123,17 @@ const AllCompanies = () => {
       localStorage.removeItem("franchiseFormState");
     }
 
-    // Restore pending applications
     const saved = localStorage.getItem("pendingApplications");
     if (saved) {
       const ids = JSON.parse(saved);
       if (Array.isArray(ids) && ids.length > 0) {
-        // Filter out already applied companies
         const filteredIds = ids.filter((id: number) => !applied.includes(id));
-        setChecked(filteredIds); // ✅ restore previously selected companies, excluding applied ones
+        setChecked(filteredIds);
       }
     }
-    // Cleanup profile redirect flag if it exists
     localStorage.removeItem("profileRedirect");
   }, [applied]);
 
-  // Fetch applied company IDs
   useEffect(() => {
     if (users) {
       axios.get("/api/applied-company-ids")
@@ -173,23 +167,18 @@ const AllCompanies = () => {
     ),
   ];
 
-  // Start with all companies
   let filtered = companies;
 
   filtered = filtered.filter((c) => c.status === 'approved');
 
-  // Filter by type
   if (type !== 'all') {
     filtered = filtered.filter((c) => c.opportunity?.franchise_type === type);
   }
   if (budget !== '') {
     filtered = filtered.filter((c) => {
-      // Assuming c.opportunity.min_investment is a number
       return (c.opportunity?.min_investment?? Infinity) <= budget;
     });
   }
-
-  // Filter by investment amount
 
   // Filter by application status
   if (applicationFilter === 'applied') {
@@ -250,7 +239,7 @@ const AllCompanies = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
-                <label className="block text-sm font-medium">Budget</label>
+                <label className="block text-sm font-medium text-white">Budget</label>
                 <input
                   name="budget"
                   type="number"
@@ -263,7 +252,7 @@ const AllCompanies = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium">Franchise Type / Category</label>
+                <label className="block text-sm font-medium text-white">Franchise Type / Category</label>
                 <select
                   id="ezapply-type"
                   value={type}
@@ -278,7 +267,7 @@ const AllCompanies = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium">Application Status</label>
+                <label className="block text-sm font-medium text-white">Application Status</label>
                 <select
                   value={applicationFilter}
                   onChange={(e) => setApplicationFilter(e.target.value)}
@@ -291,7 +280,7 @@ const AllCompanies = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium">Company Name</label>
+                <label className="block text-sm font-medium text-white">Company Name</label>
                 <input
                   type="text"
                   placeholder="e.g., Jollibee"
