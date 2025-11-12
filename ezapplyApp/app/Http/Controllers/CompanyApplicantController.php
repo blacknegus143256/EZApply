@@ -11,7 +11,8 @@ class CompanyApplicantController extends Controller
     public function show($id)
     {
         $application = Application::with([
-            'user.basicInfo',
+            'user.basicinfo',
+        //    'user.basicInfo',
             'user.affiliations',
             'user.financial',
             'user.attachments',

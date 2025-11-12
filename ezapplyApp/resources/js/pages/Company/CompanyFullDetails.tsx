@@ -229,25 +229,25 @@ const CompanyFullDetails: React.FC = () => {
               )}
             </div>
           </div>
-
+          
+          <AdminOnly>
           {assignedAgents.length > 0 && (
             <div className="flex flex-wrap gap-2 items-center">
               <label className="font-medium text-muted-foreground mr-2">Assigned Agents:</label>
               {assignedAgents.map(agent => (
                 <span key={agent.id} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                   {agent.name}
-                  <AdminOnly>
                     <button
                       onClick={() => handleRemoveAgent(agent.id)}
                       className="text-red-500 font-bold ml-1 hover:text-red-700"
                     >
                       ×
                     </button>
-                  </AdminOnly>
                 </span>
               ))}
             </div>
           )}
+          </AdminOnly>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">

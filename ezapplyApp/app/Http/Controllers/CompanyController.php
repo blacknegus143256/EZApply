@@ -214,7 +214,7 @@ public function details($id)
     $company = Company::with(['agents.basicInfo', 'user'])->findOrFail($id);
 
     // Get all agents (for dropdown or selection), using their basicInfo if available
-    $allAgents = User::role('company') // Spatie role check
+    $allAgents = User::role('company') 
         ->with('basicInfo')
         ->get()
         ->map(function ($user) {
@@ -551,14 +551,20 @@ public function assignAgents(Request $request, Company $company)
         'agent_ids.*' => 'exists:users,id',
     ]);
 
-    // Remove owner from assigned agents (optional)
     $agentIds = array_filter($request->agent_ids, fn($id) => $id !== $company->user_id);
 
-    // Sync agents
+    if (is_null($company->user_id) && !empty($agentIds)) {
+        $company->user_id = reset($agentIds);
+        $company->save();
+        $agentIds = array_diff($agentIds, [$company->user_id]);
+    }
+
+    // Sync the rest of the agents
     $company->agents()->sync($agentIds);
 
     return redirect()->back()->with('success', 'Agents assigned successfully!');
 }
+
 
 
 }
