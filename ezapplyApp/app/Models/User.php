@@ -131,5 +131,10 @@ public function creditTransactions()
             'hasAnyData' => $hasBasicInfo || $hasFinancial,
         ];
     }
+    public function assignedCompanies()
+{
+    return $this->belongsToMany(Company::class, 'company_agent', 'user_id', 'company_id')
+                ->withTimestamps();
+}
 
 }

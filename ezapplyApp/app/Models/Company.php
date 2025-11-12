@@ -59,6 +59,12 @@ class Company extends Model
     {
         return $this->belongsToMany(User::class, 'applications');
     }
+    public function agents()
+    {
+        return $this->belongsToMany(User::class, 'company_agent', 'company_id', 'user_id')
+            ->withPivot('id')
+            ->withTimestamps();
+    }
 
     protected function getAgentNameAttribute(): string
     {

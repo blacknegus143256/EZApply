@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\UserAddress;
 use App\Models\BasicInfo;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Company;
 
 
 class UserController extends Controller
@@ -135,10 +136,18 @@ public function store(Request $request)
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        //
-    }
+public function show($id)
+{
+    $company = Company::with(['agents', 'marketing', 'background', 'requirements', 'opportunity', 'documents', 'user'])
+        ->findOrFail($id);
+
+    $users = User::where('role', 'agent')->select('id', 'name', 'email')->get();
+
+    return inertia('Company/CompanyFullDetails', [
+        'company' => $company,
+        'users' => $users, 
+    ]);
+}
 
     /**
      * Show the form for editing the specified resource.
@@ -221,9 +230,23 @@ public function update(Request $request, User $user)
     /**
      * Remove the specified resource from storage.
      */
+    public function searchAgents(Request $request)
+    {
+    $users = User::with('basicInfo', 'roles')
+        ->get()
+        ->map(fn($user) => [
+            'id' => $user->id,
+            'name' => $user->basicInfo 
+                      ? $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name 
+                      : $user->email, 
+            'email' => $user->email,
+            'role' => $user->getPrimaryRoleAttribute()?->name,
+        ]);
+
+    return response()->json($users);
+    }
     public function destroy(User $user)
     {
-        //
         $user->delete();
         return to_route('users.index')->with('message', 'User Deleted Successfully');
     }

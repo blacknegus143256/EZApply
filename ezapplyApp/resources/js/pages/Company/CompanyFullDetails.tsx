@@ -1,16 +1,22 @@
-import React from 'react';
-import { Head, usePage, Link } from '@inertiajs/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Head, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useInitials } from '@/hooks/use-initials';
 import { ArrowLeft } from 'lucide-react';
 import { BreadcrumbItem } from '@/types';
 import type { CompanyDetails } from '@/types/company';
-import PermissionGate from '@/components/PermissionGate';
+import PermissionGate, { AdminOnly } from '@/components/PermissionGate';
 
 type FormatType = "number" | "currency";
+
+type Agent = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+};
 
 const formatValue = (value: string | number, type: FormatType = "number") => {
   if (type === "currency") {
@@ -22,19 +28,12 @@ const formatValue = (value: string | number, type: FormatType = "number") => {
     }).format(num);
   }
 
-  // default: number formatting
   const strValue = String(value);
   const cleaned = strValue.replace(/[^0-9.]/g, "");
   const parts = cleaned.split(".");
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return parts.join(".");
 };
-
-const breadcrumbs: BreadcrumbItem[] = [
-  { title: "Dashboard", href: "/dashboard" },
-  { title: "All Companies", href: "/list-companies" },
-  { title: "Company Details", href: "#" },
-];
 
 const renderTable = (rows: { key: string; label: string; value: any; format?: "number" | "currency" }[]) => (
   <table className="w-full text-sm">
@@ -51,65 +50,194 @@ const renderTable = (rows: { key: string; label: string; value: any; format?: "n
   </table>
 );
 
+const mapCompanyAgentsToAgents = (agents: CompanyDetails['agents']): Agent[] => {
+  if (!agents || agents.length === 0) return [];
+  return agents.map(agent => ({
+    id: agent.id,
+    name: agent.basicInfo 
+      ? `${agent.basicInfo.first_name} ${agent.basicInfo.last_name}` 
+      : agent.email,
+    email: agent.email,
+    role: 'company',
+  }));
+};
+
 const CompanyFullDetails: React.FC = () => {
-  const { props } = usePage<{ company: CompanyDetails }>();
+  const { props } = usePage<{ company: CompanyDetails; allAgents?: Agent[] }>();
   const company = props.company;
+  const allAgentsFromProps = props.allAgents || [];
   const getInitials = useInitials();
+
+  const [query, setQuery] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [assignedAgents, setAssignedAgents] = useState<Agent[]>(() => 
+    mapCompanyAgentsToAgents(company.agents)
+  );
+
+  const filteredResults = useMemo(() => {
+    if (!query) return [];
+    const assignedIds = assignedAgents.map(a => a.id);
+    return allAgentsFromProps
+      .filter(agent => 
+        !assignedIds.includes(agent.id) &&
+        (agent.name.toLowerCase().includes(query.toLowerCase()) ||
+        agent.email.toLowerCase().includes(query.toLowerCase()))
+      );
+  }, [query, allAgentsFromProps, assignedAgents]);
+
+  const handleAssign = () => {
+    if (!selectedAgent) return;
+
+    const newAssignedAgents = assignedAgents.find(a => a.id === selectedAgent.id)
+      ? assignedAgents
+      : [...assignedAgents, selectedAgent];
+
+    setAssignedAgents(newAssignedAgents);
+    setSelectedAgent(null);
+    setQuery("");
+
+    const agentIds = newAssignedAgents.map(agent => agent.id);
+
+    router.post(`/company/${company.id}/assign-agents`, {
+      agent_ids: agentIds,
+    }, {
+      onSuccess: () => {
+        router.reload({ only: ['company'] });
+      },
+      onError: (errors) => {
+        console.error(errors);
+      },
+    });
+  };
+
+  useEffect(() => {
+    const mappedAgents = mapCompanyAgentsToAgents(company.agents);
+    setAssignedAgents(mappedAgents);
+
+  }, [JSON.stringify(company.agents?.map(a => a.id).sort())]);
+
+
+  const handleRemoveAgent = (agentId: number) => {
+    const newAgents = assignedAgents.filter(agent => agent.id !== agentId);
+    setAssignedAgents(newAgents);
+
+    const agentIds = newAgents.map(agent => agent.id);
+
+    router.post(`/company/${company.id}/assign-agents`, {
+      agent_ids: agentIds,
+    }, {
+      onSuccess: () => {
+        router.reload({ only: ['company'] });
+      },
+      onError: (errors) => {
+        console.error(errors);
+      },
+    });
+  };
 
   return (
     <>
       <Head title="Company Details" />
       <div className='bg-across-pages min-h-screen p-5'>
-      {/* Back Button */}
-      <div className="flex justify-start mb-4">
-        <Button
-          onClick={() => window.history.back()}
-          className="inline-flex items-center gap-2 px-4 py-2 mt-6 mx-4 bg-gradient-to-r from-blue-300 to-blue-400 text-white rounded-lg shadow-md hover:from-blue-400 hover:to-blue-500 transition-all duration-200 hover:shadow-lg"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-      </div>
 
-      {/* Company Header Section */}
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-8 mb-12 p-6 bg-card rounded-lg border">
-        <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
-          <AvatarImage
-            className="object-contain"
-            src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
-            alt={`${company.brand_name} logo`}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "/storage/logos/default-logo.png";
-            }}
-          />
-          <AvatarFallback className="text-3xl">
-            {getInitials(company.brand_name || company.company_name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="text-center md:text-left">
-          <h1 className="text-4xl font-bold mb-2">{company.company_name}</h1>
-          {company.brand_name && (
-            <p className="text-lg text-muted-foreground mb-2">{company.brand_name}</p>
-          )}
-          {company.company_website && (
-            <a
-              href={company.company_website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              {company.company_website}
-            </a>
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            onClick={() => window.history.back()}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-300 to-blue-400 text-white rounded-lg shadow-md hover:from-blue-400 hover:to-blue-500 transition-all duration-200 hover:shadow-lg"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+
+          <AdminOnly>
+            <div className="flex gap-2 w-80 relative">
+              <input
+                type="text"
+                placeholder="Search Agents..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <Button
+                onClick={handleAssign}
+                disabled={!selectedAgent}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200 disabled:opacity-50"
+              >
+                Add
+              </Button>
+
+              {filteredResults.length > 0 && (
+                <ul className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
+                  {filteredResults.map(agent => (
+                    <li
+                      key={agent.id}
+                      onClick={() => {
+                        setSelectedAgent(agent);
+                        setQuery(agent.name);
+                      }}
+                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                    >
+                      {agent.name} <span className="text-gray-500 text-sm">({agent.email})</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </AdminOnly>
+        </div>
+
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 p-6 bg-card rounded-lg border relative">
+          <div className="flex items-center gap-6">
+            <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
+              <AvatarImage
+                className="object-contain"
+                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
+                alt={`${company.brand_name} logo`}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/storage/logos/default-logo.png"; }}
+              />
+              <AvatarFallback className="text-3xl">
+                {getInitials(company.brand_name || company.company_name)}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl font-bold mb-2">{company.company_name}</h1>
+              {company.brand_name && <p className="text-lg text-muted-foreground mb-2">{company.brand_name}</p>}
+              {company.company_website && (
+                <a
+                  href={company.company_website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {company.company_website}
+                </a>
+              )}
+            </div>
+          </div>
+
+          {assignedAgents.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <label className="font-medium text-muted-foreground mr-2">Assigned Agents:</label>
+              {assignedAgents.map(agent => (
+                <span key={agent.id} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {agent.name}
+                  <AdminOnly>
+                    <button
+                      onClick={() => handleRemoveAgent(agent.id)}
+                      className="text-red-500 font-bold ml-1 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </AdminOnly>
+                </span>
+              ))}
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Content Sections */}
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Basic Information and Company Background side by side */}
+        <div className="max-w-6xl mx-auto space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Basic Information */}
           <section className="bg-card rounded-lg border p-6">
             <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Basic Information</h2>
             {renderTable([
@@ -123,7 +251,6 @@ const CompanyFullDetails: React.FC = () => {
             ])}
           </section>
 
-          {/* Company Background */}
           <section className="bg-card rounded-lg border p-6">
             <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Company Background</h2>
             {renderTable([
@@ -136,7 +263,6 @@ const CompanyFullDetails: React.FC = () => {
           </section>
         </div>
 
-        {/* Franchise Opportunity and Requirements side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <details className="bg-card rounded-lg border">
             <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Franchise Opportunity</summary>
@@ -169,7 +295,6 @@ const CompanyFullDetails: React.FC = () => {
           </details>
         </div>
 
-        {/* Marketing Information and Contact Information side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <details className="bg-card rounded-lg border">
             <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Marketing Information</summary>
@@ -194,7 +319,6 @@ const CompanyFullDetails: React.FC = () => {
           </details>
         </div>
 
-        {/* Documents Section - Only visible to admin and company */}
         <PermissionGate permission="view_company_dashboard" fallback={null}>
           <section className="bg-card rounded-lg border p-6">
             <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Documents</h2>
