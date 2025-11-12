@@ -160,6 +160,7 @@ Route::prefix('psgc')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     //Credit Display
     Route::get('/credit-balance', [CreditController::class, 'creditDisplay'])->name('credit.display');
+    Route::post('/credits/add', [CreditController::class, 'addCredits'])->name('credits.add');
     Route::put('/company/deduct-balance', [CreditController::class, 'deductBalance'])->name('company.deduct-balance');
     Route::get('/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView']);
     Route::post('/view-applicant', [CreditController::class, 'viewApplicant']);
