@@ -752,28 +752,28 @@ function doSubmit() {
                           </div>
                         )}
                         {!companyId && (
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="mt-1 block w-full text-gray-200"
-                            name="logo"
-                            onChange={(e) => {
-                              const file = e.currentTarget.files?.[0] ?? null;
-                              setData('logo', file);
-                              if (file) {
-                                const previewUrl = URL.createObjectURL(file);
-                                setLogoPreview(previewUrl);
-                              } else {
-                                setLogoPreview(null);
-                              }
-                            }}
-                          />
+                        <input
+                          type="file"
+                          accept="image/*,.gif,.bmp,.tiff,.svg"
+                          className="mt-1 block w-full text-gray-200"
+                          name="logo"
+                          onChange={(e) => {
+                            const file = e.currentTarget.files?.[0] ?? null;
+                            setData('logo', file);
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setLogoPreview(previewUrl);
+                            } else {
+                              setLogoPreview(null);
+                            }
+                          }}
+                        />
                         )}
                         {companyId && (
                           <div className="mt-2">
                             <input
                               type="file"
-                              accept="image/*"
+                              accept="image/*,.gif,.bmp,.tiff,.svg"
                               className="block w-full text-gray-200"
                               name="logo"
                               onChange={(e) => {

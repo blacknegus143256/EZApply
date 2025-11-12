@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class CreditController extends Controller
 {
-    public function creditDisplay(Request $request) 
+    public function creditDisplay(Request $request)
     {
         $user = auth()->user();
 
@@ -23,12 +23,96 @@ class CreditController extends Controller
 
         $credit_transactions = CreditTransaction::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
-            ->get(); 
+            ->get();
+
+        // For admin users, also fetch companies for selection
+        $companies = null;
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            $companies = \App\Models\User::role('company')
+                ->with('company')
+                ->get()
+                ->map(function ($companyUser) {
+                    return [
+                        'id' => $companyUser->id,
+                        'name' => $companyUser->company?->company_name ?? $companyUser->email,
+                        'email' => $companyUser->email,
+                    ];
+                });
+        }
 
         return inertia('Credits/balancePage', [
             'balance' => $credits,
-            'credit_transactions' => $credit_transactions, 
+            'credit_transactions' => $credit_transactions,
+            'companies' => $companies,
         ]);
+    }
+
+    public function addCredits(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        // Check if user is admin
+        if (!$user->hasRole('admin') && !$user->hasRole('super_admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        // 1. Validate that they sent a number and it is positive, and user_id
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        $userId = $request->input('user_id');
+        $amount = $request->input('amount');
+
+        // Check if target user is a company
+        $targetUser = \App\Models\User::find($userId);
+        if (!$targetUser || !$targetUser->hasRole('company')) {
+            return redirect()->back()->with('error', 'Invalid company selected.');
+        }
+
+        try {
+            DB::transaction(function () use ($targetUser, $amount, $user) {
+
+                // 2. Update (or Create) the UserCredit balance
+                // We use lockForUpdate to prevent race conditions if they click twice fast
+                $userCredit = UserCredit::firstOrCreate(
+                    ['user_id' => $targetUser->id],
+                    ['balance' => 0]
+                );
+
+                // Make sure to lock it before updating if it existed
+                if ($userCredit->exists) {
+                    $userCredit = UserCredit::where('user_id', $targetUser->id)->lockForUpdate()->first();
+                }
+
+                $userCredit->increment('balance', $amount);
+
+                // 3. Create the Transaction Record for the target user
+                CreditTransaction::create([
+                    'user_id'     => $targetUser->id,
+                    'amount'      => $amount,       // Positive number for adding
+                    'type'        => 'top_up',      // Different type than 'usage'
+                    'description' => "Admin added {$amount} credits to wallet",
+                    'metadata'    => json_encode([
+                        'method' => 'manual_add',
+                        'added_by_admin_id' => $user->id,
+                        'timestamp' => now(),
+                    ]),
+                ]);
+            });
+
+            // 4. Return back to the page so the updated balance shows
+            return redirect()->back()->with('success', 'Credits added successfully!');
+
+        } catch (\Exception $e) {
+            Log::error("Add credits failed for user {$user->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to add credits. Please try again.');
+        }
     }
 
     public function buyInfo(Request $request, $applicationId)
@@ -97,7 +181,7 @@ class CreditController extends Controller
                 $userCredit->balance -= $cost;
                 $userCredit->save();
 
-                ApplicantView::create(attributes: [
+                ApplicantView::create([
                     'user_id' => $user->id,
                     'application_id' => $applicationId,
                     'field_key' => 'package',
