@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\UserCredit;
 use App\Models\Company;
 use App\Models\CompanyOpportunity;
 use App\Models\CompanyBackground;
@@ -38,16 +39,18 @@ class PfaCompanySeeder extends Seeder
                     ['email' => $email],
                     [
                         'password' => bcrypt('password123'),
+                        'credits' => 200,
                     ]
                 );
-                $user = User::where('email', $email)->first();
+
                 $user->assignRole('company');
-                $user->markEmailAsVerified();
-                $user->credit()->firstOrCreate(['balance' => 200]);
-
-                // Company attributes
                 
+                UserCredit::updateOrCreate(
+                    ['user_id' => $user->id],
+                    ['balance' => 200]
+                );
 
+                // DEFAULTS: ensure fields that might be NON-NULL in DB are present
                 $defaults = [
                     'brand_name' => $companyName,
                     'city' => $item['city'] ?? $item['citymun_name'] ?? '',
@@ -85,7 +88,7 @@ class PfaCompanySeeder extends Seeder
                 CompanyOpportunity::updateOrCreate(
                     ['company_id' => $company->id],
                     [
-                        'franchise_type' => $item['franchise_type'] ?? 'Franchise',
+                        'franchise_type' => $item['franchise_type'] ?? $this->guessIndustry($companyName),
                         'min_investment' => self::parseMoney($item['CAPITAL INVESTMENT'] ?? $price),
                         'franchise_fee' => self::parseMoney($item['FRANCHISE FEE'] ?? null),
                         'royalty_fee_structure' => $item['ROYALTY FEE'] ?? '5% of monthly gross sales',
