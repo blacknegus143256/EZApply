@@ -244,10 +244,23 @@ public function details($id)
             'requirements',
             'marketing',
             'documents',
-            'user.basicinfo',
+            'user.basicInfo',
         ])->get();
 
-        return response()->json($companies);   
+        // Map companies to ensure agent_name is included
+        $companiesWithAgentName = $companies->map(function ($company) {
+            $companyArray = $company->toArray();
+            // Ensure agent_name is included (it should be from $appends, but let's be explicit)
+            if (!isset($companyArray['agent_name'])) {
+                $basicInfo = optional($company->user)->basicInfo;
+                $companyArray['agent_name'] = $basicInfo 
+                    ? "{$basicInfo->first_name} {$basicInfo->last_name}" 
+                    : 'N/A';
+            }
+            return $companyArray;
+        });
+
+        return response()->json($companiesWithAgentName);   
     }
 
     public function apiIndex()
@@ -277,7 +290,7 @@ public function myCompanies()
     
     $companies = collect();
 
-    if ($user->hasRole('super-admin')) {
+    if ($user->hasRole('super_admin')) {
 
         $companies = Company::with(['opportunity', 'background', 'requirements', 'marketing', 'documents'])
             ->get(['id', 'company_name', 'brand_name', 'year_founded', 'country', 'status', 'created_at', 'user_id']);
@@ -314,7 +327,7 @@ public function myCompanies()
     // Get applicants that applied to this company
     $applicants = Application::with([
         'user',
-        'user.basicinfo',
+        'user.basicInfo',
         'company'
         ])
         ->whereIn('company_id',$companyIds)
@@ -531,7 +544,7 @@ public function update(Request $request, Company $company)
 public function assignAgents(Request $request, Company $company)
 {
     // Only super-admin can assign agents
-    abort_unless(Auth::user()->hasRole('super-admin'), 403, 'Only super-admin can assign agents.');
+    abort_unless(Auth::user()->hasRole('super_admin'), 403, 'Only super-admin can assign agents.');
 
     $request->validate([
         'agent_ids' => 'required|array',

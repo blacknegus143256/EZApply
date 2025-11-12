@@ -105,7 +105,14 @@ const CompanyFullDetails: React.FC = () => {
         router.reload({ only: ['company'] });
       },
       onError: (errors) => {
-        console.error(errors);
+        console.error('Error assigning agents:', errors);
+        if (errors?.message) {
+          alert(`Error: ${errors.message}`);
+        } else if (typeof errors === 'string') {
+          alert(`Error: ${errors}`);
+        } else {
+          alert('Failed to assign agents. Please check your permissions and try again.');
+        }
       },
     });
   };
@@ -130,7 +137,14 @@ const CompanyFullDetails: React.FC = () => {
         router.reload({ only: ['company'] });
       },
       onError: (errors) => {
-        console.error(errors);
+        console.error('Error removing agent:', errors);
+        if (errors?.message) {
+          alert(`Error: ${errors.message}`);
+        } else if (typeof errors === 'string') {
+          alert(`Error: ${errors}`);
+        } else {
+          alert('Failed to remove agent. Please check your permissions and try again.');
+        }
       },
     });
   };

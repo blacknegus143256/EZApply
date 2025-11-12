@@ -74,11 +74,18 @@ export default function Roles({ roles }: { roles: any }) {
       return res.json();
     })
     .then((data: Company[]) => {
-
-      const withStatus = data.map((c) => ({
-        ...c,
-        status: c.status || 'pending',
-      }));
+      console.log('Fetched companies data:', data); // Debug log
+      console.log('First company agent_name:', data[0]?.agent_name); // Debug log
+      
+      const withStatus = data.map((c) => {
+        const company = {
+          ...c,
+          status: c.status || 'pending',
+          agent_name: c.agent_name || 'N/A', // Explicitly preserve agent_name
+        };
+        console.log('Mapped company:', company.id, 'agent_name:', company.agent_name); // Debug
+        return company;
+      });
       setCompanies(withStatus);
       setLoading(false);      
     })
@@ -169,10 +176,12 @@ function handleCloseModal() {
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )
-      .map((company) => (
+      .map((company) => {
+        console.log('Rendering company:', company.id, 'agent_name:', company.agent_name); // Debug
+        return (
         <TableRow key={company.id}>
           <TableCell>
-            {company.agent_name || 'N/A'}
+            {company.agent_name ?? 'N/A'}
           </TableCell>
           <TableCell>{company.company_name}</TableCell>
           <TableCell>
@@ -245,7 +254,8 @@ function handleCloseModal() {
           </TableCell>
 
         </TableRow>
-      ))
+        );
+      })
   )}
 </TableBody>
 
