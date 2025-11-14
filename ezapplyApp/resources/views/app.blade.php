@@ -30,7 +30,7 @@
             }
         </style>
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia>{{ config('app.name', 'ezapply') }}</title>
 
        <link rel="icon" type="image/png" href="/ezapply model 1.png" sizes="32x32">
         <link rel="apple-touch-icon" href="/ezapply model 1.png">

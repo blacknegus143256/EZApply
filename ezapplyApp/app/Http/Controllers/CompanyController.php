@@ -72,12 +72,12 @@ class CompanyController extends Controller
             'experience_type'          => 'nullable|string|max:255',
             'other_qualifications'     => 'nullable|string',
 
-            // Step 5 — company_marketings
-            'listing_title'            => 'nullable|string|max:255',
-            'listing_description'      => 'nullable|string',
-            'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'target_profile'           => 'nullable|string|max:255',
-            'preferred_contact_method' => 'nullable|string|max:50',
+        // Step 5 — company_marketings
+        'listing_title'            => 'nullable|string|max:255',
+        'listing_description'      => 'nullable|string',
+        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,gif,webp,bmp,tiff,svg|max:5120',
+        'target_profile'           => 'nullable|string|max:255',
+        'preferred_contact_method' => 'nullable|string|max:50',
 
              // Step 6 — required documents
             'dti_sbc'           => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -210,10 +210,10 @@ class CompanyController extends Controller
 
 public function details($id)
 {
-    // Load the company and eager load its assigned agents
+    
     $company = Company::with(['agents.basicInfo', 'user'])->findOrFail($id);
 
-    // Get all agents (for dropdown or selection), using their basicInfo if available
+    
     $allAgents = User::role('company') 
         ->with('basicInfo')
         ->get()
@@ -247,10 +247,10 @@ public function details($id)
             'user.basicInfo',
         ])->get();
 
-        // Map companies to ensure agent_name is included
+        
         $companiesWithAgentName = $companies->map(function ($company) {
             $companyArray = $company->toArray();
-            // Ensure agent_name is included (it should be from $appends, but let's be explicit)
+            
             if (!isset($companyArray['agent_name'])) {
                 $basicInfo = optional($company->user)->basicInfo;
                 $companyArray['agent_name'] = $basicInfo 
@@ -414,7 +414,7 @@ public function update(Request $request, Company $company)
         // Step 5 — company_marketings
         'listing_title'            => 'nullable|string|max:255',
         'listing_description'      => 'nullable|string',
-        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'logo'                     => 'nullable|image|mimes:jpg,jpeg,png,gif,webp,bmp,tiff,svg|max:5120',
         'target_profile'           => 'nullable|string|max:255',
         'preferred_contact_method' => 'nullable|string|max:50',
 

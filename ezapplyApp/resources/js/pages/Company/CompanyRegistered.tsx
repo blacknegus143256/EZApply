@@ -216,15 +216,15 @@ const CompanyRegistered = () => {
         
         return filteredCompanies.map((company) => (
             <TableRow key={company.id}>
-                <TableCell className="font-medium">{company?.company_name || "—"}</TableCell>
-                <TableCell>{company.brand_name || "—"}</TableCell>
-                <TableCell>{company.opportunity?.franchise_type || "—"}</TableCell>
-                <TableCell>{company.year_founded || "—"}</TableCell>
-                <TableCell>{company.country || "—"}</TableCell>
-                <TableCell>
+                <TableCell className="font-medium max-w-[220px] truncate" title={company?.company_name || ''}>{company?.company_name || "—"}</TableCell>
+                <TableCell className="max-w-[200px] truncate" title={company.brand_name || ''}>{company.brand_name || "—"}</TableCell>
+                <TableCell className="max-w-[150px] truncate" title={company.opportunity?.franchise_type || ''}>{company.opportunity?.franchise_type || "—"}</TableCell>
+                <TableCell className="max-w-[120px]">{company.year_founded || "—"}</TableCell>
+                <TableCell className="max-w-[120px] truncate" title={company.country || ''}>{company.country || "—"}</TableCell>
+                <TableCell className="max-w-[120px]">
                     <StatusBadge status={company.status} />
                 </TableCell>
-                <TableCell>
+                <TableCell className="min-w-[120px]">
                     {company.created_at
                         ? new Date(company.created_at).toLocaleDateString("en-US", {
                             year: "numeric",
@@ -283,7 +283,7 @@ const CompanyRegistered = () => {
                                     </SelectContent>
                                 </Select>
                                 
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <Select value={statusFilter} onValueChange={(v: string) => setStatusFilter(v as Company['status'] | 'all')}>
                                     <SelectTrigger className="w-full sm:w-[140px] min-w-[120px]">
                                         <SelectValue placeholder="Status" />
                                     </SelectTrigger>
