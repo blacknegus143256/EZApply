@@ -17,6 +17,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: "Credits", href: "/credit-balance" },
 ];
 
+interface Company {
+    id: number;
+    name: string;
+    email: string;
+}
+
 const tabs = [
     { id: "balance", label: "Balance", icon: Wallet },
     { id: "history", label: "History", icon: History },
@@ -50,7 +56,6 @@ export default function BalancePage() {
             return;
         }
 
-        // For admin, require company selection
         if (isAdmin() && !selectedCompanyId) {
             alert("Please select a company to add credits to.");
             return;
@@ -59,7 +64,6 @@ export default function BalancePage() {
         setIsLoading(true);
         const payload: { amount: string; user_id?: number } = { amount: topUpAmount };
         
-        // If admin, include user_id
         if (isAdmin() && selectedCompanyId) {
             payload.user_id = parseInt(selectedCompanyId);
         }
@@ -177,8 +181,11 @@ export default function BalancePage() {
                                                             </div>
                                                             
                                                             <div className="flex-1 min-w-0"> 
-                                                                <p className="font-medium text-sm md:text-base text-gray-800 **truncate**">{transaction.description}</p>
-                                                                <p className="text-xs text-gray-500 mt-1">{formatDate(transaction.created_at)}</p>
+                                                                                <p className="font-medium text-sm md:text-base text-gray-800 truncate">{transaction.description}</p>
+                                                                                <p className="text-xs text-gray-500 mt-1">{formatDate(transaction.created_at)}</p>
+                                                                                {isAdmin() && transaction.user && (
+                                                                                    <p className="text-xs text-gray-500 mt-1">For: {transaction.user.company?.company_name ?? transaction.user.email ?? `${transaction.user.first_name ?? ''} ${transaction.user.last_name ?? ''}`}</p>
+                                                                                )}
                                                             </div>
                                                             
                                                             <span className={`font-semibold text-sm md:text-base ${amountColor} **flex-shrink-0 whitespace-nowrap**`}>

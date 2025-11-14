@@ -73,5 +73,13 @@ export interface Transactions {
     description: string;
     created_at: string;
     updated_at: string;
+    user?: {
+        id: number;
+        email?: string;
+        first_name?: string;
+        last_name?: string;
+        company?: { company_name?: string } | null;
+        [key: string]: unknown;
+    } | null;
     [key: string]: unknown;
 }

@@ -210,10 +210,10 @@ class CompanyController extends Controller
 
 public function details($id)
 {
-    // Load the company and eager load its assigned agents
+    
     $company = Company::with(['agents.basicInfo', 'user'])->findOrFail($id);
 
-    // Get all agents (for dropdown or selection), using their basicInfo if available
+    
     $allAgents = User::role('company') 
         ->with('basicInfo')
         ->get()
@@ -247,10 +247,10 @@ public function details($id)
             'user.basicInfo',
         ])->get();
 
-        // Map companies to ensure agent_name is included
+        
         $companiesWithAgentName = $companies->map(function ($company) {
             $companyArray = $company->toArray();
-            // Ensure agent_name is included (it should be from $appends, but let's be explicit)
+            
             if (!isset($companyArray['agent_name'])) {
                 $basicInfo = optional($company->user)->basicInfo;
                 $companyArray['agent_name'] = $basicInfo 

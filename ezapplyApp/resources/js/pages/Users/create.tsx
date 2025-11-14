@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -153,7 +154,9 @@ export default function AddUser({ roles }: { roles: string[] }) {
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     post('/users', {
-      onSuccess: () => console.log('User created:', data),
+      onSuccess: () => {
+        toast.success('User created successfully.');
+      },
       onError: (err) => console.log(err),
     });
   };

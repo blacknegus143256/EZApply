@@ -52,6 +52,7 @@ export default function Roles({ roles }: { roles: any }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
+  const [agentSearchTerm, setAgentSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
     const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,10 +62,14 @@ export default function Roles({ roles }: { roles: any }) {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
 
+    const matchesAgent = (company.agent_name ?? '')
+      .toLowerCase()
+      .includes(agentSearchTerm.toLowerCase());
+
     const matchesStatus =
       statusFilter === "all" ? true : company.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesAgent && matchesStatus;
   });
 
     useEffect(() => {
@@ -74,16 +79,16 @@ export default function Roles({ roles }: { roles: any }) {
       return res.json();
     })
     .then((data: Company[]) => {
-      console.log('Fetched companies data:', data); // Debug log
-      console.log('First company agent_name:', data[0]?.agent_name); // Debug log
+      console.log('Fetched companies data:', data); 
+      console.log('First company agent_name:', data[0]?.agent_name); 
       
       const withStatus = data.map((c) => {
         const company = {
           ...c,
           status: c.status || 'pending',
-          agent_name: c.agent_name || 'N/A', // Explicitly preserve agent_name
+          agent_name: c.agent_name || 'N/A', 
         };
-        console.log('Mapped company:', company.id, 'agent_name:', company.agent_name); // Debug
+        console.log('Mapped company:', company.id, 'agent_name:', company.agent_name); 
         return company;
       });
       setCompanies(withStatus);
@@ -109,157 +114,208 @@ function handleCloseModal() {
                     <title>Company Request</title>
                 </Head>
                 <Card>
-                    <CardHeader className="flex flex-col md:flex-row justify-between items-center gap-2">
-        <CardTitle>Registered Company Management</CardTitle>
-        <div className="flex gap-2 w-full md:w-auto">
-          {/* Search filter */}
-          <Input
-            type="text"
-            placeholder="Search Company..."
-            className="max-w-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+                    <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <div className="w-full md:w-auto">
+                            <CardTitle>Registered Company Management</CardTitle>
+                        </div>
 
-          {/* Status filter */}
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
+                        <div className="w-full md:w-auto">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                <Input
+                                    type="text"
+                                    placeholder="Search Company..."
+                                    className="w-full md:max-w-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+
+                                <Input
+                                    type="text"
+                                    placeholder="Search Agent..."
+                                    className="w-full md:max-w-sm"
+                                    value={agentSearchTerm}
+                                    onChange={(e) => setAgentSearchTerm(e.target.value)}
+                                />
+
+                                <div className="w-full md:w-auto">
+                                    <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                                        <SelectTrigger className="w-full md:w-[180px]">
+                                            <SelectValue placeholder="Filter by Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Status</SelectLabel>
+                                                <SelectItem value="all">All</SelectItem>
+                                                <SelectItem value="pending">Pending</SelectItem>
+                                                <SelectItem value="approved">Approved</SelectItem>
+                                                <SelectItem value="rejected">Rejected</SelectItem>
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </div>
+                    </CardHeader>
                     <hr />
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Agent Name</TableHead>
-                                    <TableHead>Company Name</TableHead>
-                                    <TableHead>Date Created</TableHead>
-                                    <TableHead>Action</TableHead>
-                                    <TableHead>Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-  {loading ? (
-    <TableRow>
-      <TableCell colSpan={5} className="text-center">
-        <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading
-        companies...
-      </TableCell>
-    </TableRow>
-  ) : error ? (
-    <TableRow>
-      <TableCell colSpan={5} className="text-center text-red-500">
-        {error}
-      </TableCell>
-    </TableRow>
-  ) : companies.length === 0 ? (
-    <TableRow>
-      <TableCell colSpan={5} className="text-center">
-        No companies registered yet.
-      </TableCell>
-    </TableRow>
-  ) : (
-    [...filteredCompanies]
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )
-      .map((company) => {
-        console.log('Rendering company:', company.id, 'agent_name:', company.agent_name); // Debug
-        return (
-        <TableRow key={company.id}>
-          <TableCell>
-            {company.agent_name ?? 'N/A'}
-          </TableCell>
-          <TableCell>{company.company_name}</TableCell>
-          <TableCell>
-            {new Date(company.created_at).toLocaleDateString()}
-          </TableCell>
+                        {/* Desktop table */}
+                        <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className='text-center'>Agent Name</TableHead>
+                                        <TableHead className='text-center'>Company Name</TableHead>
+                                        <TableHead className='text-center'>Date Created</TableHead>
+                                        <TableHead className='text-center'>Action</TableHead>
+                                        <TableHead className='text-center'>Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {loading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center">
+                                                <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading
+                                                companies...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : error ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center text-red-500">
+                                                {error}
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : companies.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center">
+                                                No companies registered yet.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        [...filteredCompanies]
+                                            .sort(
+                                                (a, b) =>
+                                                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                                            )
+                                            .map((company) => (
+                                                <TableRow key={company.id}>
+                                                    <TableCell className="text-center">{company.agent_name ?? 'N/A'}</TableCell>
+                                                    <TableCell className="text-center">{company.company_name}</TableCell>
+                                                    <TableCell className="text-center">{new Date(company.created_at).toLocaleDateString()}</TableCell>
+                                                    <TableCell className="flex gap-2 justify-center items-center">
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() => {
+                                                                setSelectedCompany(company);
+                                                                setIsModalOpen(true);
+                                                            }}
+                                                        >
+                                                            View Details
+                                                        </Button>
 
-          <TableCell className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSelectedCompany(company);
-                setIsModalOpen(true);
-              }}
-            >
-              View Details
-            </Button>
+                                                        <Select
+                                                            value={company.status}
+                                                            onValueChange={(value: "pending" | "approved" | "rejected") => {
+                                                                setCompanies((prev) => prev.map((c) => (c.id === company.id ? { ...c, status: value } : c)));
 
+                                                                route.put(
+                                                                    `/companies/${company.id}/status`,
+                                                                    { status: value },
+                                                                    {
+                                                                        preserveState: true,
+                                                                        onError: () => {
+                                                                            setCompanies((prev) => prev.map((c) => (c.id === company.id ? { ...c, status: company.status } : c)));
+                                                                        },
+                                                                    }
+                                                                );
+                                                            }}
+                                                        >
+                                                            <SelectTrigger className="w-[180px]">
+                                                                <SelectValue placeholder="Select Status" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectGroup>
+                                                                    <SelectLabel className="text-center">Status</SelectLabel>
+                                                                    <SelectItem value="pending">Pending</SelectItem>
+                                                                    <SelectItem value="approved">Approved</SelectItem>
+                                                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                                                </SelectGroup>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        {company.status === "pending" && <Badge variant="secondary">Pending</Badge>}
+                                                        {company.status === "approved" && <Badge variant="success">Approved</Badge>}
+                                                        {company.status === "rejected" && <Badge variant="destructive">Rejected</Badge>}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
 
-            <Select
-              value={company.status}
-              onValueChange={(value: "pending" | "approved" | "rejected") => {
-                setCompanies((prev) =>
-                  prev.map((c) =>
-                    c.id === company.id ? { ...c, status: value } : c
-                  )
-                );
-
-                route.put(
-                  `/companies/${company.id}/status`,
-                  { status: value },
-                  {
-                    preserveState: true,
-                    onError: () => {
-                      setCompanies((prev) =>
-                        prev.map((c) =>
-                          c.id === company.id
-                            ? { ...c, status: company.status }
-                            : c
-                        )
-                      );
-                    },
-                  }
-                );
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel className="text-center">Status</SelectLabel>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </TableCell>
-
-          <TableCell>
-            {company.status === "pending" && (
-              <Badge variant="secondary">Pending</Badge>
-            )}
-            {company.status === "approved" && (
-              <Badge variant="success">Approved</Badge>
-            )}
-            {company.status === "rejected" && (
-              <Badge variant="destructive">Rejected</Badge>
-            )}
-          </TableCell>
-
-        </TableRow>
-        );
-      })
-  )}
-</TableBody>
-
-                        </Table>
+                        {/* Mobile cards */}
+                        <div className="md:hidden p-4 space-y-3">
+                            {loading ? (
+                                <div className="text-center">
+                                    <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading companies...
+                                </div>
+                            ) : error ? (
+                                <div className="text-center text-red-500">{error}</div>
+                            ) : filteredCompanies.length === 0 ? (
+                                <div className="text-center">No companies registered yet.</div>
+                            ) : (
+                                [...filteredCompanies]
+                                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                                    .map((company) => (
+                                        <div key={company.id} className="border rounded-lg p-4 shadow-sm">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="text-sm text-gray-500">Agent</div>
+                                                    <div className="font-medium">{company.agent_name ?? 'N/A'}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-sm text-gray-500">Added</div>
+                                                    <div className="font-medium">{new Date(company.created_at).toLocaleDateString()}</div>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3">
+                                                <div className="text-sm text-gray-500">Company</div>
+                                                <div className="font-medium">{company.company_name}</div>
+                                            </div>
+                                            <div className="mt-3 flex gap-2 justify-end">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        setSelectedCompany(company);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                >
+                                                    View Details
+                                                </Button>
+                                                <Select
+                                                    value={company.status}
+                                                    onValueChange={(value: "pending" | "approved" | "rejected") => {
+                                                        setCompanies((prev) => prev.map((c) => (c.id === company.id ? { ...c, status: value } : c)));
+                                                        route.put(`/companies/${company.id}/status`, { status: value }, { preserveState: true });
+                                                    }}
+                                                >
+                                                    <SelectTrigger className="w-[140px]">
+                                                        <SelectValue placeholder="Status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectItem value="pending">Pending</SelectItem>
+                                                            <SelectItem value="approved">Approved</SelectItem>
+                                                            <SelectItem value="rejected">Rejected</SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                    ))
+                            )}
+                        </div>
                         {selectedCompany && (
   <CompanyDetailsModal
     company={selectedCompany}

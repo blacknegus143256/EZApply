@@ -6,11 +6,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Auth;
 use App\Models\UserAddress;
-use App\Models\BasicInfo;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Company;
+use App\Models\UserCredit;
+use App\Models\CreditTransaction;
 
 
 class UserController extends Controller
@@ -129,6 +129,21 @@ public function store(Request $request)
         $user->syncRoles($request->roles);
     }
 
+    // If the admin created a company user, ensure they receive the signup bonus credits
+    if ($user->hasRole('company') && !$user->credit) {
+        UserCredit::create([
+            'user_id' => $user->id,
+            'balance' => 200,
+        ]);
+
+        CreditTransaction::create([
+            'user_id'    => $user->id,
+            'amount'     => 200,
+            'type'       => 'signup_bonus',
+            'description'=> 'Welcome bonus for new company user (admin-created)',
+        ]);
+    }
+
     return to_route('users.index')->with('message', 'User Created Successfully');
 }
 
@@ -223,6 +238,20 @@ public function update(Request $request, User $user)
     }
 
     $user->syncRoles($request->roles);
+
+    if ($user->hasRole('company') && !$user->credit) {
+        UserCredit::create([
+            'user_id' => $user->id,
+            'balance' => 200,
+        ]);
+
+        CreditTransaction::create([
+            'user_id'    => $user->id,
+            'amount'     => 200,
+            'type'       => 'signup_bonus',
+            'description'=> 'Welcome bonus for new company user (role change)',
+        ]);
+    }
 
     return to_route('users.index')->with('message', 'User updated successfully.');
 }
