@@ -210,10 +210,16 @@ class CompanyController extends Controller
 
 public function details($id)
 {
-    
-    $company = Company::with(['agents.basicInfo', 'user'])->findOrFail($id);
+    $company = Company::with([
+        'agents.basicInfo',
+        'user.basicInfo',
+        'opportunity',
+        'background',
+        'requirements',
+        'marketing',
+        'documents',
+    ])->findOrFail($id);
 
-    
     $allAgents = User::role('company') 
         ->with('basicInfo')
         ->get()
@@ -226,6 +232,10 @@ public function details($id)
                 'email' => $user->email,
             ];
         });
+
+    // Explicitly transform company to ensure agents are included
+    $companyData = $company->toArray();
+    \Log::info('Company agents in response:', ['agents' => $companyData['agents'] ?? 'MISSING']);
 
     return Inertia::render('Company/CompanyFullDetails', [
         'company' => $company,
@@ -562,7 +572,28 @@ public function assignAgents(Request $request, Company $company)
     // Sync the rest of the agents
     $company->agents()->sync($agentIds);
 
-    return redirect()->back()->with('success', 'Agents assigned successfully!');
+    // Reload company with fresh agent data
+    $company->load(['agents.basicInfo', 'user', 'opportunity', 'background', 'requirements', 'marketing', 'documents']);
+
+    // Get all available agents for the dropdown
+    $allAgents = User::role('company') 
+        ->with('basicInfo')
+        ->get()
+        ->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->basicInfo
+                    ? $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name
+                    : $user->email,
+                'email' => $user->email,
+            ];
+        });
+
+    // Return Inertia response with updated company data
+    return Inertia::render('Company/CompanyFullDetails', [
+        'company' => $company,
+        'allAgents' => $allAgents,
+    ])->with('success', 'Agents assigned successfully!');
 }
 
 

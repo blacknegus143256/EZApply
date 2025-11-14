@@ -21,9 +21,13 @@ export interface CompanyDetails {
   status?: string;
   user?: {
     id: number;
-    first_name: string;
-    last_name: string;
+    first_name?: string;
+    last_name?: string;
     email: string;
+    basicInfo?: {
+      first_name: string;
+      last_name: string;
+    };
   };
   opportunity?: {
     franchise_type?: string;
