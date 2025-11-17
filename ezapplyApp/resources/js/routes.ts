@@ -213,3 +213,11 @@ export function home() {
 export function appearance() {
     return safeRoute('settings.appearance');
 }
+
+export function profileEdit() {
+    return safeRoute('profile.edit');
+}
+
+export function passwordEdit() {
+    return safeRoute('password.edit');
+}

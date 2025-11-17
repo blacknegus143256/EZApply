@@ -29,7 +29,7 @@ class PfaCompanySeeder extends Seeder
         $rows = array_map(function ($item) {
         $normalized = [];
         foreach ($item as $key => $value) {
-            $normalized[trim(str_replace(':', '', $key))] = $value; // remove colons
+            $normalized[trim(str_replace(':', '', $key))] = $value;
         }
         return $normalized;
     }, $rows);
@@ -43,24 +43,7 @@ class PfaCompanySeeder extends Seeder
                 $brandName = trim($item['name'] ?? 'Unknown Brand');
                 $price = $item['price'] ?? null;
 
-                // Create or find a user for the company (unique email per company)
-                $email = Str::slug($companyName) . '@pfa-demo.com';
-                $user = User::firstOrCreate(
-                    ['email' => $email],
-                    [
-                        'password' => bcrypt('password123'),
-                        'credits' => 200,
-                    ]
-                );
-
-                $user->assignRole('company');
-                
-                UserCredit::updateOrCreate(
-                    ['user_id' => $user->id],
-                    ['balance' => 200]
-                );
-
-                $userId = $user->id;
+                $userId = null;
 
                 // DEFAULTS: ensure fields that might be NON-NULL in DB are present
                 $defaults = [
@@ -93,7 +76,7 @@ class PfaCompanySeeder extends Seeder
                 );
 
                 $this->command->line(
-                "💰 {$brandName} - Investment: " 
+                "{$brandName} - Investment: " 
                 . json_encode($item['CAPITAL INVESTMENT'] ?? $price ?? null)
                 . " → Parsed: " . self::parseMoney($item['CAPITAL INVESTMENT'] ?? $price ?? 0)
                 . " | Fee: " . json_encode($item['FRANCHISE FEE'] ?? null)
@@ -164,7 +147,7 @@ class PfaCompanySeeder extends Seeder
                     ]
                 );
 
-                $this->command->info("Seeded: {$companyName}. User ID: {$userId}");
+                $this->command->info("Seeded: {$companyName}. User ID: Default");
             } catch (\Exception $e) {
                 $this->command->warn("Failed to seed company: " . ($item['name'] ?? 'unknown'));
                 $this->command->warn($e->getMessage());

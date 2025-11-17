@@ -26,7 +26,7 @@ class PermissionsTableSeeder extends Seeder
             // additional permissions referenced in UI
             'view_home_page',
             'view_customer_dashboard',
-            'view_company_dashboard',
+            'view_company_dashboard','view_inquiries'
         ];
 
         foreach ($permissions as $permission) {
