@@ -25,6 +25,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CompanyApplicantController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\File;
 
 
@@ -215,7 +216,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/company-requests/{id}/approve', [CompanyRequestController::class, 'approveCompany'])->name('company.approve');
     Route::post('/company-requests/{id}/reject', [CompanyRequestController::class, 'rejectCompany'])->name('company.reject');
     
-    
+    //Contact
+    Route::get('/admin/inquiries', [ContactController::class, 'index'])->name('inquiries.index');
+    Route::patch('/admin/inquiries/{id}', [ContactController::class, 'updateStatus'])->name('inquiries.updateStatus');
+
+
 
 });
 
@@ -224,6 +229,9 @@ Route::get('/easy-apply', function () {
         'user' => Auth::user(),
     ]);
 });
+
+// Contact form route
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 
 require __DIR__.'/settings.php';
