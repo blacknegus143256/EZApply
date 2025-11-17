@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 import { BreadcrumbItem } from '@/types';
 import type { CompanyDetails } from '@/types/company';
 import PermissionGate, { AdminOnly } from '@/components/PermissionGate';
+import '../../../css/company-details.css';
 
 type FormatType = "number" | "currency";
 
@@ -200,36 +201,36 @@ const CompanyFullDetails: React.FC = () => {
   return (
     <>
       <Head title="Company Details" />
-      <div className='bg-across-pages min-h-screen p-5'>
+      <div className='company-details-container'>
 
         <div className="flex justify-between items-center mb-6">
           <Button
             onClick={() => window.history.back()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-300 to-blue-400 text-white rounded-lg shadow-md hover:from-blue-400 hover:to-blue-500 transition-all duration-200 hover:shadow-lg"
+            className="btn-back"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
 
           <AdminOnly>
-            <div className="flex gap-2 w-80 relative">
+            <div className="agent-search-container">
               <input
                 type="text"
                 placeholder="Search Agents..."
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="agent-search-input"
               />
               <Button
                 onClick={handleAssign}
                 disabled={!selectedAgent}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200 disabled:opacity-50"
+                className="btn-add"
               >
                 Add
               </Button>
 
               {filteredResults.length > 0 && (
-                <ul className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
+                <ul className="agent-search-dropdown">
                   {filteredResults.map(agent => (
                     <li
                       key={agent.id}
@@ -237,9 +238,10 @@ const CompanyFullDetails: React.FC = () => {
                         setSelectedAgent(agent);
                         setQuery(agent.name);
                       }}
-                      className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                      className="agent-search-item"
                     >
-                      {agent.name} <span className="text-gray-500 text-sm">({agent.email})</span>
+                      <div className="font-semibold text-gray-900">{agent.name}</div>
+                      <div className="text-gray-500 text-sm">{agent.email}</div>
                     </li>
                   ))}
                 </ul>
@@ -248,74 +250,72 @@ const CompanyFullDetails: React.FC = () => {
           </AdminOnly>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 p-6 bg-card rounded-lg border relative">
-          <div className="flex items-center gap-6">
-            <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
-              <AvatarImage
-                className="object-contain"
-                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
-                alt={`${company.brand_name} logo`}
-                onError={(e) => { (e.target as HTMLImageElement).src = "/storage/logos/default-logo.png"; }}
-              />
-              <AvatarFallback className="text-3xl">
-                {getInitials(company.brand_name || company.company_name)}
-              </AvatarFallback>
-            </Avatar>
+        <div className="company-header-card mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div className="flex items-center gap-6 flex-1">
+              <Avatar className="company-avatar h-32 w-32 md:h-40 md:w-40">
+                <AvatarImage
+                  className="object-contain"
+                  src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
+                  alt={`${company.brand_name} logo`}
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/storage/logos/default-logo.png"; }}
+                />
+                <AvatarFallback className="text-3xl">
+                  {getInitials(company.brand_name || company.company_name)}
+                </AvatarFallback>
+              </Avatar>
 
-            <div className="text-center md:text-left">
-              <h1 className="text-4xl font-bold mb-2">{company.company_name}</h1>
-              {company.brand_name && <p className="text-lg text-muted-foreground mb-2">{company.brand_name}</p>}
-              {company.company_website && (
-                <a
-                  href={company.company_website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  {company.company_website}
-                </a>
-              )}
+              <div className="text-center md:text-left flex-1">
+                <h1 className="company-name mb-2">{company.company_name}</h1>
+                {company.brand_name && <p className="text-lg text-muted-foreground mb-2">{company.brand_name}</p>}
+                {company.company_website && (
+                  <a
+                    href={company.company_website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium transition-colors"
+                  >
+                    {company.company_website}
+                  </a>
+                )}
+              </div>
             </div>
+            
+            <AdminOnly>
+            {assignedAgents && assignedAgents.length > 0 ? (
+              <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
+                <label className="font-semibold text-muted-foreground">Assigned Agents:</label>
+                {assignedAgents.map(agent => (
+                  <span key={agent.id} className={`agent-badge ${
+                    company.user && company.user.id === agent.id 
+                      ? 'agent-badge-owner' 
+                      : 'agent-badge-assigned'
+                  }`}>
+                    {agent.name}
+                    {company.user && company.user.id === agent.id && <span className="text-xs font-bold">(Owner)</span>}
+                      <button
+                        onClick={() => handleRemoveAgent(agent.id)}
+                        disabled={company.user && company.user.id === agent.id}
+                        className="agent-remove-btn"
+                      >
+                        ×
+                      </button>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                No agents assigned yet
+              </div>
+            )}
+            </AdminOnly>
           </div>
-          
-          <AdminOnly>
-          {assignedAgents && assignedAgents.length > 0 ? (
-            <div className="flex flex-wrap gap-2 items-center">
-              <label className="font-medium text-muted-foreground mr-2">Assigned Agents:</label>
-              {assignedAgents.map(agent => (
-                <span key={agent.id} className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
-                  company.user && company.user.id === agent.id 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {agent.name}
-                  {company.user && company.user.id === agent.id && <span className="text-xs font-bold">(Owner)</span>}
-                    <button
-                      onClick={() => handleRemoveAgent(agent.id)}
-                      disabled={company.user && company.user.id === agent.id}
-                      className={`font-bold ml-1 ${
-                        company.user && company.user.id === agent.id
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-red-500 hover:text-red-700'
-                      }`}
-                    >
-                      ×
-                    </button>
-                </span>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              No agents assigned yet
-            </div>
-          )}
-          </AdminOnly>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Basic Information</h2>
+          <section className="section-card">
+            <h2 className="section-title">Basic Information</h2>
             {renderTable([
               { key: "description", label: "Description", value: company.description },
               { key: "year_founded", label: "Year Founded", value: company.year_founded },
@@ -327,8 +327,8 @@ const CompanyFullDetails: React.FC = () => {
             ])}
           </section>
 
-          <section className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Company Background</h2>
+          <section className="section-card">
+            <h2 className="section-title">Company Background</h2>
             {renderTable([
               { key: "industry_sector", label: "Industry Sector", value: company.background?.industry_sector },
               { key: "years_in_operation", label: "Years in Operation", value: company.background?.years_in_operation },
@@ -340,9 +340,9 @@ const CompanyFullDetails: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <details className="bg-card rounded-lg border">
-            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Franchise Opportunity</summary>
-            <div className="p-6 pt-0">
+          <details className="details-collapse">
+            <summary className="section-title mb-0">Franchise Opportunity</summary>
+            <div className="details-collapse-content">
               {renderTable([
                 { key: "franchise_type", label: "Franchise Type", value: company.opportunity?.franchise_type },
                 { key: "min_investment", label: "Minimum Investment", value: company.opportunity?.min_investment, format: "currency" },
@@ -357,9 +357,9 @@ const CompanyFullDetails: React.FC = () => {
             </div>
           </details>
 
-          <details className="bg-card rounded-lg border">
-            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Requirements</summary>
-            <div className="p-6 pt-0">
+          <details className="details-collapse">
+            <summary className="section-title mb-0">Requirements</summary>
+            <div className="details-collapse-content">
               {renderTable([
                 { key: "min_net_worth", label: "Minimum Net Worth", value: company.requirements?.min_net_worth, format: "currency" },
                 { key: "min_liquid_assets", label: "Minimum Liquid Assets", value: company.requirements?.min_liquid_assets, format: "currency" },
@@ -372,9 +372,9 @@ const CompanyFullDetails: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <details className="bg-card rounded-lg border">
-            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Marketing Information</summary>
-            <div className="p-6 pt-0">
+          <details className="details-collapse">
+            <summary className="section-title mb-0">Marketing Information</summary>
+            <div className="details-collapse-content">
               {renderTable([
                 { key: "listing_title", label: "Listing Title", value: company.marketing?.listing_title },
                 { key: "listing_description", label: "Listing Description", value: company.marketing?.listing_description },
@@ -384,9 +384,9 @@ const CompanyFullDetails: React.FC = () => {
             </div>
           </details>
 
-          <details className="bg-card rounded-lg border">
-            <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Contact Information</summary>
-            <div className="p-6 pt-0">
+          <details className="details-collapse">
+            <summary className="section-title mb-0">Contact Information</summary>
+            <div className="details-collapse-content">
               {renderTable([
                 { key: "contact_name", label: "Contact Name", value: getUserDisplayName(company.user) },
                 { key: "email", label: "Email", value: company.user?.email },
@@ -396,42 +396,44 @@ const CompanyFullDetails: React.FC = () => {
         </div>
 
         <PermissionGate permission="view_company_dashboard" fallback={null}>
-          <section className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4 pb-2 border-b">Documents</h2>
+          <section className="section-card">
+            <h2 className="section-title">Documents</h2>
             {company.documents ? (
-              <ul className="space-y-3">
+              <div className="space-y-3">
                 {[
                   { label: "DTI/SBC", path: company.documents.dti_sbc_path },
                   { label: "BIR 2303", path: company.documents.bir_2303_path },
                   { label: "IPO Registration", path: company.documents.ipo_registration_path },
                 ].map((doc, index) => (
-                  <li key={index} className="flex items-center justify-between rounded-lg border p-3 dark:border-gray-700">
-                    <div className="flex items-center gap-3">
+                  <div key={index} className="document-item">
+                    <div className="flex items-center gap-3 flex-1">
                       {doc.path && doc.path.match(/\.(jpg|jpeg|png)$/i) ? (
                         <img
                           src={`/storage/${doc.path}`}
                           alt={doc.label}
-                          className="h-12 w-12 object-cover rounded border dark:border-gray-700"
+                          className="document-thumbnail"
                         />
                       ) : (
-                        <span className="text-sm text-gray-700 dark:text-gray-300">{doc.label}</span>
+                        <span className="document-label">{doc.label}</span>
                       )}
+                      {!doc.path && <span className="document-label">{doc.label}</span>}
                     </div>
                     {doc.path ? (
                       <Button
                         variant="secondary"
                         onClick={() => window.open(`/storage/${doc.path}`, "_blank")}
+                        className="btn-view"
                       >
                         View File
                       </Button>
                     ) : (
                       <span className="text-sm text-gray-500">Not uploaded</span>
                     )}
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             ) : (
-              <p>No documents available</p>
+              <p className="text-gray-500">No documents available</p>
             )}
           </section>
         </PermissionGate>

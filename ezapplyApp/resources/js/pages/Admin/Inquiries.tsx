@@ -23,7 +23,7 @@ export default function Inquiries({ inquiries }: Props) {
     const { props } = usePage();
     const user = (props as any)?.auth?.user;
 
-    // Check if user has admin or super_admin role
+
     useEffect(() => {
         if (!user || !user.roles?.some((role: any) => role.name === 'admin' || role.name === 'super_admin')) {
             router.visit('/');
@@ -90,7 +90,7 @@ export default function Inquiries({ inquiries }: Props) {
             <Can permission="view_inquiries" fallback={<div className="p-4">You don't have permission to view users.</div>}>
             
             <div className="space-y-6">
-                {/* Header Section */}
+
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white shadow-lg">
                     <div className="flex items-center justify-between mb-6">
                         <div>
@@ -103,7 +103,6 @@ export default function Inquiries({ inquiries }: Props) {
                         </div>
                     </div>
 
-                    {/* Stats Cards */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="bg-white/20 backdrop-blur rounded-lg p-4">
                             <p className="text-blue-100 text-sm font-medium">Unread</p>
@@ -120,9 +119,9 @@ export default function Inquiries({ inquiries }: Props) {
                     </div>
                 </div>
 
-                {/* Search and Filter Section */}
+
                 <div className="space-y-4">
-                    {/* Search Bar */}
+
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
@@ -134,7 +133,7 @@ export default function Inquiries({ inquiries }: Props) {
                         />
                     </div>
 
-                    {/* Filter Tabs */}
+
                     <div className="flex gap-2 border-b border-gray-200">
                         {(['all', 'unread', 'read'] as const).map(f => {
                             const count = f === 'all' ? totalCount : f === 'unread' ? unreadCount : totalCount - unreadCount;
@@ -160,7 +159,7 @@ export default function Inquiries({ inquiries }: Props) {
                     </div>
                 </div>
 
-                {/* Inquiries List */}
+
                 <div className="space-y-3">
                     {filteredInquiries.length > 0 ? (
                         filteredInquiries.map((inquiry, index) => (
@@ -173,7 +172,7 @@ export default function Inquiries({ inquiries }: Props) {
                                 }`}
                                 onClick={() => setExpandedId(expandedId === inquiry.id ? null : inquiry.id)}
                             >
-                                {/* Inquiry Header */}
+
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4 flex-1">
                                         {inquiry.status === 'unread' && (
@@ -196,7 +195,7 @@ export default function Inquiries({ inquiries }: Props) {
                                                 <span className="text-sm">{inquiry.email}</span>
                                             </div>
                                             <p className="text-xs text-gray-500 font-medium">
-                                                📅 {formatDate(inquiry.created_at)}
+                                                {formatDate(inquiry.created_at)}
                                             </p>
                                         </div>
                                     </div>
@@ -209,12 +208,12 @@ export default function Inquiries({ inquiries }: Props) {
                                     </div>
                                 </div>
 
-                                {/* Message Preview */}
+
                                 <p className="mt-4 text-sm text-gray-700 line-clamp-2 leading-relaxed border-l-4 border-gray-300 pl-4 italic">
                                     "{inquiry.message}"
                                 </p>
 
-                                {/* Expanded View */}
+
                                 {expandedId === inquiry.id && (
                                     <div
                                         className="mt-6 pt-6 border-t-2 border-gray-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200"
@@ -250,7 +249,6 @@ export default function Inquiries({ inquiries }: Props) {
                                                 onClick={e => {
                                                     e.stopPropagation();
                                                     if (confirm('Are you sure you want to delete this inquiry?')) {
-                                                        // Delete functionality can be added later
                                                     }
                                                 }}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-lg hover:bg-red-100 transition-all duration-200"

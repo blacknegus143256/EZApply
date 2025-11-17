@@ -47,9 +47,9 @@ class ContactController extends Controller
 
         $contact = Contact::create($validated);
 
-        // Send email notification to admin
         $adminEmail = config('app.admin_email') ?? 'admin@example.com';
         Mail::to($adminEmail)->send(new ContactNotification($contact));
+
 
         return response()->json([
             'message' => 'Your inquiry has been sent successfully. We will get back to you soon!',
