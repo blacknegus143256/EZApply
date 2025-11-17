@@ -3,14 +3,12 @@
     margin: 0 auto;
     min-height: 100vh;
 
-    /* soft layered background */
     background: 
         radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 70%),
         radial-gradient(circle at bottom right, rgba(7, 64, 53, 0.08), transparent 70%),
-        #f9fafb; /* light neutral base */
+        #f9fafb; 
 }
 
-/* Full-width header section */
 .header-section {
     margin-top: 4rem; 
     background: linear-gradient(135deg, #074035, #2563eb);
