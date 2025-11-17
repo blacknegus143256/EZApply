@@ -62,17 +62,6 @@ const mapCompanyAgentsToAgents = (agents: CompanyDetails['agents']): Agent[] => 
   }));
 };
 
-const getUserDisplayName = (user: any): string => {
-  if (!user) return '';
-  if (user.basicInfo && (user.basicInfo.first_name || user.basicInfo.last_name)) {
-    return `${user.basicInfo.first_name || ''} ${user.basicInfo.last_name || ''}`.trim();
-  }
-  if (user.first_name || user.last_name) {
-    return `${user.first_name || ''} ${user.last_name || ''}`.trim();
-  }
-  return user.email || '';
-};
-
 const CompanyFullDetails: React.FC = () => {
   const { props } = usePage<{ company: CompanyDetails; allAgents?: Agent[] }>();
   const company = props.company;
@@ -81,26 +70,9 @@ const CompanyFullDetails: React.FC = () => {
 
   const [query, setQuery] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const [assignedAgents, setAssignedAgents] = useState<Agent[]>(() => {
-    const agentsFromRelation = mapCompanyAgentsToAgents(company.agents || []);
-    
-    if (company.user) {
-      const ownerAgent: Agent = {
-        id: company.user.id,
-        name: getUserDisplayName(company.user),
-        email: company.user.email,
-        role: 'company',
-      };
-      
-      const ownerExists = agentsFromRelation.some(a => a.id === ownerAgent.id);
-      if (!ownerExists) {
-        agentsFromRelation.unshift(ownerAgent); 
-      }
-    }
-    
-    console.log('Initializing assignedAgents:', agentsFromRelation);
-    return agentsFromRelation;
-  });
+  const [assignedAgents, setAssignedAgents] = useState<Agent[]>(() => 
+    mapCompanyAgentsToAgents(company.agents)
+  );
 
   const filteredResults = useMemo(() => {
     if (!query) return [];
@@ -130,7 +102,7 @@ const CompanyFullDetails: React.FC = () => {
       agent_ids: agentIds,
     }, {
       onSuccess: () => {
-
+        router.reload({ only: ['company'] });
       },
       onError: (errors) => {
         console.error('Error assigning agents:', errors);
@@ -146,34 +118,13 @@ const CompanyFullDetails: React.FC = () => {
   };
 
   useEffect(() => {
-    const agentsFromRelation = mapCompanyAgentsToAgents(company.agents || []);
-    
+    const mappedAgents = mapCompanyAgentsToAgents(company.agents);
+    setAssignedAgents(mappedAgents);
 
-    if (company.user) {
-      const ownerAgent: Agent = {
-        id: company.user.id,
-        name: getUserDisplayName(company.user),
-        email: company.user.email,
-        role: 'company',
-      };
-      
-      const ownerExists = agentsFromRelation.some(a => a.id === ownerAgent.id);
-      if (!ownerExists) {
-        agentsFromRelation.unshift(ownerAgent);
-      }
-    }
-    
-    console.log('useEffect: assignedAgents updated:', agentsFromRelation);
-    setAssignedAgents(agentsFromRelation);
-  }, [company.id, company.user, company.agents]);
+  }, [JSON.stringify(company.agents?.map(a => a.id).sort())]);
 
 
   const handleRemoveAgent = (agentId: number) => {
-    if (company.user && company.user.id === agentId) {
-      alert('Cannot remove the company owner. The owner must always be associated with the company.');
-      return;
-    }
-
     const newAgents = assignedAgents.filter(agent => agent.id !== agentId);
     setAssignedAgents(newAgents);
 
@@ -183,6 +134,7 @@ const CompanyFullDetails: React.FC = () => {
       agent_ids: agentIds,
     }, {
       onSuccess: () => {
+        router.reload({ only: ['company'] });
       },
       onError: (errors) => {
         console.error('Error removing agent:', errors);
@@ -253,9 +205,12 @@ const CompanyFullDetails: React.FC = () => {
             <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
               <AvatarImage
                 className="object-contain"
-                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
+                src={company.marketing?.logo_path ? (company.marketing.logo_path.startsWith('http') ? company.marketing.logo_path : `/storage/${company.marketing.logo_path}`) : "/background/default-logo.png"}
                 alt={`${company.brand_name} logo`}
-                onError={(e) => { (e.target as HTMLImageElement).src = "/storage/logos/default-logo.png"; }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/background/default-logo.png";
+                }}
               />
               <AvatarFallback className="text-3xl">
                 {getInitials(company.brand_name || company.company_name)}
@@ -279,34 +234,20 @@ const CompanyFullDetails: React.FC = () => {
           </div>
           
           <AdminOnly>
-          {assignedAgents && assignedAgents.length > 0 ? (
+          {assignedAgents.length > 0 && (
             <div className="flex flex-wrap gap-2 items-center">
               <label className="font-medium text-muted-foreground mr-2">Assigned Agents:</label>
               {assignedAgents.map(agent => (
-                <span key={agent.id} className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
-                  company.user && company.user.id === agent.id 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
+                <span key={agent.id} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                   {agent.name}
-                  {company.user && company.user.id === agent.id && <span className="text-xs font-bold">(Owner)</span>}
                     <button
                       onClick={() => handleRemoveAgent(agent.id)}
-                      disabled={company.user && company.user.id === agent.id}
-                      className={`font-bold ml-1 ${
-                        company.user && company.user.id === agent.id
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-red-500 hover:text-red-700'
-                      }`}
+                      className="text-red-500 font-bold ml-1 hover:text-red-700"
                     >
                       ×
                     </button>
                 </span>
               ))}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              No agents assigned yet
             </div>
           )}
           </AdminOnly>
@@ -388,7 +329,7 @@ const CompanyFullDetails: React.FC = () => {
             <summary className="cursor-pointer p-6 text-xl font-semibold hover:bg-muted/50 transition-colors">Contact Information</summary>
             <div className="p-6 pt-0">
               {renderTable([
-                { key: "contact_name", label: "Contact Name", value: getUserDisplayName(company.user) },
+                { key: "contact_name", label: "Contact Name", value: `${company.user?.first_name} ${company.user?.last_name}` },
                 { key: "email", label: "Email", value: company.user?.email },
               ])}
             </div>
