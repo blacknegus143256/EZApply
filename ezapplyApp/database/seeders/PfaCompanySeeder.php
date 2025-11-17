@@ -43,24 +43,7 @@ class PfaCompanySeeder extends Seeder
                 $brandName = trim($item['name'] ?? 'Unknown Brand');
                 $price = $item['price'] ?? null;
 
-                // Create or find a user for the company (unique email per company)
-                $email = Str::slug($companyName) . '@pfa-demo.com';
-                $user = User::firstOrCreate(
-                    ['email' => $email],
-                    [
-                        'password' => bcrypt('password123'),
-                        'credits' => 200,
-                    ]
-                );
-
-                $user->assignRole('company');
-                
-                UserCredit::updateOrCreate(
-                    ['user_id' => $user->id],
-                    ['balance' => 200]
-                );
-
-                $userId = $user->id;
+                $userId = null;
 
                 // DEFAULTS: ensure fields that might be NON-NULL in DB are present
                 $defaults = [
@@ -79,7 +62,7 @@ class PfaCompanySeeder extends Seeder
                     'postal_code' => $item['postal_code'] ?? 'unknown',
                     'country' => $item['country'] ?? 'Philippines',
                     'company_website' => $item['website'] ?? null,
-                    'description' => trim($item['company_profile'] ?? null),
+                    'description' => trim($item['COMPANY PROFILE'] ?? null),
                     'year_founded' => isset($item['year'])  && is_numeric($item['year']) ? (int)$item['year'] : 2000,
                     'num_franchise_locations' => isset($item['num_franchise_locations']) && is_numeric($item['num_franchise_locations']) ? (int)$item['num_franchise_locations']
                         : null,

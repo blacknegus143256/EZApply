@@ -41,7 +41,7 @@ const CompanySummaryCard: React.FC<CompanySummaryCardProps> = ({
     ? ` ${company.brand_name}(${company.company_name})`
     : company.company_name;
 
-  const displayDescription = company.marketing?.listing_description || company.description || 'No description available';
+  const displayDescription = company.marketing?.listing_description && company.description || 'No description available';
 
   const displayLocation = [company.city, company.state_province, company.country]
     .filter(Boolean)
