@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Events\MessageSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -16,11 +17,14 @@ class MessageController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $user->id,
             'message' => $request->message,
         ]);
+
+        // Broadcast the message in real-time
+        broadcast(new MessageSent($message))->toOthers();
 
         return redirect()->back();
     }
@@ -28,6 +32,9 @@ class MessageController extends Controller
     public function index(Request $request, User $user)
 {
     $authUser = $request->user();
+    
+    // Load the basicInfo relationship
+    $user->load('basicInfo');
 
     $messages = Message::where(function ($query) use ($authUser, $user) {
             $query->where('sender_id', $authUser->id)
@@ -45,8 +52,8 @@ class MessageController extends Controller
         'auth' => ['user' => $authUser],
         'otherUser' => [
             'id' => $user->id,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
+            'first_name' => $user->basicInfo?->first_name ?? '',
+            'last_name' => $user->basicInfo?->last_name ?? '',
             'email' => $user->email,
         ],
     ]);
@@ -66,13 +73,13 @@ public function viewChats()
 
         if ($chats->contains('userId', $otherUserId)) continue;
 
-        $otherUser = User::find($otherUserId);
+        $otherUser = User::with('basicInfo')->find($otherUserId);
 
         $chats->push([
             'userId' => $otherUser->id,
             'email' => $otherUser->email,
-            'first_name' => $otherUser->first_name,
-            'last_name' => $otherUser->last_name,
+            'first_name' => $otherUser->basicInfo?->first_name ?? '',
+            'last_name' => $otherUser->basicInfo?->last_name ?? '',
             'lastMessage' => $msg->message,
             'lastMessageAt' => $msg->created_at,
         ]);

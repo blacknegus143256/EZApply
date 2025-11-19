@@ -345,6 +345,9 @@ public function myCompanies()
 
 return Inertia::render('Company/Applicants/CompanyApplicants', [
     'applicants' => $applicants,
+    'pricing' => [
+        'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
+    ],
 ]);
 }
 

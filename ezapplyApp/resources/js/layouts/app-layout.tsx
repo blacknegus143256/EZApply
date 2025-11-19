@@ -16,9 +16,13 @@ export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => {
   const user = inertiaProps.auth?.user;
   const [showCard, setShowCard] = useState(true);
 
+  // Only show profile status card for customers (not companies or admins)
+  const isCustomer = user?.userType === 'customer' || 
+    (user?.roles && !user.roles.some((role: any) => role.name === 'company' || role.name === 'super_admin'));
+
 return(
     <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
-    {user && !user.complete && showCard && (
+    {user && isCustomer && !user.complete && showCard && (
         <div className="fixed top-4 right-4 z-50">
           <ProfileStatusCard
             type={user.hasAnyData ? "warning" : "error"}

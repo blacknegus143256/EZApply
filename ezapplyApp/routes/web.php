@@ -167,6 +167,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/view-applicant', [CreditController::class, 'viewApplicant']);
     Route::get('/credits/transactions', [CreditController::class, 'transactionHistory'])
         ->name('credits.transactionHistory');
+    Route::get('/credits/pricing', [CreditController::class, 'getPricing'])->name('credits.pricing');
+    Route::post('/credits/pricing', [CreditController::class, 'updatePricing'])->name('credits.pricing.update');
 
 
     //Chatbox

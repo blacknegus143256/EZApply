@@ -52,7 +52,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: "Company Applicants", href: "/company/applicants" },
 ];
 
-const PURCHASE_COST = 1; 
 const statusOptions = ["pending", "approved", "rejected", "interested", "paid"]; 
 
 type StatusMessageDialogProps = {
@@ -98,6 +97,7 @@ export default function CompanyApplicants() {
     const applicants = props.applicants ?? [];
     const user = props.auth?.user ?? null;
     const userBalance = props.auth?.user?.credit?.balance ?? props.auth?.user?.credits ?? 0;
+    const purchaseCost = props.pricing?.applicant_info_cost ?? 1;
 
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
@@ -402,7 +402,7 @@ export default function CompanyApplicants() {
                     <PaymentConfirmationDialog
                         open={confirmationOpen}
                         onOpenChange={setConfirmationOpen}
-                        cost={PURCHASE_COST}
+                        cost={purchaseCost}
                         balance={userBalance}
                         onConfirm={handleConfirmBuy}
                     />
