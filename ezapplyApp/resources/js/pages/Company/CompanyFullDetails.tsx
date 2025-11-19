@@ -253,9 +253,9 @@ const CompanyFullDetails: React.FC = () => {
             <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
               <AvatarImage
                 className="object-contain"
-                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
+                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/public/background/default-logo.png"}
                 alt={`${company.brand_name} logo`}
-                onError={(e) => { (e.target as HTMLImageElement).src = "/storage/logos/default-logo.png"; }}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/public/background/default-logo.png"; }}
               />
               <AvatarFallback className="text-3xl">
                 {getInitials(company.brand_name || company.company_name)}

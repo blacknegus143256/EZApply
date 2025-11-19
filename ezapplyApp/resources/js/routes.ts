@@ -211,5 +211,5 @@ export function home() {
 
 // Settings routes
 export function appearance() {
-    return safeRoute('settings.appearance');
+    return safeRoute('appearance');
 }
