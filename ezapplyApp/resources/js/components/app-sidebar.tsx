@@ -84,6 +84,12 @@ const mainNavItems: NavItem[] = [
         icon: List,
         permission: 'view_request_companies',
     },
+    {
+        title: 'Inquiries',
+        href: '/admin/inquiries',
+        icon: MessageCircle,
+        permission: 'view_inquiries',
+    },
 
 ];
 

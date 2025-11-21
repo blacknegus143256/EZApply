@@ -49,7 +49,7 @@ export default function ChatList() {
     <PermissionGate permission="view_chats" roles={[role]}>
     <AppLayout breadcrumbs={breadcrumbs} >
       <div className="absolute top-3 right-4">
-    <DisplayBalance />
+
   </div>
       <div className="w-full p-6">
         <h1 className="text-2xl font-bold mb-4">Your Chats</h1>

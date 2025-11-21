@@ -10,6 +10,11 @@ type BalanceDisplayProps = {
 export default function BalanceDisplay({ isCollapsed }: BalanceDisplayProps) {
     const { props } = usePage<SharedData>();
     const credits = props.auth.user?.credits ?? 0;
+    
+    // Debug: Log credits value
+    if (typeof window !== 'undefined' && credits === 0) {
+        console.log('DisplayBalance - Credits:', credits, 'User:', props.auth.user);
+    }
 
     return (
         <PermissionGate role="company">

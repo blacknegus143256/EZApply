@@ -19,7 +19,8 @@ interface AnyUserShape {
 
 interface PageProps {
     auth: {
-        user: AnyUserShape;
+        user?: AnyUserShape;
+        permissions?: PermissionLike[];
     };
 }
 
@@ -59,20 +60,28 @@ function normalizeRoles(user?: AnyUserShape): Set<string> {
     return roleNames;
 }
 
-function normalizePermissions(user?: AnyUserShape): Set<string> {
+function normalizePermissions(user?: AnyUserShape, globalPermissions?: PermissionLike[]): Set<string> {
     const permissionNames = new Set<string>();
-    if (!user) return permissionNames;
+    if (!user && !globalPermissions) return permissionNames;
 
-    // flat permissions array
-    if (Array.isArray(user.permissions)) {
+    // flat permissions array on user
+    if (user && Array.isArray(user.permissions)) {
         for (const p of user.permissions) {
             if (typeof p === 'string') permissionNames.add(p);
             else if (p?.name) permissionNames.add(p.name);
         }
     }
 
+    // also include permissions provided at auth.permissions (shared props)
+    if (Array.isArray(globalPermissions)) {
+        for (const p of globalPermissions) {
+            if (typeof p === 'string') permissionNames.add(p);
+            else if (p?.name) permissionNames.add(p.name);
+        }
+    }
+
     // permissions nested under roles
-    if (Array.isArray(user.roles)) {
+    if (user && Array.isArray(user.roles)) {
         for (const r of user.roles) {
             if (r && typeof r === 'object' && Array.isArray(r.permissions)) {
                 for (const p of r.permissions) {
@@ -89,9 +98,10 @@ function normalizePermissions(user?: AnyUserShape): Set<string> {
 export function usePermissions() {
     const { auth } = usePage<PageProps>().props;
     const user = auth?.user as AnyUserShape | undefined;
+        const globalPermissions = auth?.permissions as PermissionLike[] | undefined;
 
     const roleNames = normalizeRoles(user);
-    const permissionNames = normalizePermissions(user);
+    const permissionNames = normalizePermissions(user, globalPermissions);
 
     const hasPermission = (permission: string): boolean => {
         if (!permission) return false;

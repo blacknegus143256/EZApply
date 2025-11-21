@@ -345,6 +345,9 @@ public function myCompanies()
 
 return Inertia::render('Company/Applicants/CompanyApplicants', [
     'applicants' => $applicants,
+    'pricing' => [
+        'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
+    ],
 ]);
 }
 
@@ -563,17 +566,15 @@ public function assignAgents(Request $request, Company $company)
 
     $agentIds = array_filter($request->agent_ids, fn($id) => $id !== $company->user_id);
 
-    if (is_null($company->user_id) && !empty($agentIds)) {
+    if ((is_null($company->user_id) || $company->user_id === 1) && !empty($agentIds)) {
         $company->user_id = reset($agentIds);
         $company->save();
         $agentIds = array_diff($agentIds, [$company->user_id]);
     }
 
-    // Sync the rest of the agents
     $company->agents()->sync($agentIds);
 
-    // Reload company with fresh agent data
-    $company->load(['agents.basicInfo', 'user', 'opportunity', 'background', 'requirements', 'marketing', 'documents']);
+    $company->load(['agents.basicInfo', 'user.basicInfo', 'opportunity', 'background', 'requirements', 'marketing', 'documents']);
 
     // Get all available agents for the dropdown
     $allAgents = User::role('company') 
