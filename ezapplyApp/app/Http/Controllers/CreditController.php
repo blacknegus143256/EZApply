@@ -8,6 +8,7 @@
     use App\Models\CreditTransaction;
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Facades\Log;
+    use Illuminate\Support\Facades\Artisan;
 
     class CreditController extends Controller
     {
@@ -47,10 +48,19 @@
                     });
             }
 
+            $pricing = null;
+            if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+                $pricing = [
+                    'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
+                    'package_cost' => config('pricing.package_cost', 1),
+                ];
+            }
+
             return inertia('Credits/balancePage', [
                 'balance' => $credits,
                 'credit_transactions' => $credit_transactions,
                 'companies' => $companies,
+                'pricing' => $pricing,
             ]);
         }
 
@@ -129,7 +139,7 @@
             }
 
             // price
-            $cost = 1;
+            $cost = config('pricing.package_cost', 1);
 
             // Basic permission check
             $application = DB::table('applications')->where('id', $applicationId)->first();
@@ -223,7 +233,7 @@
         {
             $user = auth()->user(); 
             $applicationId = $request->application_id;
-            $cost = 1; 
+            $cost = config('pricing.applicant_info_cost', 1); 
 
             $existingView = ApplicantView::where('company_id', $user->id)
                 ->where('application_id', $applicationId)
@@ -288,6 +298,73 @@
                 'paid_fields' => $paidFields,
                 'already_purchased' => !empty($paidFields),
             ]);
+        }
+
+        public function getPricing()
+        {
+            $user = auth()->user();
+
+            if (!$user || (!$user->hasRole('admin') && !$user->hasRole('super_admin'))) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            return response()->json([
+                'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
+                'package_cost' => config('pricing.package_cost', 1),
+            ]);
+        }
+
+        public function updatePricing(Request $request)
+        {
+            $user = auth()->user();
+
+            if (!$user || (!$user->hasRole('admin') && !$user->hasRole('super_admin'))) {
+                return redirect()->back()->withErrors(['error' => 'Unauthorized']);
+            }
+
+            $validated = $request->validate([
+                'applicant_info_cost' => 'required|numeric|min:0',
+                'package_cost' => 'required|numeric|min:0',
+            ]);
+
+            try {
+                $configPath = config_path('pricing.php');
+                
+                // Check if config directory is writable
+                if (!is_writable(config_path())) {
+                    Log::error("Config directory is not writable: " . config_path());
+                    return redirect()->back()->withErrors(['error' => 'Configuration directory is not writable. Please check file permissions.']);
+                }
+
+                $config = [
+                    '<?php',
+                    '',
+                    'return [',
+                    '    \'applicant_info_cost\' => ' . $validated['applicant_info_cost'] . ',',
+                    '    \'package_cost\' => ' . $validated['package_cost'] . ',',
+                    '];',
+                ];
+
+                $result = file_put_contents($configPath, implode("\n", $config));
+                
+                if ($result === false) {
+                    Log::error("Failed to write config file: " . $configPath);
+                    return redirect()->back()->withErrors(['error' => 'Failed to write configuration file. Please check file permissions.']);
+                }
+
+                // Clear config cache
+                try {
+                    Artisan::call('config:clear');
+                } catch (\Exception $e) {
+                    // If clearing cache fails, log but don't fail the request
+                    Log::warning("Failed to clear config cache: " . $e->getMessage());
+                }
+
+                return redirect()->back()->with('message', 'Pricing updated successfully.');
+            } catch (\Exception $e) {
+                Log::error("Update pricing failed: " . $e->getMessage());
+                return redirect()->back()->withErrors(['error' => 'Failed to update pricing: ' . $e->getMessage()]);
+            }
         }
 
 

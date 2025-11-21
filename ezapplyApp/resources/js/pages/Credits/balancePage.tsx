@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { Wallet, History, PlusCircle, ArrowUp, ArrowDown } from "lucide-react";
+import { Wallet, History, PlusCircle, ArrowUp, ArrowDown, DollarSign } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
 import { type BreadcrumbItem } from "@/types";
 import { usePage, router } from "@inertiajs/react";
@@ -27,6 +27,7 @@ const tabs = [
     { id: "balance", label: "Balance", icon: Wallet },
     { id: "history", label: "History", icon: History },
     { id: "topup", label: "Top Up", icon: PlusCircle },
+    { id: "pricing", label: "Pricing", icon: DollarSign },
 ];
 
 export default function BalancePage() {
@@ -39,6 +40,26 @@ export default function BalancePage() {
     const creditsDisplay = props.balance ?? 0;
     const companies: Company[] = (props.companies as Company[]) ?? [];
     const creditTransactions: Transactions[] = props.credit_transactions ?? [];
+    const pricing = (props.pricing as { applicant_info_cost: number; package_cost: number }) ?? null;
+    const [applicantInfoCost, setApplicantInfoCost] = useState<string>(pricing?.applicant_info_cost?.toString() ?? "1");
+    const [packageCost, setPackageCost] = useState<string>(pricing?.package_cost?.toString() ?? "1");
+    const [isSavingPricing, setIsSavingPricing] = useState(false);
+
+    // Sync pricing state when props change
+    useEffect(() => {
+        if (pricing) {
+            setApplicantInfoCost(pricing.applicant_info_cost?.toString() ?? "1");
+            setPackageCost(pricing.package_cost?.toString() ?? "1");
+        }
+    }, [pricing]);
+
+    // Handle flash messages
+    useEffect(() => {
+        const flash = (props as any).flash;
+        if (flash?.message) {
+            alert(flash.message);
+        }
+    }, [(props as any).flash]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(undefined, {
@@ -103,7 +124,7 @@ export default function BalancePage() {
                 <div className="flex flex-col min-h-screen bg-gray-50 p-4 md:p-6"> 
 
                     <div className="flex justify-between relative border-b w-full max-w-lg mx-auto md:max-w-none">
-                        {tabs.map((tab) => {
+                        {tabs.filter(tab => tab.id !== 'pricing' || isAdmin()).map((tab) => {
                             const Icon = tab.icon;
                             return (
                                 <button
@@ -172,7 +193,8 @@ export default function BalancePage() {
                                                     const Icon = isUsage ? ArrowDown : ArrowUp; 
                                                     const iconColor = isUsage ? 'text-red-500' : 'text-green-500';
                                                     const amountColor = isUsage ? 'text-red-600' : 'text-green-600';
-                                                    const amountSign = isUsage ? '-' : '+';
+                                                    const amountSign = isUsage ? '+' : '-';
+                                                    const displayAmount = Math.abs(transaction.amount);
 
                                                     return (
                                                         <li key={transaction.id} className="py-3 flex items-center space-x-3 md:space-x-4"> 
@@ -188,8 +210,8 @@ export default function BalancePage() {
                                                                                 )}
                                                             </div>
                                                             
-                                                            <span className={`font-semibold text-sm md:text-base ${amountColor} **flex-shrink-0 whitespace-nowrap**`}>
-                                                                {amountSign} {transaction.amount} credits
+                                                            <span className={`font-semibold text-sm md:text-base ${amountColor} flex-shrink-0 whitespace-nowrap`}>
+                                                                {amountSign}{displayAmount} credits
                                                             </span>
                                                         </li>
                                                     );
@@ -198,6 +220,70 @@ export default function BalancePage() {
                                                 <li className="text-center text-gray-500 py-4">No transaction history available.</li>
                                             )}
                                         </ul>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Pricing Tab */}
+                        {activeTab === "pricing" && isAdmin() && (
+                            <Card className="w-full max-w-md shadow-xl rounded-xl">
+                                <CardContent className="p-6">
+                                    <h2 className="text-lg font-semibold text-gray-600 mb-4">
+                                        Pricing Management
+                                    </h2>
+                                    <p className="text-sm text-gray-500 mb-6">
+                                        Configure the credit costs for purchasing applicant information.
+                                    </p>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="applicant-info-cost">Applicant Info Cost (Credits)</Label>
+                                            <Input
+                                                id="applicant-info-cost"
+                                                type="number"
+                                                placeholder="Enter cost"
+                                                value={applicantInfoCost}
+                                                onChange={(e) => setApplicantInfoCost(e.target.value)}
+                                                min="0"
+                                                step="0.01"
+                                            />
+                                            <p className="text-xs text-gray-500">
+                                                Cost to purchase basic applicant information
+                                            </p>
+                                        </div>
+                                        <Button
+                                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                            variant="default"
+                                            onClick={async () => {
+                                                if (!applicantInfoCost || !packageCost || 
+                                                    parseFloat(applicantInfoCost) < 0 || 
+                                                    parseFloat(packageCost) < 0) {
+                                                    alert("Please enter valid pricing values (≥ 0).");
+                                                    return;
+                                                }
+                                                setIsSavingPricing(true);
+                                                router.post('/credits/pricing', {
+                                                    applicant_info_cost: parseFloat(applicantInfoCost),
+                                                    package_cost: parseFloat(packageCost),
+                                                }, {
+                                                    preserveScroll: true,
+                                                    onSuccess: () => {
+                                                        router.reload({ only: ['pricing'] });
+                                                    },
+                                                    onError: (errors) => {
+                                                        console.error('Pricing update errors:', errors);
+                                                        const errorMessage = errors?.error || errors?.message || Object.values(errors).flat().join(', ') || 'Failed to update pricing. Please try again.';
+                                                        alert(errorMessage);
+                                                    },
+                                                    onFinish: () => {
+                                                        setIsSavingPricing(false);
+                                                    },
+                                                });
+                                            }}
+                                            disabled={isSavingPricing}
+                                        >
+                                            {isSavingPricing ? "Saving..." : "Save Pricing"}
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>
