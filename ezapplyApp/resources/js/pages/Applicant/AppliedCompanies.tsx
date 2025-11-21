@@ -15,6 +15,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { TableRowSkeleton, ApplicationCardSkeleton } from "@/components/ui/skeletons";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import company from "@/routes/company";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -143,11 +145,12 @@ function ApplicationCard({ application, handleCompanyClick }: {
                 >
                     View Company Profile
                 </button>
-                <ChatButton 
-                    status={status} 
-                    userId={company.user?.id}
-                    className="w-full text-center py-2 text-sm" 
-                />
+                <div className="w-full">
+                    <ChatButton 
+                        status={status} 
+                        userId={company.user?.id}
+                    />
+                </div>
             </div>
         </div>
     );
@@ -221,12 +224,19 @@ export default function AppliedCompanies() {
         setSelectedCompany(null);
     };
     useEffect(() => {
-    if (applications) {
-        const timer = setTimeout(() => {
-        setLoading(false);
-        }, 400);
-        return () => clearTimeout(timer);
-    }
+        // Simulate loading state on initial mount
+        if (applications.length > 0) {
+            const timer = setTimeout(() => {
+                setLoading(false);
+            }, 300);
+            return () => clearTimeout(timer);
+        } else {
+            // If no applications, show loading briefly then show empty state
+            const timer = setTimeout(() => {
+                setLoading(false);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
     }, [applications]);
     return (
         <PermissionGate permission="view_customer_dashboard" fallback={<div className="p-6">You don't have permission to access this page.</div>}>
@@ -318,12 +328,35 @@ export default function AppliedCompanies() {
                             </div>
                         )}
                         {loading ? (
-                        <div className="p-6 flex flex-col items-center justify-center">
-                            <div className="loader scale-75"></div>
-                            <div className="mt-4 text-center text-gray-600 dark:text-gray-300">
-                            Loading company details...
-                            </div>
-                        </div>
+                            <>
+                                {/* Desktop Table Skeleton */}
+                                <div className="hidden md:block">
+                                    <Table className="w-full">
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Company Name</TableHead>
+                                                <TableHead>Brand Name</TableHead>
+                                                <TableHead>Franchise Type</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead>Applied Date</TableHead>
+                                                <TableHead>Action</TableHead>
+                                                <TableHead>Chat</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {Array.from({ length: 5 }).map((_, i) => (
+                                                <TableRowSkeleton key={i} columns={7} showAvatar={true} />
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                                {/* Mobile Card Skeleton */}
+                                <div className="md:hidden space-y-4">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <ApplicationCardSkeleton key={i} />
+                                    ))}
+                                </div>
+                            </>
                        ) : applications.length === 0 ? (
                             <p className="text-neutral-600 dark:text-neutral-400">
                                 No applications yet. Go back and apply to companies to see them here.

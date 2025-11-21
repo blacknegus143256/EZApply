@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../css/easyApply.css';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
@@ -10,6 +10,7 @@ import { useProfileStatus } from '@/hooks/useProfileStatus';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatCardSkeleton } from '@/components/ui/skeletons';
 import {
   Building2,
   Users,
@@ -70,6 +71,15 @@ export default function Dashboard({ stats }: DashboardProps) {
       const user = auth?.user;
       const userRole = stats?.userRole || 'customer';
       const { isProfileComplete, hasAnyData } = useProfileStatus();
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        // Simulate loading state
+        const timer = setTimeout(() => {
+          setLoading(false);
+        }, 300);
+        return () => clearTimeout(timer);
+      }, [stats]);
 
       console.log("Dashboard - Profile Status:", { isProfileComplete, hasAnyData });
       console.log("Dashboard - Inertia props:", usePage().props);
@@ -114,14 +124,14 @@ export default function Dashboard({ stats }: DashboardProps) {
       case 'company':
         return [
           {
-            title: 'My Companies',
+            title: 'My Brands',
             value: stats?.totalCompanies || 0,
             icon: Building2,
             color: 'text-blue-600',
             bgColor: 'bg-blue-50',
             change: '+12%',
             changeType: 'positive' as const,
-            description: 'Companies registered'
+            description: 'Brands registered'
           },
           {
             title: 'Applications Received',
@@ -134,7 +144,7 @@ export default function Dashboard({ stats }: DashboardProps) {
             description: 'Total applications'
           },
           {
-            title: 'Approved Companies',
+            title: 'Approved Brands',
             value: stats?.approvedCompanies || 0,
             icon: Award,
             color: 'text-purple-600',
@@ -318,7 +328,14 @@ export default function Dashboard({ stats }: DashboardProps) {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {statCards.map((stat, index) => (
+              {loading ? (
+                <>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <StatCardSkeleton key={i} />
+                  ))}
+                </>
+              ) : (
+                statCards.map((stat, index) => (
                 <Card key={index} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:-translate-y-1 bg-white">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -345,7 +362,8 @@ export default function Dashboard({ stats }: DashboardProps) {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Quick Actions */}

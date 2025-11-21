@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Application;
+use App\Notifications\CompanyApproved;
+use App\Notifications\CompanyRejected;
 use Inertia\Inertia;
 use App\Models\BasicInfo;
 use Illuminate\Support\Facades\Storage;
@@ -286,10 +288,22 @@ public function details($id)
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,approved,rejected',
+            'reason' => 'nullable|string|max:500',
         ]);
 
+        $oldStatus = $company->status;
         $company->status = $validated['status'];
         $company->save();
+
+        // Notify company owner if status changed
+        if ($oldStatus !== $validated['status'] && $company->user) {
+            $company->load('user');
+            if ($validated['status'] === 'approved') {
+                $company->user->notify(new CompanyApproved($company));
+            } elseif ($validated['status'] === 'rejected') {
+                $company->user->notify(new CompanyRejected($company, $validated['reason'] ?? null));
+            }
+        }
 
         return back()->with('success', 'Company status updated successfully.');
     }
@@ -336,12 +350,18 @@ public function myCompanies()
 
     // Get applicants that applied to this company
     $applicants = Application::with([
-        'user',
         'user.basicInfo',
         'company'
         ])
         ->whereIn('company_id',$companyIds)
-    ->get();
+        ->get()
+        ->map(function ($application) {
+            // Ensure basicInfo is properly accessible
+            if ($application->user) {
+                $application->user->load('basicInfo');
+            }
+            return $application;
+        });
 
 return Inertia::render('Company/Applicants/CompanyApplicants', [
     'applicants' => $applicants,
@@ -364,7 +384,14 @@ public function updateApplicantStatus(Request $request, $id)
         ->whereIn('company_id', $companyIds) 
         ->firstOrFail();
 
+    $oldStatus = $application->status;
     $application->update(['status' => $request->status]);
+
+    // Notify applicant if status changed
+    if ($oldStatus !== $request->status && $application->user) {
+        $application->load('company');
+        $application->user->notify(new \App\Notifications\ApplicationStatusChanged($application, $request->status));
+    }
 
     return back()->with('success', 'Applicant status updated.');
 }
