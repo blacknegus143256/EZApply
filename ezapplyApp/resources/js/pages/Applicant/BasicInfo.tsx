@@ -41,6 +41,40 @@ interface FormData {
     barangay_name: string;
   };
 }
+type PrimitiveFields = Exclude<
+  keyof FormData,
+  "users_address"
+>;
+interface SummaryRowProps {
+  label: string;
+  field: PrimitiveFields;
+  type?: "text " | "date";
+  formatter?: (value: any) => string;
+  data: FormData;
+  setData: (field: PrimitiveFields, value: any) => void;
+  isEditing: boolean;
+  isNewUser: boolean;
+}
+export function SummaryRow ({ label, field, type = "text", formatter, data, setData, isEditing, isNewUser }: SummaryRowProps){
+const value = data ? data[field] : "" ; 
+const displayValue = formatter ? formatter(value) : value;
+return(
+  <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+    <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+    {isEditing && !isNewUser ? (
+    <Input
+      type={type}
+      name={field}
+      value={value ?? ""}
+      onChange={(e) => setData(field, e.target.value)}
+      className="max-w-xs"
+    />
+  ) : (
+    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{displayValue || '-'}</span>
+  )}
+  </div>
+);
+};
 
 export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
   const { data, setData, post, processing, errors, reset } = useForm<FormData>({
@@ -82,7 +116,10 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
     onBarangayChange,
   } = useAddressSelection({
     initialAddress: data.users_address,
-    onAddressChange: (address) => setData('users_address', address),
+    onAddressChange: (address) => {
+      if (isEditing){setData('users_address', address);
+    
+      }},
   });
   
   const isNewUser = !basicInfo;
@@ -90,19 +127,63 @@ export default function BasicInfo({ basicInfo, address }: BasicInfoProps) {
 
 
   const handleRegionChange = (regionCode: string) => {
-    onRegionChange(regionCode);
+    onRegionChange(regionCode);  
+  
+  const region = regions.find(r => r.code === regionCode);
+
+  setData("users_address", {
+    ...data.users_address,
+    region_code: regionCode,
+    region_name: region?.name || "",
+    province_code: "",
+    province_name: "",
+    citymun_code: "",
+    citymun_name: "",
+    barangay_code: "",
+    barangay_name: "",
+  });
   };
 
   const handleProvinceChange = (provinceCode: string) => {
-    onProvinceChange(provinceCode);
+    onProvinceChange(provinceCode);  
+  
+  const province = provinces.find(p => p.code === provinceCode);
+
+  setData("users_address", {
+    ...data.users_address,
+    province_code: provinceCode,
+    province_name: province?.name || "" ,
+    citymun_code: "",
+    citymun_name: "",
+    barangay_code: "",
+    barangay_name: "",
+  });
   };
 
   const handleCityChange = (cityCode: string) => {
-    onCityChange(cityCode);
+    onCityChange(cityCode);  
+  
+  const citymun = cities.find(c => c.code === cityCode);
+
+  setData("users_address", {
+    ...data.users_address,
+    citymun_code: cityCode,
+    citymun_name: citymun?.name || "",
+    barangay_code: "",
+    barangay_name: "",
+  });
   };
 
   const handleBarangayChange = (barangayCode: string) => {
-    onBarangayChange(barangayCode);
+    onBarangayChange(barangayCode);  
+  
+  const barangay = barangays.find(b => b.code === barangayCode);
+
+  setData("users_address", {
+    ...data.users_address,
+    barangay_code: barangayCode,
+    barangay_name: barangay?.name || "",
+  });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -134,31 +215,7 @@ console.log("Initial address prop:", address);
     return date.toISOString().split('T')[0];
   };
 
-type PrimitiveFields = Exclude<
-  keyof FormData,
-  "users_address"
->;
 
-  const SummaryRow = ({ label, field, type = "text", formatter }: { label: string; field: PrimitiveFields; type?: string; formatter?: (v:any) => string }) => {
-  const value = data[field] as string | number | undefined; 
-  const displayValue = formatter ? formatter(value) : value;
-  return(
-    <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
-      {isEditing && !isNewUser ? (
-      <Input
-        type={type}
-        name={field}
-        value={value ?? ""}
-        onChange={(e) => setData(field, e.target.value)}
-        className="max-w-xs"
-      />
-    ) : (
-      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{displayValue || '-'}</span>
-    )}
-    </div>
-  );
-  };
   return (
       <div className="p-4">
         {saved && (
@@ -173,21 +230,48 @@ type PrimitiveFields = Exclude<
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 p-4">
             <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Your Basic Information</h2>
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              <SummaryRow label="First Name" field="first_name"/>
-              <SummaryRow label="Last Name" field="last_name" />
-              <SummaryRow label="Birth Date" field="birth_date" type="date" formatter={formatDate} />
-              <SummaryRow label="Phone" field="phone" />
-              <SummaryRow label="Facebook" field="Facebook" />
-              <SummaryRow label="LinkedIn" field="LinkedIn" />
-              <SummaryRow label="Viber" field="Viber" />
+              <SummaryRow label="First Name" field="first_name" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+              <SummaryRow label="Last Name" field="last_name" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+              <SummaryRow label="Birth Date" field="birth_date" type="date" formatter={formatDate} 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+              <SummaryRow label="Phone" field="phone" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+              <SummaryRow label="Facebook" field="Facebook" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+              <SummaryRow label="LinkedIn" field="LinkedIn" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+              <SummaryRow label="Viber" field="Viber" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
               <div className="flex justify-between gap-4 py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Region</span>
                 <div className="relative">
                 <select
-                  value={addressCodes.region_code}
+                  value={data.users_address.region_code}
                   onChange={(e) => handleRegionChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={isRegionsLoading}
                 >
                   {isRegionsLoading ? (
                     <option value="" disabled>Loading regions...</option>
@@ -209,10 +293,10 @@ type PrimitiveFields = Exclude<
                 <span className="text-sm text-gray-600 dark:text-gray-400">Province</span>
                 <div className="relative">
                 <select
-                  value={addressCodes.province_code}
+                  value={data.users_address.province_code}
                   onChange={(e) => handleProvinceChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={!addressCodes.region_code || isProvincesLoading}
+                  disabled={!data.users_address.region_code || isProvincesLoading}
                 >
                   {isProvincesLoading ? (
                     <option value="" disabled>Loading Provinces...</option>
@@ -234,10 +318,10 @@ type PrimitiveFields = Exclude<
                 <span className="text-sm text-gray-600 dark:text-gray-400">City/Municipality</span>
                 <div className="relative">
                 <select
-                  value={addressCodes.citymun_code}
+                  value={data.users_address.citymun_code}
                   onChange={(e) => handleCityChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={!addressCodes.province_code || isCitiesLoading}
+                  disabled={!data.users_address.province_code || isCitiesLoading}
                 >
                   {isCitiesLoading ? (
                     <option value="" disabled>Loading Cities/Municipalities...</option>
@@ -259,10 +343,10 @@ type PrimitiveFields = Exclude<
                 <span className="text-sm text-gray-600 dark:text-gray-400">Barangay</span>
                 <div className="relative">
                 <select
-                  value={addressCodes.barangay_code}
+                  value={data.users_address.barangay_code}
                   onChange={(e) => handleBarangayChange(e.target.value)}
                   className="max-w-xs border rounded px-3 py-2"
-                  disabled={!addressCodes.citymun_code || isBarangaysLoading}
+                  disabled={!data.users_address.citymun_code || isBarangaysLoading}
                 >
                   {isBarangaysLoading ? (
                     <option value="" disabled>Loading Barangays...</option>
@@ -299,13 +383,41 @@ type PrimitiveFields = Exclude<
               <div className="rounded-lg border p-4">
               <h2 className="text-lg font-semibold mb-3">Your Basic Information</h2>
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                <SummaryRow label="First Name" field="first_name" />
-                <SummaryRow label="Last Name" field="last_name" />
-                <SummaryRow label="Birth Date" field="birth_date" formatter={formatDate} />
-                <SummaryRow label="Phone" field="phone" />
-                <SummaryRow label="Facebook" field="Facebook" />
-                <SummaryRow label="LinkedIn" field="LinkedIn" />
-                <SummaryRow label="Viber" field="Viber" />
+                <SummaryRow label="First Name" field="first_name" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+                <SummaryRow label="Last Name" field="last_name" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+                <SummaryRow label="Birth Date" field="birth_date" formatter={formatDate} 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+                <SummaryRow label="Phone" field="phone" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+                <SummaryRow label="Facebook" field="Facebook" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+                <SummaryRow label="LinkedIn" field="LinkedIn" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
+                <SummaryRow label="Viber" field="Viber" 
+              data={data}
+              setData={setData}
+              isEditing={isEditing}
+              isNewUser={isNewUser}/>
                 {/* static address display */}
                 <div className="flex justify-between py-2">
                   <span className="text-sm text-gray-600">Region</span>

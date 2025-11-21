@@ -19,6 +19,8 @@ class Application extends Model
 
     protected $casts = [
         'deadline_date' => 'date',
+        'is_cancelled' => 'boolean',
+        'cancelled_at' => 'datetime',
     ];
 
     // relationships

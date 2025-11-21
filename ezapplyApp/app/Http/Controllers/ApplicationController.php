@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ApplicationController extends Controller
@@ -57,6 +58,7 @@ class ApplicationController extends Controller
             'company.marketing'
         ])
             ->where('user_id', $userId)
+            ->where('is_cancelled', false)
             ->latest()
             ->get();
 
@@ -70,6 +72,7 @@ class ApplicationController extends Controller
     {
         $userId = auth()->id();
         $appliedCompanyIds = Application::where('user_id', $userId)
+            ->where('is_cancelled', false)
             ->pluck('company_id')
             ->toArray();
 
@@ -87,7 +90,14 @@ class ApplicationController extends Controller
         return response()->json(['error' => 'Application not found'], 404);
     }
 
-    $application->delete();
+    // Use DB query to ensure the update happens
+    DB::table('applications')
+        ->where('user_id', $userId)
+        ->where('company_id', $companyId)
+        ->update([
+            'is_cancelled' => 1,
+            'cancelled_at' => now(),
+        ]);
 
     return response()->json(['message' => 'Application cancelled successfully']);
 }

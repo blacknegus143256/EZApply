@@ -202,23 +202,19 @@ const CompanyFullDetails: React.FC = () => {
           </AdminOnly>
         </div>
 
-        <div className="company-header-card mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div className="flex items-center gap-6 flex-1">
-              <Avatar className="company-avatar h-32 w-32 md:h-40 md:w-40">
-                <AvatarImage
-                  className="object-contain"
-                  src={company.marketing?.logo_path ? (company.marketing.logo_path.startsWith('http') ? company.marketing.logo_path : `/storage/${company.marketing.logo_path}`) : "/background/default-logo.png"}
-                  alt={`${company.brand_name} logo`}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "/background/default-logo.png";
-                  }}
-                />
-                <AvatarFallback className="text-3xl">
-                  {getInitials(company.brand_name || company.company_name)}
-                </AvatarFallback>
-              </Avatar>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 p-6 bg-card rounded-lg border relative">
+          <div className="flex items-center gap-6">
+            <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
+              <AvatarImage
+                className="object-contain"
+                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/public/background/default-logo.png"}
+                alt={`${company.brand_name} logo`}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/public/background/default-logo.png"; }}
+              />
+              <AvatarFallback className="text-3xl">
+                {getInitials(company.brand_name || company.company_name)}
+              </AvatarFallback>
+            </Avatar>
 
               <div className="text-center md:text-left flex-1">
                 <h1 className="company-name mb-2">{company.company_name}</h1>

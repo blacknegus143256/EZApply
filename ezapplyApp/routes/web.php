@@ -138,7 +138,7 @@ Route::get('/api/applied-company-ids', [ApplicationController::class, 'getApplie
     Route::post('/applicant/applications', [ApplicationController::class, 'store'])
         ->name('applicant.applications.store');
     Route::delete('/applicant/applications/{company}', [ApplicationController::class, 'destroy'])
-    ->name('applicant.applications.destroy');    
+    ->name('applicant.applications.destroy');
 
     // Route::get('/applicant/messages/{company}', [MessageController::class, 'create'])
     //     ->name('applicant.messages.create');
