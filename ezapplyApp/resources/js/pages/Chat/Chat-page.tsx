@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useForm, usePage, router } from "@inertiajs/react";
+import { useForm, usePage, router, Head } from "@inertiajs/react";
 import type { PageProps as InertiaPageProps } from "@inertiajs/core";
 import { route } from "ziggy-js";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 import { ArrowLeft, User, Send, Paperclip, Smile } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ChatMessageSkeleton } from "@/components/ui/skeletons";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface Message {
   id: number;
@@ -51,6 +53,7 @@ export default function ChatPage() {
   const authUserId = auth.user?.id;
   const [messageList, setMessageList] = useState<Message[]>(messages);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const { data, setData, post, reset } = useForm({
@@ -77,6 +80,13 @@ export default function ChatPage() {
   // Sync messageList with reloaded messages
   useEffect(() => {
     setMessageList(messages);
+    // Set loading to false after messages are loaded
+    if (messages) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
   }, [messages]);
   
   // Real-time message listening with Laravel Echo
@@ -145,7 +155,9 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <>
+      <Head title={`Chat with ${otherUser.first_name} ${otherUser.last_name}`} />
+      <div className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         {/* Chat Header */}
         <div className="px-4 py-3 border-b flex items-center justify-between bg-white dark:bg-gray-800 shadow-md sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -206,7 +218,15 @@ export default function ChatPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-transparent">
-        {messageList.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            <ChatMessageSkeleton isOwn={false} />
+            <ChatMessageSkeleton isOwn={true} />
+            <ChatMessageSkeleton isOwn={false} />
+            <ChatMessageSkeleton isOwn={true} />
+            <ChatMessageSkeleton isOwn={false} />
+          </div>
+        ) : messageList.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="bg-white dark:bg-gray-800 rounded-full p-4 mb-4 shadow-lg">
               <User className="h-12 w-12 text-gray-400" />
@@ -331,5 +351,6 @@ export default function ChatPage() {
         </form>
       </div>
     </div>
+    </>
   );
 }

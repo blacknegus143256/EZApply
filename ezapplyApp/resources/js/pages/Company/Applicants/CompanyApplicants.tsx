@@ -14,6 +14,7 @@ import PermissionGate from "@/components/PermissionGate";
 import { Button } from "@/components/ui/button";
 import ChatButton from "@/components/ui/chat-button";
 import PaymentConfirmationDialog from "../PaymentConfirm";
+import { TableRowSkeleton, ApplicationCardSkeleton } from "@/components/ui/skeletons";
 
 
 type CompanyDetails = {
@@ -154,8 +155,10 @@ export default function CompanyApplicants() {
 
     const filteredApplicants = useMemo(() => {
         return applicants.filter((a: any) => {
-            const firstName = a.user?.basicinfo?.first_name ?? "";
-            const lastName = a.user?.basicinfo?.last_name ?? "";
+            // Handle both camelCase (Inertia) and snake_case (raw JSON) formats
+            const basicInfo = a.user?.basicInfo || a.user?.basic_info;
+            const firstName = basicInfo?.first_name ?? "";
+            const lastName = basicInfo?.last_name ?? "";
             const email = a.user?.email ?? "";
             const brandName = a.user?.brand_name ?? "";
             const full = `${firstName} ${lastName} ${email} ${brandName}`.toLowerCase();
@@ -222,11 +225,11 @@ export default function CompanyApplicants() {
     const renderRows = () => {
         if (loading && filteredApplicants.length === 0) {
             return (
-                <TableRow>
-                    <TableCell colSpan={5} className="text-center">
-                        <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" /> Loading...
-                    </TableCell>
-                </TableRow>
+                <>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <TableRowSkeleton key={i} columns={8} showAvatar={false} />
+                    ))}
+                </>
             );
         }
         if (error) {
@@ -247,10 +250,15 @@ export default function CompanyApplicants() {
         return filteredApplicants.map((a: any) => {
             const purchased = Array.isArray(paidFieldsMap[a.id]) && paidFieldsMap[a.id].includes("basic_profile");
             const applicantUserId = a.user?.id ?? null;
+            const basicInfo = a.user?.basicInfo || a.user?.basic_info;
+            const firstName = basicInfo?.first_name ?? "";
+            const lastName = basicInfo?.last_name ?? "";
+            const Name = firstName && lastName ? `${firstName}` : firstName || "N/A";
+            
             return (
                 <TableRow key={a.id}>
                     <TableCell className="font-medium">
-                        {a.user?.basicinfo?.first_name ? `${a.user.basicinfo.first_name} ${a.user.basicinfo.last_name}` : "N/A"}
+                        {Name}
                     </TableCell>
                     <TableCell>{a.company?.brand_name ?? "N/A"}</TableCell>
                     <TableCell>
@@ -338,19 +346,28 @@ export default function CompanyApplicants() {
 
                             {/* for mobile */}
                             <div className="md:hidden p-4 space-y-3">
-                                {loading ? (
-                                    <div className="text-center text-gray-500 p-4"><Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />Loading applicants...</div>
+                                {loading && filteredApplicants.length === 0 ? (
+                                    <>
+                                        {Array.from({ length: 3 }).map((_, i) => (
+                                            <ApplicationCardSkeleton key={i} />
+                                        ))}
+                                    </>
                                 ) : filteredApplicants.length === 0 ? (
                                     <p className="text-center text-gray-500 p-4">No applicants found matching your criteria.</p>
                                 ) : (
                                     filteredApplicants.map((a: any) => {
                                         const purchased = Array.isArray(paidFieldsMap[a.id]) && paidFieldsMap[a.id].includes("basic_profile");
+                                        const basicInfo = a.user?.basicInfo || a.user?.basic_info;
+                                        const firstName = basicInfo?.first_name ?? "";
+                                        const lastName = basicInfo?.last_name ?? "";
+                                        const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || "N/A";
+                                        
                                         return (
                                             <Card key={a.id} className="mb-3 shadow-sm border-2 dark:border-neutral-700">
                                                 <CardHeader className="p-4 flex items-center justify-between">
                                                     <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                                         <User className="w-5 h-5 text-blue-500" />
-                                                        {a.user?.basicinfo?.first_name ?? "N/A"} {a.user?.basicinfo?.last_name ?? ""}
+                                                        {fullName}
                                                     </CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="p-4 pt-0 space-y-3 text-sm text-gray-600 dark:text-gray-400">

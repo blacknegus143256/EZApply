@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link,usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Lock, LockKeyhole, UserIcon, Building2, MessageCircle, Banknote, List, Bell } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Avatar } from './ui/avatar'
 import CompanyApplicants from '@/pages/Company/Applicants/CompanyApplicants';
@@ -49,6 +49,12 @@ const mainNavItems: NavItem[] = [
         href: '/view-chats',
         icon: MessageCircle,
         permission: 'view_chats',
+    },
+    {
+        title: 'Notifications',
+        href: '/notifications',
+        icon: Bell,
+        permission: 'view_dashboard',
     },
     {
         title: 'Credit Balance',

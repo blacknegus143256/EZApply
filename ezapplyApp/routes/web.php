@@ -26,6 +26,7 @@ use App\Http\Controllers\CreditController;
 use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CompanyApplicantController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\File;
 
 
@@ -175,6 +176,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/chat/{user}', [MessageController::class, 'index'])->name('chat.index');
     Route::post('/chat/{user}', [MessageController::class, 'store'])->name('messages.store');
     Route::get('/view-chats', [MessageController::class, 'viewChats'])->name('chat.view');
+
+    //Notifications
+    Route::get('/notifications', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::get('/api/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/api/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::post('/api/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/api/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
 
 

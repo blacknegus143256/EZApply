@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { usePage, router } from "@inertiajs/react";
+import React, { useState, useMemo, useEffect } from "react";
+import { usePage, router, Head } from "@inertiajs/react";
 import type { PageProps as InertiaPageProps } from "@inertiajs/core";
 import { route } from "ziggy-js";
 import AppLayout from "@/layouts/app-layout";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PermissionGate from "@/components/PermissionGate";
 import DisplayBalance from '@/components/balance-display';
+import { TableRowSkeleton } from "@/components/ui/skeletons";
 
 
 
@@ -36,6 +37,7 @@ export default function ChatList() {
     const role = auth?.user.role;
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // Filter chats based on search
   const filteredChats = useMemo(() => {
@@ -43,11 +45,21 @@ export default function ChatList() {
       chat.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [chats, searchTerm]);
-  console.log(role)
+
+  useEffect(() => {
+    if (chats) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [chats]);
 
   return (
     <PermissionGate permission="view_chats" roles={[role]}>
     <AppLayout breadcrumbs={breadcrumbs} >
+          <Head title={'Your Chats'} />
+
       <div className="absolute top-3 right-4">
 
   </div>
@@ -74,17 +86,31 @@ export default function ChatList() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {filteredChats.map((chat) => (
-                <TableRow
-                    key={chat.userId}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => router.get(`/chat/${chat.userId}`)}
-                >
-                    <TableCell className="truncate">{chat.email}</TableCell>
-                    <TableCell className="truncate">{chat.lastMessage}</TableCell>
-                    <TableCell>{new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                </TableRow>
-                ))}
+                {loading ? (
+                    <>
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <TableRowSkeleton key={i} columns={3} />
+                        ))}
+                    </>
+                ) : filteredChats.length === 0 ? (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                            {chats.length === 0 ? "No chats yet. Start a conversation!" : "No chats match your search."}
+                        </TableCell>
+                    </TableRow>
+                ) : (
+                    filteredChats.map((chat) => (
+                        <TableRow
+                            key={chat.userId}
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => router.get(`/chat/${chat.userId}`)}
+                        >
+                            <TableCell className="truncate">{chat.email}</TableCell>
+                            <TableCell className="truncate">{chat.lastMessage}</TableCell>
+                            <TableCell>{new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                        </TableRow>
+                    ))
+                )}
             </TableBody>
             </Table>
         </div>
