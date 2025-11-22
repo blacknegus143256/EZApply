@@ -6,6 +6,7 @@
     use App\Models\UserCredit;
     use App\Models\ApplicantView;
     use App\Models\CreditTransaction;
+    use App\Notifications\CreditBalanceLow;
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Facades\Log;
     use Illuminate\Support\Facades\Artisan;
@@ -215,6 +216,11 @@
                     $newBalance = $userCredit->balance;
                 });
 
+                // Check if balance is low and notify user
+                if ($newBalance <= 5 && $newBalance > 0) {
+                    $user->notify(new CreditBalanceLow($newBalance, 5));
+                }
+
                 return response()->json([
                     'status' => 'success',
                     'message' => "Package purchased. {$cost} credits deducted.",
@@ -270,6 +276,11 @@
                 'type' => 'purchase_info',
                 'description' => "Purchased applicant info (Application ID: {$applicationId})",
             ]);
+
+            // Check if balance is low and notify user
+            if ($credit->balance <= 5 && $credit->balance > 0) {
+                $user->notify(new \App\Notifications\CreditBalanceLow($credit->balance, 5));
+            }
 
             return response()->json([
                 'success' => true,

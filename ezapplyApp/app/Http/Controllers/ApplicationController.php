@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
+use App\Notifications\NewApplicationReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -30,7 +31,7 @@ class ApplicationController extends Controller
         }
 
         foreach ($companyIds as $companyId) {
-            Application::firstOrCreate(
+            $application = Application::firstOrCreate(
                 [
                     'user_id' => $userId,
                     'company_id' => $companyId,
@@ -41,6 +42,14 @@ class ApplicationController extends Controller
                     'status' => 'pending',
                 ]
             );
+
+            // Notify company owner if this is a new application
+            if ($application->wasRecentlyCreated) {
+                $application->load('company.user');
+                if ($application->company && $application->company->user) {
+                    $application->company->user->notify(new NewApplicationReceived($application));
+                }
+            }
         }
 
         return back();

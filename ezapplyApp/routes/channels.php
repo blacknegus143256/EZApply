@@ -18,3 +18,8 @@ Broadcast::channel('chat.{userId1}.{userId2}', function ($user, $userId1, $userI
     return (int) $user->id === (int) $userId1 || (int) $user->id === (int) $userId2;
 });
 
+// Notification channel for each user
+Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+    return (int) $user->id === (int) $id;
+});
+

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Message;
 use App\Models\User;
 use App\Events\MessageSent;
+use App\Notifications\NewMessageReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -23,8 +24,14 @@ class MessageController extends Controller
             'message' => $request->message,
         ]);
 
+        // Load sender relationship for notification
+        $message->load('sender.basicInfo');
+
         // Broadcast the message in real-time
         broadcast(new MessageSent($message))->toOthers();
+
+        // Notify receiver of new message (only if they're not viewing the chat)
+        $user->notify(new NewMessageReceived($message));
 
         return redirect()->back();
     }
