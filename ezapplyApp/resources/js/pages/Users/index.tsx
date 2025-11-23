@@ -54,9 +54,16 @@ export default function Users({
     const [selectedRole, setSelectedRole] = useState(filters.role || 'all');
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [userToDeleteId, setUserToDeleteId] = useState<number | null>(null);
-    const debounceRef = useRef<number>();
+    const debounceRef = useRef<number | null>(null);
+    
+const [loading, setLoading] = useState(true);
 
-    const { flash, auth } = usePage().props as unknown as PageProps;
+useEffect(() => {
+  if (users && users.data) {
+    setLoading(false);
+  }
+}, [users]);
+ const { flash, auth } = usePage().props as unknown as PageProps;
 
     useEffect(() => {
         if (flash?.message) toast.success(flash.message);
@@ -82,10 +89,15 @@ export default function Users({
     const handleInstantSearch = (value: string, role: string) => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = window.setTimeout(() => {
+            setLoading(true);
             router.get(
                 '/users',
                 { search: value || undefined, role: role === 'all' ? undefined : role },
-                { preserveState: true, replace: true }
+                {
+                    preserveState: true,
+                    replace: true,
+                    onFinish: () => setLoading(false)
+                }
             );
         });
     };
@@ -153,7 +165,15 @@ export default function Users({
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {users.data.length > 0 ? (
+                                        {loading ? (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="h-24">
+                                                    <div className="flex items-center justify-center py-6">
+                                                        <div className="loader" />
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : users.data.length > 0 ? (
                                             users.data.map((user) => (
                                                 <TableRow key={user.id}>
                                                     <TableCell className="font-medium">{user.first_name ? user.first_name : 'N/A'} {user.last_name ? user.last_name : 'N/A'}</TableCell>
@@ -197,7 +217,11 @@ export default function Users({
                             </div>
 
                             <div className="flex flex-col gap-4 sm:hidden">
-                                {users.data.length > 0 ? (
+                                {loading ? (
+                                    <div className="h-24 flex items-center justify-center">
+                                        <div className="loader" />
+                                    </div>
+                                ) : users.data.length > 0 ? (
                                     users.data.map((user) => (
                                         <div key={user.id} className="p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
                                             <div className="flex justify-between items-start">

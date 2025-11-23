@@ -542,11 +542,25 @@ function doSubmit() {
                           <Label htmlFor="year_founded">Year Founded *</Label>
                           <Input
                             name="year_founded"
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             min={1800}
                             max={new Date().getFullYear()}
                             value={data.year_founded ?? ''}
-                            onChange={(e) => setData('year_founded', e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                const onlyDigits = value.replace(/[^0-9]/g, ''); 
+                            
+                                let finalValue = onlyDigits.slice(0, 4);
+                                const currentYear = new Date().getFullYear();
+                                
+                                if (finalValue && parseInt(finalValue, 10) > currentYear) {
+
+                                    finalValue = currentYear.toString();
+                                }
+                                setData('year_founded', finalValue);
+                            }}
                             placeholder="2020"
                             required
                           />
@@ -694,9 +708,20 @@ function doSubmit() {
                       <ErrorText message={(errors as any).min_liquid_assets} />
                       </div>
 
-                      <div className="flex items-center gap-2 text-gray-200">
-                        <input id="prior_experience" type="checkbox" checked={data.prior_experience} onChange={(e) => setData('prior_experience', e.target.checked)} />
-                        <label htmlFor="prior_experience">Prior Business Experience Preferred?</label>
+                     {}
+                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <input 
+                              id="prior_experience" 
+                              type="checkbox" 
+                              checked={data.prior_experience} 
+                              onChange={(e) => setData('prior_experience', e.target.checked)}
+                              
+                              // ADDED: Styling for the checkbox itself
+                              className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700 dark:ring-offset-gray-800" 
+                          />
+                          <label htmlFor="prior_experience" className="select-none">
+                              Prior Business Experience Preferred?
+                          </label>
                       </div>
 
                       <Field label="If Yes, specify Experience Type (optional)">

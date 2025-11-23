@@ -63,17 +63,6 @@ const mapCompanyAgentsToAgents = (agents: CompanyDetails['agents']): Agent[] => 
   }));
 };
 
-const getUserDisplayName = (user: any): string => {
-  if (!user) return '';
-  if (user.basicInfo && (user.basicInfo.first_name || user.basicInfo.last_name)) {
-    return `${user.basicInfo.first_name || ''} ${user.basicInfo.last_name || ''}`.trim();
-  }
-  if (user.first_name || user.last_name) {
-    return `${user.first_name || ''} ${user.last_name || ''}`.trim();
-  }
-  return user.email || '';
-};
-
 const CompanyFullDetails: React.FC = () => {
   const { props } = usePage<{ company: CompanyDetails; allAgents?: Agent[] }>();
   const company = props.company;
@@ -82,26 +71,9 @@ const CompanyFullDetails: React.FC = () => {
 
   const [query, setQuery] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const [assignedAgents, setAssignedAgents] = useState<Agent[]>(() => {
-    const agentsFromRelation = mapCompanyAgentsToAgents(company.agents || []);
-    
-    if (company.user) {
-      const ownerAgent: Agent = {
-        id: company.user.id,
-        name: getUserDisplayName(company.user),
-        email: company.user.email,
-        role: 'company',
-      };
-      
-      const ownerExists = agentsFromRelation.some(a => a.id === ownerAgent.id);
-      if (!ownerExists) {
-        agentsFromRelation.unshift(ownerAgent); 
-      }
-    }
-    
-    console.log('Initializing assignedAgents:', agentsFromRelation);
-    return agentsFromRelation;
-  });
+  const [assignedAgents, setAssignedAgents] = useState<Agent[]>(() => 
+    mapCompanyAgentsToAgents(company.agents)
+  );
 
   const filteredResults = useMemo(() => {
     if (!query) return [];
@@ -131,7 +103,7 @@ const CompanyFullDetails: React.FC = () => {
       agent_ids: agentIds,
     }, {
       onSuccess: () => {
-
+        router.reload({ only: ['company'] });
       },
       onError: (errors) => {
         console.error('Error assigning agents:', errors);
@@ -147,34 +119,13 @@ const CompanyFullDetails: React.FC = () => {
   };
 
   useEffect(() => {
-    const agentsFromRelation = mapCompanyAgentsToAgents(company.agents || []);
-    
+    const mappedAgents = mapCompanyAgentsToAgents(company.agents);
+    setAssignedAgents(mappedAgents);
 
-    if (company.user) {
-      const ownerAgent: Agent = {
-        id: company.user.id,
-        name: getUserDisplayName(company.user),
-        email: company.user.email,
-        role: 'company',
-      };
-      
-      const ownerExists = agentsFromRelation.some(a => a.id === ownerAgent.id);
-      if (!ownerExists) {
-        agentsFromRelation.unshift(ownerAgent);
-      }
-    }
-    
-    console.log('useEffect: assignedAgents updated:', agentsFromRelation);
-    setAssignedAgents(agentsFromRelation);
-  }, [company.id, company.user, company.agents]);
+  }, [JSON.stringify(company.agents?.map(a => a.id).sort())]);
 
 
   const handleRemoveAgent = (agentId: number) => {
-    if (company.user && company.user.id === agentId) {
-      alert('Cannot remove the company owner. The owner must always be associated with the company.');
-      return;
-    }
-
     const newAgents = assignedAgents.filter(agent => agent.id !== agentId);
     setAssignedAgents(newAgents);
 
@@ -184,6 +135,7 @@ const CompanyFullDetails: React.FC = () => {
       agent_ids: agentIds,
     }, {
       onSuccess: () => {
+        router.reload({ only: ['company'] });
       },
       onError: (errors) => {
         console.error('Error removing agent:', errors);
@@ -250,20 +202,19 @@ const CompanyFullDetails: React.FC = () => {
           </AdminOnly>
         </div>
 
-        <div className="company-header-card mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div className="flex items-center gap-6 flex-1">
-              <Avatar className="company-avatar h-32 w-32 md:h-40 md:w-40">
-                <AvatarImage
-                  className="object-contain"
-                  src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/storage/logos/default-logo.png"}
-                  alt={`${company.brand_name} logo`}
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/storage/logos/default-logo.png"; }}
-                />
-                <AvatarFallback className="text-3xl">
-                  {getInitials(company.brand_name || company.company_name)}
-                </AvatarFallback>
-              </Avatar>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12 p-6 bg-card rounded-lg border relative">
+          <div className="flex items-center gap-6">
+            <Avatar className="h-32 w-32 md:h-40 md:w-40 mx-auto md:mx-0">
+              <AvatarImage
+                className="object-contain"
+                src={company.marketing?.logo_path ? `/storage/${company.marketing.logo_path}` : "/public/background/default-logo.png"}
+                alt={`${company.brand_name} logo`}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/public/background/default-logo.png"; }}
+              />
+              <AvatarFallback className="text-3xl">
+                {getInitials(company.brand_name || company.company_name)}
+              </AvatarFallback>
+            </Avatar>
 
               <div className="text-center md:text-left flex-1">
                 <h1 className="company-name mb-2">{company.company_name}</h1>
@@ -388,7 +339,7 @@ const CompanyFullDetails: React.FC = () => {
             <summary className="section-title mb-0">Contact Information</summary>
             <div className="details-collapse-content">
               {renderTable([
-                { key: "contact_name", label: "Contact Name", value: getUserDisplayName(company.user) },
+                { key: "contact_name", label: "Contact Name", value: `${company.user?.first_name} ${company.user?.last_name}` },
                 { key: "email", label: "Email", value: company.user?.email },
               ])}
             </div>

@@ -231,7 +231,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 
       <div className="grid grid-cols-1 gap-3 text-sm">
         <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-          {company.marketing?.listing_description || company.description || "No description available"}
+          {company.marketing?.listing_description && company.description || "No description available"}
         </p>
 
         <div className="flex items-center gap-3 text-gray-600">

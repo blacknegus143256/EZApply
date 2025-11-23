@@ -62,7 +62,7 @@ class PfaCompanySeeder extends Seeder
                     'postal_code' => $item['postal_code'] ?? 'unknown',
                     'country' => $item['country'] ?? 'Philippines',
                     'company_website' => $item['website'] ?? null,
-                    'description' => trim($item['company_profile'] ?? null),
+                    'description' => trim($item['COMPANY PROFILE'] ?? null),
                     'year_founded' => isset($item['year'])  && is_numeric($item['year']) ? (int)$item['year'] : 2000,
                     'num_franchise_locations' => isset($item['num_franchise_locations']) && is_numeric($item['num_franchise_locations']) ? (int)$item['num_franchise_locations']
                         : null,

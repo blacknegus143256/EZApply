@@ -70,40 +70,53 @@ export default function EditUser({ roles, user }: { roles: string[], user: UserR
     const [citiesMunicipalities, setCitiesMunicipalities] = useState<{ code: string; name: string }[]>([]);
     const [barangays, setBarangays] = useState<{ code: string; name: string }[]>([]);
 
+    const [loadingRegions, setLoadingRegions] = useState(false);
+    const [loadingProvinces, setLoadingProvinces] = useState(false);
+    const [loadingCities, setLoadingCities] = useState(false);
+    const [loadingBarangays, setLoadingBarangays] = useState(false);
+
     const isoDate = user.basic_info?.birth_date || new Date().toISOString();
     const formattedDate = isoDate.split("T")[0];
 
     useEffect(() => {
+    setLoadingRegions(true);
         fetch('/psgc/regions')
             .then(res => res.json())
             .then(data => setRegions(data.map((r: any) => ({ code: r.code, name: r.name }))))
-            .catch(console.error);
+            .catch(console.error)
+        .finally(() => setLoadingRegions(false));  
     }, []);
 
     useEffect(() => {
         if (data.region_code) {
+        setLoadingProvinces(true);
             fetch(`/psgc/regions/${data.region_code}/provinces`)
                 .then(res => res.json())
                 .then(data => setProvinces(data.map((p: any) => ({ code: p.code, name: p.name }))))
-                .catch(console.error);
+                .catch(console.error)
+            .finally(() => setLoadingProvinces(false));
         } else setProvinces([]);
     }, [data.region_code]);
 
     useEffect(() => {
         if (data.province_code) {
+        setLoadingCities(true);
             fetch(`/psgc/provinces/${data.province_code}/cities-municipalities`)
                 .then(res => res.json())
                 .then(data => setCitiesMunicipalities(data.map((c: any) => ({ code: c.code, name: c.name }))))
-                .catch(console.error);
+                .catch(console.error)
+            .finally(() => setLoadingCities(false));
         } else setCitiesMunicipalities([]);
     }, [data.province_code]);
 
     useEffect(() => {
         if (data.citymun_code) {
+        setLoadingBarangays(true);
             fetch(`/psgc/cities-municipalities/${data.citymun_code}/barangays`)
                 .then(res => res.json())
                 .then(data => setBarangays(data.map((b: any) => ({ code: b.code, name: b.name }))))
-                .catch(console.error);
+                .catch(console.error)
+            .finally(() => setLoadingBarangays(false));
         } else setBarangays([]);
     }, [data.citymun_code]);
 
@@ -285,39 +298,83 @@ export default function EditUser({ roles, user }: { roles: string[], user: UserR
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     <div>
                                         <Label>Region</Label>
+                                        <div className="relative">
                                         <Select value={data.region_code} onValueChange={handleRegionChange}>
                                             <SelectTrigger><SelectValue placeholder="Select Region" /></SelectTrigger>
                                             <SelectContent>
-                                                {regions.map(r => <SelectItem key={r.code} value={r.code}>{r.name}</SelectItem>)}
+                                            {loadingRegions ? (
+                                            <SelectItem disabled value="loading">Loading barangays...</SelectItem>
+                                            ) : (
+                                            regions.map(r => <SelectItem key={r.code} value={r.code}>{r.name}</SelectItem>)
+                                            )}
                                             </SelectContent>
                                         </Select>
+                                          {loadingRegions && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="loader scale-45"></div>
+                                            </div>
+                                        )}
+                                        </div>
                                     </div>
                                     <div>
                                         <Label>Province</Label>
+                                        <div className="relative">
                                         <Select value={data.province_code} onValueChange={handleProvinceChange} disabled={!data.region_code}>
                                             <SelectTrigger><SelectValue placeholder="Select Province" /></SelectTrigger>
                                             <SelectContent>
-                                                {provinces.map(p => <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>)}
+                                            {loadingProvinces ? (
+                                            <SelectItem disabled value="loading">Loading barangays...</SelectItem>
+                                            ) : (
+                                            provinces.map(p => <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>)
+                                            )}
                                             </SelectContent>
                                         </Select>
+                                          {loadingProvinces && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="loader scale-45"></div>
+                                            </div>
+                                        )}
+                                        </div>
                                     </div>
                                     <div>
                                         <Label>City/Municipality</Label>
+                                        <div className="relative">
                                         <Select value={data.citymun_code} onValueChange={handleCityChange} disabled={!data.province_code}>
                                             <SelectTrigger><SelectValue placeholder="Select City/Municipality" /></SelectTrigger>
                                             <SelectContent>
-                                                {citiesMunicipalities.map(c => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)}
+                                            {loadingCities ? (
+                                            <SelectItem disabled value="loading">Loading barangays...</SelectItem>
+                                            ) : (
+                                            citiesMunicipalities.map(c => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)
+                                            )}
                                             </SelectContent>
                                         </Select>
+                                          {loadingCities && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="loader scale-45"></div>
+                                            </div>
+                                        )}
+                                        </div>
                                     </div>
                                     <div>
                                         <Label>Barangay</Label>
+                                        <div className="relative">
                                         <Select value={data.barangay_code} onValueChange={handleBarangayChange} disabled={!data.citymun_code}>
                                             <SelectTrigger><SelectValue placeholder="Select Barangay" /></SelectTrigger>
                                             <SelectContent>
-                                                {barangays.map(b => <SelectItem key={b.code} value={b.code}>{b.name}</SelectItem>)}
+                                            {loadingBarangays ? (
+                                            <SelectItem disabled value="loading">Loading barangays...</SelectItem>
+                                            ) : (
+                                            barangays.map(b => <SelectItem key={b.code} value={b.code}>{b.name}</SelectItem>)
+                                            )}
                                             </SelectContent>
                                         </Select>
+                                          {loadingBarangays && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                            <div className="loader scale-45"></div>
+                                            </div>
+                                        )}
+                                        </div>
                                     </div>
                                 </div> 
                                 {/* <InputError message={errors.address} /> */}
