@@ -1,17 +1,19 @@
+import { initializeFirebase, getFirebaseDatabase } from '@/lib/firebase';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 declare global {
     interface Window {
+        Firebase: any;
         Pusher: any;
         Echo: any;
     }
 }
 
-// Initialize Pusher
+// Initialize Pusher for Laravel Echo (used for notifications)
 window.Pusher = Pusher as any;
 
-// Initialize Laravel Echo only if Pusher credentials are available
+// Initialize Laravel Echo for notifications (if Pusher credentials are available)
 const pusherKey = import.meta.env.VITE_PUSHER_APP_KEY;
 
 if (pusherKey) {
@@ -28,14 +30,32 @@ if (pusherKey) {
                 },
             },
         });
+        console.log('Laravel Echo initialized for notifications');
     } catch (error) {
         console.warn('Failed to initialize Laravel Echo:', error);
         window.Echo = null;
     }
 } else {
-    console.warn('Pusher app key not found. Real-time features will be disabled. Add VITE_PUSHER_APP_KEY to your .env file.');
+    console.warn('Pusher app key not found. Notifications will use polling.');
     window.Echo = null;
 }
 
-export default window.Echo;
+// Initialize Firebase for chat messages
+const firebaseDb = initializeFirebase();
+
+if (firebaseDb) {
+    window.Firebase = {
+        database: firebaseDb,
+        initialized: true,
+    };
+    console.log('Firebase initialized for real-time chat');
+} else {
+    console.warn('Firebase initialization failed. Chat will use polling.');
+    window.Firebase = {
+        database: null,
+        initialized: false,
+    };
+}
+
+export default { Echo: window.Echo, Firebase: window.Firebase };
 

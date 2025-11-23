@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
-use App\Events\MessageSent;
+use App\Services\FirebaseService;
 use App\Notifications\NewMessageReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +12,13 @@ use Inertia\Inertia;
 
 class MessageController extends Controller
 {
+    protected $firebaseService;
+
+    public function __construct(FirebaseService $firebaseService)
+    {
+        $this->firebaseService = $firebaseService;
+    }
+
     public function store(Request $request, User $user)
     {
         $request->validate([
@@ -27,8 +34,19 @@ class MessageController extends Controller
         // Load sender relationship for notification
         $message->load('sender.basicInfo');
 
-        // Broadcast the message in real-time
-        broadcast(new MessageSent($message))->toOthers();
+        // Send message to Firebase Realtime Database
+        try {
+            $this->firebaseService->sendMessage([
+                'id' => $message->id,
+                'sender_id' => $message->sender_id,
+                'receiver_id' => $message->receiver_id,
+                'message' => $message->message,
+                'created_at' => $message->created_at->toISOString(),
+            ], Auth::id(), $user->id);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send message to Firebase: ' . $e->getMessage());
+            // Continue even if Firebase fails - message is still saved in database
+        }
 
         // Notify receiver of new message (only if they're not viewing the chat)
         $user->notify(new NewMessageReceived($message));

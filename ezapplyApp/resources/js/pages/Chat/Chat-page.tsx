@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatMessageSkeleton } from "@/components/ui/skeletons";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { listenToMessages, getChannelName } from "@/lib/firebase";
 
 interface Message {
   id: number;
@@ -67,7 +68,6 @@ export default function ChatPage() {
     post(route("messages.store", otherUser.id, false, ziggy), {
       onSuccess: () => {
         reset("message");
-        // Message will be added via WebSocket broadcast
       },
     });
   };
@@ -77,10 +77,8 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messageList]);
 
-  // Sync messageList with reloaded messages
   useEffect(() => {
     setMessageList(messages);
-    // Set loading to false after messages are loaded
     if (messages) {
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -89,28 +87,12 @@ export default function ChatPage() {
     }
   }, [messages]);
   
-  // Real-time message listening with Laravel Echo
   useEffect(() => {
     if (!authUserId || !otherUser?.id) return;
 
-    // Get Echo instance from window (will be set up in app.tsx or bootstrap)
-    const Echo = (window as any).Echo;
-    if (!Echo) {
-      console.warn('Laravel Echo is not available. Falling back to polling.');
-      // Fallback to polling if Echo is not available
-      const interval = setInterval(() => {
-        router.reload({ only: ["messages"] });
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-
-    // Create channel name for this conversation (must match backend)
-    const channelName = `chat.${Math.min(authUserId, otherUser.id)}.${Math.max(authUserId, otherUser.id)}`;
+    const channelName = getChannelName(authUserId, otherUser.id);
     
-    // Listen for new messages
-    const channel = Echo.private(channelName);
-    
-    channel.listen('.message.sent', (data: any) => {
+    const unsubscribe = listenToMessages(channelName, (data: any) => {
       const newMessage: Message = {
         id: data.id,
         sender_id: data.sender_id,
@@ -119,7 +101,6 @@ export default function ChatPage() {
         created_at: data.created_at,
       };
       
-      // Only add if message doesn't already exist (avoid duplicates)
       setMessageList((prev) => {
         if (prev.some((msg) => msg.id === newMessage.id)) {
           return prev;
@@ -128,10 +109,20 @@ export default function ChatPage() {
       });
     });
 
+    // Fallback to polling if Firebase is not available
+    if (!unsubscribe || typeof unsubscribe !== 'function') {
+      console.warn('Firebase is not available. Falling back to polling.');
+      const interval = setInterval(() => {
+        router.reload({ only: ["messages"] });
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+
     // Cleanup
     return () => {
-      channel.stopListening('.message.sent');
-      Echo.leave(channelName);
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
   }, [authUserId, otherUser?.id]);
 
