@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/input-error';
 import { UserRole } from '@/types/user';
+import { Users, ArrowLeft, Save, Shield } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit Users', href: '/users' }
@@ -185,18 +186,29 @@ export default function EditUser({ roles, user }: { roles: string[], user: UserR
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit User" />
-            <div className="flex flex-col gap-4 p-4">
-                <Card>
-                    <CardHeader className="flex justify-between items-center">
-                        <CardTitle>Edit User</CardTitle>
-                        <CardAction>
-                            <Link href="/users">
-                                <Button>Go Back</Button>
-                            </Link>
-                        </CardAction>
-                    </CardHeader>
-                    <hr />
-                    <CardContent>
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Users size={32} />
+                            <div>
+                                <h1 className="text-3xl font-bold">Edit User</h1>
+                                <p className="text-indigo-100 mt-1">Update user account information</p>
+                            </div>
+                        </div>
+                        <Link href="/users">
+                            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                                <ArrowLeft size={18} className="mr-2" />
+                                Go Back
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Form Card */}
+                <Card className="shadow-lg">
+                    <CardContent className="p-6">
                         <form onSubmit={submit} className="space-y-4">
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -423,8 +435,16 @@ export default function EditUser({ roles, user }: { roles: string[], user: UserR
                                 <InputError message={errors.password_confirmation} />
                             </div>
 
-                            <div className="flex justify-end mt-4">
-                                <Button type="submit" disabled={processing} size="lg">Update</Button>
+                            <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                                <Link href="/users">
+                                    <Button type="button" variant="outline" size="lg">
+                                        Cancel
+                                    </Button>
+                                </Link>
+                                <Button type="submit" disabled={processing} size="lg" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                                    <Save size={18} className="mr-2" />
+                                    Update User
+                                </Button>
                             </div>
                         </form>
                     </CardContent>

@@ -82,7 +82,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Request account deactivation (not immediate deletion).
      */
     public function destroy(Request $request): RedirectResponse
     {
@@ -92,13 +92,27 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Check if deactivation already requested
+        if ($user->hasRequestedDeactivation()) {
+            return redirect()->back()->withErrors([
+                'password' => 'Account deactivation has already been requested.'
+            ]);
+        }
+
+        // Set deactivation request date
+        $user->deactivation_requested_at = now();
+        
+        // Schedule deactivation for 5 days from now (configurable)
+        $deactivationDays = config('app.account_deactivation_days', 5);
+        $user->deactivation_scheduled_at = now()->addDays($deactivationDays);
+        
+        $user->save();
+
+        // Logout user immediately
         Auth::logout();
-
-        $user->delete();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('status', 'Your account deactivation has been requested. Your account will be deactivated in ' . $deactivationDays . ' days. You can contact support if you wish to cancel this request.');
     }
 }

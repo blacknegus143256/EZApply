@@ -54,6 +54,21 @@
 .ezapply-navlink:hover {
   color: #2563eb;
 }
+.ezapply-navlink a.active {
+  color: #2563eb;
+  font-weight: 600;
+  position: relative;
+}
+.ezapply-navlink a.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 2px;
+  background: #2563eb;
+  border-radius: 2px;
+}
 
 .hero {
   text-align: center;

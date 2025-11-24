@@ -182,8 +182,8 @@ export default function NotificationCenter() {
       <div className="bg-across-pages min-h-screen p-5">
         <div className="p-6 bg-white dark:bg-neutral-900 rounded-xl shadow-md max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex-1">
               <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100">
                 Notifications
               </h1>
@@ -192,9 +192,15 @@ export default function NotificationCenter() {
               </p>
             </div>
             {unreadCount > 0 && (
-              <Button onClick={markAllAsRead} variant="outline" size="sm">
-                <CheckCheck className="h-4 w-4 mr-2" />
-                Mark all as read
+              <Button 
+                onClick={markAllAsRead} 
+                variant="outline" 
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                <CheckCheck className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Mark all as read</span>
+                <span className="sm:hidden">Mark all read</span>
               </Button>
             )}
           </div>

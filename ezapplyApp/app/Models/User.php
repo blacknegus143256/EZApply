@@ -22,6 +22,9 @@ class User extends Authenticatable
         'email',
         'password',
         'credits',
+        'deactivation_requested_at',
+        'deactivation_scheduled_at',
+        'is_deactivated',
     ];
 
     /**
@@ -45,6 +48,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'credits' => 'integer',
+            'deactivation_requested_at' => 'datetime',
+            'deactivation_scheduled_at' => 'datetime',
+            'is_deactivated' => 'boolean',
         ];
     }
 
@@ -136,5 +142,54 @@ public function creditTransactions()
     return $this->belongsToMany(Company::class, 'company_agent', 'user_id', 'company_id')
                 ->withTimestamps();
 }
+
+    /**
+     * Scope to exclude deactivated users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_deactivated', false)
+                    ->whereNull('deactivation_requested_at');
+    }
+
+    /**
+     * Scope to get users pending deactivation
+     */
+    public function scopePendingDeactivation($query)
+    {
+        return $query->whereNotNull('deactivation_requested_at')
+                    ->where('is_deactivated', false)
+                    ->whereNotNull('deactivation_scheduled_at')
+                    ->where('deactivation_scheduled_at', '<=', now());
+    }
+
+    /**
+     * Check if user is deactivated
+     */
+    public function isDeactivated(): bool
+    {
+        return $this->is_deactivated === true;
+    }
+
+    /**
+     * Check if user has requested deactivation
+     */
+    public function hasRequestedDeactivation(): bool
+    {
+        return $this->deactivation_requested_at !== null;
+    }
+
+    /**
+     * Get days remaining until deactivation
+     */
+    public function getDaysUntilDeactivation(): ?int
+    {
+        if (!$this->deactivation_scheduled_at) {
+            return null;
+        }
+
+        $days = now()->diffInDays($this->deactivation_scheduled_at, false);
+        return $days > 0 ? $days : 0;
+    }
 
 }

@@ -56,4 +56,17 @@ class ContactController extends Controller
             'success' => true,
         ]);
     }
+
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        $contact = Contact::findOrFail($id);
+        $contact->delete(); // Soft delete
+        
+        return response()->json([
+            'message' => 'Inquiry deleted successfully.',
+            'success' => true,
+        ]);
+    }
 }

@@ -69,6 +69,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Account Deactivation Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Number of days before an account is fully deactivated after requesting
+    | deactivation. During this grace period, users can contact support to cancel.
+    |
+    */
+
+    'account_deactivation_days' => env('ACCOUNT_DEACTIVATION_DAYS', 5),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

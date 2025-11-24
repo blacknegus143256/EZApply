@@ -49,6 +49,11 @@ function getFallbackUrl(routeName: string, params: any = null): string {
         'psgc.barangays': '/psgc/cities-municipalities',
         'home': '/',
         'settings.appearance': '/settings/appearance',
+        'reactivation.show': '/account/reactivation',
+        'reactivation.store': '/account/reactivation',
+        'reactivation-requests.index': '/admin/reactivation-requests',
+        'reactivation-requests.approve': '/admin/reactivation-requests',
+        'reactivation-requests.reject': '/admin/reactivation-requests',
     };
 
     let url = fallbackUrls[routeName] || '/';
@@ -220,4 +225,24 @@ export function profileEdit() {
 
 export function passwordEdit() {
     return safeRoute('password.edit');
+}
+
+// Reactivation routes
+export function reactivation() {
+    return {
+        show: safeRoute('reactivation.show'),
+        store: safeRoute('reactivation.store'),
+    };
+}
+
+export function reactivationRequests() {
+    return safeRoute('reactivation-requests.index');
+}
+
+export function reactivationRequestApprove(id: number) {
+    return safeRoute('reactivation-requests.approve', { id });
+}
+
+export function reactivationRequestReject(id: number) {
+    return safeRoute('reactivation-requests.reject', { id });
 }

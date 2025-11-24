@@ -4,6 +4,7 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { User, Mail, MapPin, Phone, Calendar, Share2, Shield, Save, CheckCircle2 } from 'lucide-react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
@@ -53,7 +55,7 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                 const mapped = (data.map((region: any) => ({ code: region.code, name: region.name })));
                 setRegions(mapped);
                 if (addressData.region_code) {
-                const match = mapped.find(r => r.code === addressData.region_code);
+                const match = mapped.find((r: { code: string; name: string }) => r.code === addressData.region_code);
                 if (match) {
                     setAddressData(prev => ({
                     ...prev,
@@ -172,7 +174,16 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="User Profile" description="Update your name and email address" />
+                    {/* Header Section */}
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                            <User size={32} className="sm:w-10 sm:h-10" />
+                            <h1 className="text-2xl sm:text-3xl font-bold">User Profile</h1>
+                        </div>
+                        <p className="text-blue-100 text-sm sm:text-base">
+                            Update your personal information and account details
+                        </p>
+                    </div>
 
                     <Form
                         {...ProfileController.update.form()}
@@ -183,43 +194,51 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
-                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                {/* Personal Information Card */}
+                                <Card className="shadow-lg">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <User size={20} className="text-blue-600" />
+                                            Personal Information
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                                     <div className="grid gap-2">
-                                    <Label htmlFor="first_name">First Name</Label>
-
-                                    <Input
-                                        id="first_name"
-                                        className="mt-1 block w-full"
-                                        defaultValue={basicInfo?.first_name || ''}
-                                        name="first_name"
-                                        required
-                                        autoComplete="first-name"
-                                        placeholder="First name"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.last_name} />
-                                </div>
+                                        <Label htmlFor="first_name">First Name</Label>
+                                        <Input
+                                            id="first_name"
+                                            className="mt-1 block w-full"
+                                            defaultValue={basicInfo?.first_name || ''}
+                                            name="first_name"
+                                            required
+                                            autoComplete="first-name"
+                                            placeholder="First name"
+                                        />
+                                        <InputError className="mt-2" message={errors.first_name} />
+                                    </div>
 
                                     <div className="grid gap-2">
-                                    <Label htmlFor="last_name">Last Name</Label>
-
-                                    <Input
-                                        id="last_name"
-                                        className="mt-1 block w-full"
-                                        defaultValue={basicInfo?.last_name || ''}
-                                        name="last_name"
-                                        required
-                                        autoComplete="family-name"
-                                        placeholder="Last name"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.last_name} />
-                                </div>
+                                        <Label htmlFor="last_name">Last Name</Label>
+                                        <Input
+                                            id="last_name"
+                                            className="mt-1 block w-full"
+                                            defaultValue={basicInfo?.last_name || ''}
+                                            name="last_name"
+                                            required
+                                            autoComplete="family-name"
+                                            placeholder="Last name"
+                                        />
+                                        <InputError className="mt-2" message={errors.last_name} />
+                                    </div>
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="birth_date">Birth Date</Label>
+                                    <Label htmlFor="birth_date" className="flex items-center gap-2">
+                                        <Calendar size={16} className="text-gray-500" />
+                                        Birth Date
+                                    </Label>
 
                                     <Input
                                         id="birth_date"
@@ -234,9 +253,23 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
                                     <InputError className="mt-2" message={errors.birth_date} />
                                 </div>
+                                    </CardContent>
+                                </Card>
 
+                                {/* Contact Information Card */}
+                                <Card className="shadow-lg">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Phone size={20} className="text-green-600" />
+                                            Contact Information
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="phone">Phone</Label>
+                                    <Label htmlFor="phone" className="flex items-center gap-2">
+                                        <Phone size={16} className="text-gray-500" />
+                                        Phone Number
+                                    </Label>
 
                                     <Input
                                         id="phone"
@@ -251,6 +284,58 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                     <InputError className="mt-2" message={errors.phone} />
                                 </div>
 
+                                <div className="grid gap-2">
+                                    <Label htmlFor="email" className="flex items-center gap-2">
+                                        <Mail size={16} className="text-gray-500" />
+                                        Email Address
+                                    </Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user?.email || ''}
+                                        name="email"
+                                        required
+                                        autoComplete="username"
+                                        placeholder="Email address"
+                                    />
+                                    <InputError className="mt-2" message={errors.email} />
+                                </div>
+
+                                {mustVerifyEmail && auth.user?.email_verified_at === null && (
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                                            Your email address is unverified.{' '}
+                                            <Link
+                                                href={send()}
+                                                as="button"
+                                                className="font-semibold underline decoration-yellow-600 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-yellow-800"
+                                            >
+                                                Click here to resend the verification email.
+                                            </Link>
+                                        </p>
+
+                                        {status === 'verification-link-sent' && (
+                                            <div className="mt-2 text-sm font-medium text-green-600 dark:text-green-400 flex items-center gap-2">
+                                                <CheckCircle2 size={16} />
+                                                A new verification link has been sent to your email address.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                    </CardContent>
+                                </Card>
+
+                                {/* Social Media Links Card */}
+                                <Card className="shadow-lg">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Share2 size={20} className="text-purple-600" />
+                                            Social Media Links
+                                            <span className="text-sm font-normal text-gray-500">(Optional)</span>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
                                 <div className="grid gap-2">
                                     <Label htmlFor="Facebook">Facebook</Label>
 
@@ -295,11 +380,19 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
 
                                     <InputError className="mt-2" message={errors.Viber} />
                                 </div>
+                                    </CardContent>
+                                </Card>
 
-                                <div className="grid gap-2">
-                                    <Label>Address</Label>
-
-                                    <div className="grid grid-cols-2 gap-4">
+                                {/* Address Information Card */}
+                                <Card className="shadow-lg">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <MapPin size={20} className="text-orange-600" />
+                                            Address Information
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <Label>Region</Label>
                                             <div className="relative">
@@ -469,76 +562,68 @@ export default function Profile({ mustVerifyEmail, status, basicInfo, address }:
                                             />
                                         </div>
                                     </div>
-                                </div>
-                                 
-                            <div className="grid gap-2">
-                                <Label htmlFor="role">Role</Label>
+                                    </CardContent>
+                                </Card>
 
-                                <div
-                                    id="role"
-                                    name="role"
-                                    className="border rounded-md px-3 py-2 h-11 border-gray-300 bg-gray-50 text-sm flex items-center"
-                                    tabIndex={3}
-                                >
-                                    <span className="text-gray-700 font-medium">
-                                        {auth.user.roles[0]?.name}
-                                    </span>
-                                </div>
-
-                                <InputError message={(errors as any).role} className="mt-2" />
-                            </div>
-
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
-
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        className="mt-1 block w-full"
-                                        defaultValue={auth.user.email}
-                                        name="email"
-                                        required
-                                        autoComplete="username"
-                                        placeholder="Email address"
-                                    />
-
-                                    <InputError className="mt-2" message={errors.email} />
-                                </div>
-
-
-                                {mustVerifyEmail && auth.user.email_verified_at === null && (
-                                    <div>
-                                        <p className="-mt-4 text-sm text-muted-foreground">
-                                            Your email address is unverified.{' '}
-                                            <Link
-                                                href={send()}
-                                                as="button"
-                                                className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                {/* Account Information Card */}
+                                <Card className="shadow-lg">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Shield size={20} className="text-indigo-600" />
+                                            Account Information
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="role">Role</Label>
+                                            <div
+                                                id="role"
+                                                className="border rounded-md px-4 py-3 h-12 border-gray-300 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-neutral-800 dark:to-neutral-700 text-sm flex items-center"
+                                                tabIndex={3}
                                             >
-                                                Click here to resend the verification email.
-                                            </Link>
-                                        </p>
-
-                                        {status === 'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been sent to your email address.
+                                                <Shield size={16} className="text-indigo-600 mr-2" />
+                                                <span className="text-gray-700 dark:text-gray-300 font-semibold">
+                                                    {auth.user?.roles?.[0]?.name || 'No role assigned'}
+                                                </span>
                                             </div>
-                                        )}
-                                    </div>
-                                )}
+                                            <InputError message={(errors as any).role} className="mt-2" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
 
-                                <div className="flex items-center gap-4">
-                                    <Button disabled={processing}>Save</Button>
-
+                                {/* Action Buttons */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
                                     <Transition
                                         show={recentlySuccessful}
                                         enter="transition ease-in-out"
-                                        enterFrom="opacity-0"
+                                        enterFrom="opacity-0 scale-95"
+                                        enterTo="opacity-100 scale-100"
                                         leave="transition ease-in-out"
-                                        leaveTo="opacity-0"
+                                        leaveFrom="opacity-100 scale-100"
+                                        leaveTo="opacity-0 scale-95"
                                     >
-                                        <p className="text-sm text-neutral-600">Saved</p>
+                                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold">
+                                            <CheckCircle2 size={20} />
+                                            <span>Profile saved successfully!</span>
+                                        </div>
                                     </Transition>
+                                    <Button 
+                                        disabled={processing} 
+                                        size="lg"
+                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                                    >
+                                        {processing ? (
+                                            <>
+                                                <div className="loader scale-50 mr-2" />
+                                                <span>Saving...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save size={18} className="mr-2" />
+                                                <span>Save Changes</span>
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             </>
                         )}

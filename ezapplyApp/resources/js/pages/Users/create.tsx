@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/input-error';
+import { Users, ArrowLeft, UserPlus, Shield } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Create Users', href: '/users/create' },
@@ -177,18 +178,29 @@ export default function AddUser({ roles }: { roles: string[] }) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Create User" />
-      <div className="flex flex-col gap-4 p-4">
-        <Card>
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle>Create User</CardTitle>
-            <CardAction>
-              <Link href="/users">
-                <Button>Go Back</Button>
-              </Link>
-            </CardAction>
-          </CardHeader>
-          <hr />
-          <CardContent>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <UserPlus size={32} />
+              <div>
+                <h1 className="text-3xl font-bold">Create New User</h1>
+                <p className="text-indigo-100 mt-1">Add a new user account to the system</p>
+              </div>
+            </div>
+            <Link href="/users">
+              <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <ArrowLeft size={18} className="mr-2" />
+                Go Back
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Form Card */}
+        <Card className="shadow-lg">
+          <CardContent className="p-6">
             <form onSubmit={submit} className="space-y-4">
               {/* Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -422,8 +434,16 @@ export default function AddUser({ roles }: { roles: string[] }) {
                 <InputError message={errors.roles} />
               </div>
 
-              <div className="flex justify-end mt-4">
-                <Button type="submit" disabled={processing} size="lg">Create</Button>
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+                <Link href="/users">
+                  <Button type="button" variant="outline" size="lg">
+                    Cancel
+                  </Button>
+                </Link>
+                <Button type="submit" disabled={processing} size="lg" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                  <UserPlus size={18} className="mr-2" />
+                  Create User
+                </Button>
               </div>
             </form>
           </CardContent>

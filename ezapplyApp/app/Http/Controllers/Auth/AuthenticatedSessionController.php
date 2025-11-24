@@ -36,6 +36,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+
+        // Double check deactivation status (in case something changed)
+        if ($user->isDeactivated()) {
+            Auth::logout();
+            return redirect()->route('reactivation.show')->withErrors([
+                'email' => 'Your account has been deactivated. Please request reactivation.'
+            ]);
+        }
+
         // 1. Check for the 'redirect' query parameter first
         $redirectUrl = $request->query('redirect');
 
@@ -45,7 +55,6 @@ class AuthenticatedSessionController extends Controller
         }
 
         // 2. If no 'redirect' parameter, then use your role-based logic
-        $user = Auth::user();
         if ($user->role === 'customer') {
             return redirect()->intended('/'); // Fallback for customers
         }

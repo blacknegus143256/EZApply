@@ -21,7 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\CheckAccountDeactivation::class,
         ]);
+    })
+    ->withSchedule(function ($schedule) {
+        // Run account deactivation processing daily at 2 AM
+        $schedule->command('accounts:process-deactivations')
+                 ->dailyAt('02:00')
+                 ->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -9,9 +9,10 @@ return (
                         text-black">
                 <AppLogoIcon className="size-5" /> 
             </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold ezapply-logo">EZ Apply PH</span>
-            </div>
+            <div className="ml-1 grid flex-1 text-left text-sm">
+                <span className="mb-0.5 truncate leading-tight font-semibold ezapply-logo">EZ Apply PH</span>
+                <span className="truncate leading-tight text-xs text-gray-500 font-normal">Franchise</span>
+            </div>
         </>
     );
 }

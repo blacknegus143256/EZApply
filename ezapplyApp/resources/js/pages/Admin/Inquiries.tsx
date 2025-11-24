@@ -62,6 +62,18 @@ export default function Inquiries({ inquiries }: Props) {
         });
     };
 
+    const handleDelete = (id: number) => {
+        fetch(`/admin/inquiries/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+            },
+        }).then(() => {
+            window.location.reload();
+        });
+    };
+
     const formatDate = (date: string) => {
         const now = new Date();
         const inquiryDate = new Date(date);
@@ -249,6 +261,7 @@ export default function Inquiries({ inquiries }: Props) {
                                                 onClick={e => {
                                                     e.stopPropagation();
                                                     if (confirm('Are you sure you want to delete this inquiry?')) {
+                                                        handleDelete(inquiry.id);
                                                     }
                                                 }}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 text-sm font-bold rounded-lg hover:bg-red-100 transition-all duration-200"

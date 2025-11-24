@@ -23,6 +23,8 @@ use App\Http\Controllers\FinancialController;
 use App\Http\Controllers\CustomerAttachmentController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\CreditController;
+use App\Http\Controllers\Admin\ArchiveController;
+use App\Http\Controllers\ReactivationController;
 use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CompanyApplicantController;
 use App\Http\Controllers\ContactController;
@@ -31,6 +33,12 @@ use Illuminate\Support\Facades\File;
 
 
 Route::post('/register', [RegisteredUserController::class, 'store']);
+
+// Reactivation routes - accessible even for deactivated users
+Route::middleware('auth')->group(function () {
+    Route::get('/account/reactivation', [ReactivationController::class, 'show'])->name('reactivation.show');
+    Route::post('/account/reactivation', [ReactivationController::class, 'store'])->name('reactivation.store');
+});
 
  //Landing Page Routes
  Route::get('/', function () {
@@ -229,8 +237,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Contact
     Route::get('/admin/inquiries', [ContactController::class, 'index'])->name('inquiries.index');
     Route::patch('/admin/inquiries/{id}', [ContactController::class, 'updateStatus'])->name('inquiries.updateStatus');
+    Route::delete('/admin/inquiries/{id}', [ContactController::class, 'destroy'])->name('inquiries.destroy');
 
+    // Archived Users
+    Route::get('/admin/archived-users', [ArchiveController::class, 'index'])->name('archived-users.index');
+    Route::get('/admin/archived-users/{id}', [ArchiveController::class, 'show'])->name('archived-users.show');
+    Route::post('/admin/archived-users/{id}/restore', [ArchiveController::class, 'restore'])->name('archived-users.restore');
+    Route::post('/admin/users/{userId}/cancel-deactivation', [ArchiveController::class, 'cancelDeactivation'])->name('users.cancel-deactivation');
 
+    // Reactivation Requests (Admin)
+    Route::get('/admin/reactivation-requests', [ReactivationController::class, 'index'])->name('reactivation-requests.index');
+    Route::post('/admin/reactivation-requests/{id}/approve', [ReactivationController::class, 'approve'])->name('reactivation-requests.approve');
+    Route::post('/admin/reactivation-requests/{id}/reject', [ReactivationController::class, 'reject'])->name('reactivation-requests.reject');
 
 });
 

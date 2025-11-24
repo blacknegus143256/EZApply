@@ -12,6 +12,7 @@ import TablePagination from '@/components/ui/table-pagination';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Can } from '@/components/PermissionGate';
+import { Users as UsersIcon, Plus, Search, Edit, Trash2, UserCheck } from 'lucide-react';
 
 interface User {
     id: number;
@@ -102,93 +103,133 @@ useEffect(() => {
         });
     };
 
+    const totalUsers = users.total || users.data.length;
+    const filteredUsersCount = users.data.length;
+
     return (
         <Can permission="view_users" fallback={<div className="p-4">You don't have permission to view users.</div>}>
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="User Management" />
-                <div className="flex flex-col gap-4 p-4">
-                    <Card>
-                        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-start sm:items-center">
+                <div className="space-y-6">
+                    {/* Gradient Header */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-lg">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h1 className="text-4xl font-bold flex items-center gap-3">
+                                    <UsersIcon size={40} />
+                                    User Management
+                                </h1>
+                                <p className="mt-2 text-indigo-100">Manage user accounts and their roles</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-indigo-100 text-sm font-medium">Total Users</p>
+                                <p className="text-5xl font-bold">{totalUsers}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                            <div className="bg-white/20 backdrop-blur rounded-lg p-4">
+                                <p className="text-indigo-100 text-sm font-medium">Total Users</p>
+                                <p className="text-3xl font-bold mt-1">{totalUsers}</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur rounded-lg p-4">
+                                <p className="text-indigo-100 text-sm font-medium">Filtered Results</p>
+                                <p className="text-3xl font-bold mt-1">{filteredUsersCount}</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur rounded-lg p-4">
+                                <Can permission="create_users">
+                                    <Link href={'users/create'}>
+                                        <Button className="bg-white text-indigo-600 hover:bg-indigo-50 font-bold shadow-lg w-full">
+                                            <Plus size={18} className="mr-2" />
+                                            Add New User
+                                        </Button>
+                                    </Link>
+                                </Can>
+                            </div>
+                        </div>
+
+                        {/* Search and Filter */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-200" size={20} />
                                 <Input
                                     value={search}
                                     onChange={(e) => {
                                         setSearch(e.target.value);
                                         handleInstantSearch(e.target.value, selectedRole);
                                     }}
-                                    placeholder="Search by name or email"
-                                    className="w-full sm:w-64"
+                                    placeholder="Search by name or email..."
+                                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-indigo-200 focus:bg-white/20"
                                 />
-
-                                <Select
-                                    value={selectedRole}
-                                    onValueChange={(value) => {
-                                        setSelectedRole(value);
-                                        handleInstantSearch(search, value);
-                                    }}
-                                >
-                                    <SelectTrigger className="w-full sm:w-[180px]">
-                                        <SelectValue placeholder="Filter by Role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Roles</SelectItem>
-                                        {roles.map((role, i) => (
-                                            <SelectItem key={i} value={role}>{role}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
                             </div>
+                            <Select
+                                value={selectedRole}
+                                onValueChange={(value) => {
+                                    setSelectedRole(value);
+                                    handleInstantSearch(search, value);
+                                }}
+                            >
+                                <SelectTrigger className="w-full sm:w-[200px] bg-white/10 border-white/20 text-white">
+                                    <SelectValue placeholder="Filter by Role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Roles</SelectItem>
+                                    {roles.map((role, i) => (
+                                        <SelectItem key={i} value={role}>{role}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
 
-                            <CardAction className="mt-2 sm:mt-0">
-                                <Can permission="create_users">
-                                    <Link href={'users/create'}>
-                                        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
-                                            Add New User
-                                        </Button>
-                                    </Link>
-                                </Can>
-                            </CardAction>
-                        </CardHeader>
-
-                        <hr />
+                    {/* Table Card */}
+                    <Card className="shadow-lg">
 
                         <CardContent className="p-0">
-                            <div className="overflow-x-auto hidden sm:block">
-                                <Table>
-                                    <TableHeader className="bg-gray-100 dark:bg-gray-800">
-                                        <TableRow>
-                                            <TableHead className="w-[200px]">Name</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Role(s)</TableHead>
-                                            <TableHead>Created At</TableHead>
-                                            <TableHead className="text-right">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {loading ? (
+                            {loading ? (
+                                <div className="flex items-center justify-center py-16">
+                                    <div className="loader" />
+                                </div>
+                            ) : users.data.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader className="bg-gray-50">
                                             <TableRow>
-                                                <TableCell colSpan={5} className="h-24">
-                                                    <div className="flex items-center justify-center py-6">
-                                                        <div className="loader" />
-                                                    </div>
-                                                </TableCell>
+                                                <TableHead className="w-[200px] font-semibold">Name</TableHead>
+                                                <TableHead className="font-semibold">Email</TableHead>
+                                                <TableHead className="font-semibold">Role(s)</TableHead>
+                                                <TableHead className="font-semibold">Created At</TableHead>
+                                                <TableHead className="text-right font-semibold">Actions</TableHead>
                                             </TableRow>
-                                        ) : users.data.length > 0 ? (
-                                            users.data.map((user) => (
-                                                <TableRow key={user.id}>
-                                                    <TableCell className="font-medium">{user.first_name ? user.first_name : 'N/A'} {user.last_name ? user.last_name : 'N/A'}</TableCell>
-                                                    <TableCell>{user.email ? user.email : ''}</TableCell>
-                                                    <TableCell className="flex flex-wrap gap-1">
-                                                        {(user.roles ? user.roles : '').split(', ').map((role, index) => (
-                                                            <Badge key={index} variant='secondary' className="rounded-full px-3 py-1 text-xs">{role}</Badge>
-                                                        ))}
+                                        </TableHeader>
+                                        <TableBody>
+                                            {users.data.map((user) => (
+                                                <TableRow key={user.id} className="hover:bg-gray-50 transition-colors">
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex items-center gap-2">
+                                                            <UserCheck size={16} className="text-indigo-600" />
+                                                            <span>{user.first_name ? user.first_name : 'N/A'} {user.last_name ? user.last_name : 'N/A'}</span>
+                                                        </div>
                                                     </TableCell>
-                                                    <TableCell>{user.created_at ?? ''}</TableCell>
+                                                    <TableCell>{user.email ? user.email : ''}</TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {(user.roles ? user.roles : '').split(', ').map((role, index) => (
+                                                                <Badge key={index} variant='secondary' className="bg-indigo-100 text-indigo-700 border-indigo-200 rounded-full px-3 py-1 text-xs">
+                                                                    {role}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-gray-600">{user.created_at ?? ''}</TableCell>
                                                     <TableCell className="text-right">
                                                         <div className="flex justify-end gap-2">
                                                             <Can permission="edit_users">
                                                                 <Link href={`/users/${user.id}/edit`}>
-                                                                    <Button variant='outline' size='sm'>Edit</Button>
+                                                                    <Button variant='outline' size='sm' className="gap-1">
+                                                                        <Edit size={14} />
+                                                                        Edit
+                                                                    </Button>
                                                                 </Link>
                                                             </Can>
                                                             <Can permission="delete_users">
@@ -197,75 +238,36 @@ useEffect(() => {
                                                                     size='sm'
                                                                     onClick={() => openDeleteDialog(user.id)}
                                                                     disabled={auth.user.id === user.id}
+                                                                    className="gap-1"
                                                                 >
+                                                                    <Trash2 size={14} />
                                                                     Delete
                                                                 </Button>
                                                             </Can>
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                                                    No user accounts found.
-                                                </TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
-
-                            <div className="flex flex-col gap-4 sm:hidden">
-                                {loading ? (
-                                    <div className="h-24 flex items-center justify-center">
-                                        <div className="loader" />
-                                    </div>
-                                ) : users.data.length > 0 ? (
-                                    users.data.map((user) => (
-                                        <div key={user.id} className="p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <div className="font-semibold">{user.first_name ? user.first_name : 'N/A'} {user.last_name ? user.last_name : 'N/A'}</div>
-                                                    <div className="text-sm text-gray-500">{user.email ? user.email : 'N/A'}</div>
-                                                </div>
-                                                <div className="flex flex-col gap-2">
-                                                    <Can permission="edit_users">
-                                                        <Link href={`/users/${user.id}/edit`}>
-                                                            <Button variant="outline" size="sm" className="w-full sm:w-auto">Edit</Button>
-                                                        </Link>
-                                                    </Can>
-                                                    <Can permission="delete_users">
-                                                        <Button
-                                                            variant="destructive"
-                                                            size="sm"
-                                                            onClick={() => openDeleteDialog(user.id)}
-                                                            disabled={auth.user.id === user.id}
-                                                            className="w-full sm:w-auto"
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </Can>
-                                                </div>
-                                            </div>
-                                            <div className="mt-2 flex flex-wrap gap-1">
-                                                {(user.roles ? user.roles: 'N/A').split(', ').map((role, index) => (
-                                                    <Badge key={index} variant='secondary' className="rounded-full px-3 py-1 text-xs">{role}</Badge>
-                                                ))}
-                                            </div>
-                                            <div className="mt-2 text-sm text-gray-500">Created at: {user.created_at ?? ''}</div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="h-24 flex items-center justify-center text-gray-500">
-                                        No user accounts found.
-                                    </div>
-                                )}
-                            </div>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                                    <UsersIcon size={56} className="mx-auto text-gray-300 mb-4" />
+                                    <p className="text-gray-500 font-bold text-lg">No users found</p>
+                                    <p className="text-sm text-gray-400 mt-2">
+                                        {search || selectedRole !== 'all' 
+                                            ? 'Try adjusting your search or filter criteria' 
+                                            : 'Get started by creating your first user'}
+                                    </p>
+                                </div>
+                            )}
                         </CardContent>
 
                         {users.data.length > 0 && (
-                            <TablePagination total={users.total} from={users.from} to={users.to} links={users.links} />
+                            <div className="border-t">
+                                <TablePagination total={users.total} from={users.from} to={users.to} links={users.links} />
+                            </div>
                         )}
                     </Card>
                 </div>

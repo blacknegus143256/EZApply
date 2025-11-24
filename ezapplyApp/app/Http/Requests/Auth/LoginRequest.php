@@ -48,6 +48,23 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Check if account is deactivated after successful authentication
+        $user = Auth::user();
+        if ($user->isDeactivated()) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been deactivated. Please request reactivation.',
+            ])->redirectTo(route('reactivation.show'));
+        }
+
+        // Check if account has requested deactivation (grace period)
+        if ($user->hasRequestedDeactivation() && !$user->isDeactivated()) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Your account deactivation has been requested. Please contact support if you wish to cancel.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
