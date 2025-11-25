@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useProfileStatus } from '@/hooks/useProfileStatus';
 import { router } from '@inertiajs/react';
 import '../../css/easyApply.css';
+import SuccessModal from "./SuccessModal";
 interface Region {
   code: string;
   name: string;
@@ -26,6 +27,9 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
   const { isProfileComplete } = useProfileStatus();
   const [showProfileIncompleteModal, setShowProfileIncompleteModal] = useState(false);
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  
   const [anywhere, setAnywhere] = useState(false);
   const [anytime, setAnytime] = useState(false);
 
@@ -59,7 +63,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
     barangay_name: ''
   });
 
-  const [deadlineDate, setDeadlineDate] = useState('');
+  const [preferredDate, setDeadlineDate] = useState('');
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
@@ -165,11 +169,12 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
       axios.post("/applicant/applications", {
         company_id: companyId,
         desired_location: locationStr,
-        deadline_date: deadlineDate
+        preferred_date: preferredDate
       })
       .then(() => {
+        setSuccessMessage("Successfully Applied");
+        setShowSuccessModal(true);
         onApplySuccess?.([companyId]);
-        onClose();
       })
       .catch((err) => {
         console.error('Apply failed', err);
@@ -179,11 +184,12 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
       axios.post('/applicant/applications', {
         companyIds,
         desired_location: locationStr,
-        deadline_date: deadlineDate
+        preferred_date: preferredDate
       })
       .then(() => {
+        setSuccessMessage(`Successfully Applied to ${companyIds.length} companies`);
+        setShowSuccessModal(true);
         onApplySuccess?.(companyIds);
-        onClose();
       })
       .catch((err) => {
         console.error('Bulk apply failed', err);
@@ -191,6 +197,10 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
     }
   };
 
+  const handleCloseSuccess = () => {
+    setShowSuccessModal(false);
+    onClose();
+  };
   const handleProfileRedirect = () => {
     setShowProfileIncompleteModal(false);
     router.get('/applicant/profile');
@@ -209,7 +219,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Desired Location</label>
+              <label className="block text-sm font-medium mb-1">Desire Location</label>
               <label className="flex items-center gap-2 mb-2 text-sm">
                 <input
                   type="checkbox"
@@ -338,7 +348,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium">Deadline Date</label>
+              <label className="block text-sm font-medium">Desire Date</label>
               <label className="flex items-center gap-2 mb-2 text-sm">
                 <input
                   type="checkbox"
@@ -356,7 +366,7 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
                 <input
                   type="date"
                   className="mt-1 block w-full rounded-lg border px-3 py-2"
-                  value={deadlineDate}
+                  value={preferredDate}
                   min={today}
                   onChange={(e) => setDeadlineDate(e.target.value)}
                 />
@@ -410,6 +420,11 @@ const ApplyModal: React.FC<ApplyModalProps> = ({
           </div>
         </div>
       )}
+      <SuccessModal
+        show={showSuccessModal}
+        message={successMessage}
+        onClose={handleCloseSuccess}
+      />
     </>
   );
 };

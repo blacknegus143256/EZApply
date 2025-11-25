@@ -326,30 +326,31 @@ public function myCompanies()
     return Inertia::render('Company/CompanyRegistered', compact('companies'));
 }
 
-   public function companyApplicants()
-{
-    $companyIds = auth()->user()->companies()->pluck ('id') ?? null;
+    public function companyApplicants()
+    {
+        $companyIds = auth()->user()->companies()->pluck ('id') ?? null;
 
-    if (!$companyIds) {
-        abort(403, 'You do not have a company assigned.');
+        if (!$companyIds) {
+            abort(403, 'You do not have a company assigned.');
+        }
+
+        // Get applicants that applied to this company and exclude cancelled
+        $applicants = Application::with([
+            'user',
+            'user.basicInfo',
+            'company'
+            ])
+            ->whereIn('company_id',$companyIds)
+            ->where('is_cancelled', '!=', 1)
+        ->get();
+
+    return Inertia::render('Company/Applicants/CompanyApplicants', [
+        'applicants' => $applicants,
+        'pricing' => [
+            'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
+        ],
+    ]);
     }
-
-    // Get applicants that applied to this company
-    $applicants = Application::with([
-        'user',
-        'user.basicInfo',
-        'company'
-        ])
-        ->whereIn('company_id',$companyIds)
-    ->get();
-
-return Inertia::render('Company/Applicants/CompanyApplicants', [
-    'applicants' => $applicants,
-    'pricing' => [
-        'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
-    ],
-]);
-}
 
 
 public function updateApplicantStatus(Request $request, $id)

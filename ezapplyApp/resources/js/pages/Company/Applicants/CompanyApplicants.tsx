@@ -153,7 +153,9 @@ export default function CompanyApplicants() {
     }, [applicants]);
 
     const filteredApplicants = useMemo(() => {
-        return applicants.filter((a: any) => {
+        return applicants
+        .filter((a: any) =>  a.is_cancelled !== 1 && a.is_cancelled !== "1")
+        .filter((a: any) => {
             const firstName = a.user?.basicinfo?.first_name ?? "";
             const lastName = a.user?.basicinfo?.last_name ?? "";
             const email = a.user?.email ?? "";

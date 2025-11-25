@@ -2,7 +2,9 @@ export type Application = {
   id: number;
   status: string;
   desired_location?: string | null;
-  deadline_date?: string | null; 
+  preferred_date?: string | null; 
+  is_cancelled: boolean;
+  cancelled_at?: string | null;
   user?: {
     id: number;
     email: string;

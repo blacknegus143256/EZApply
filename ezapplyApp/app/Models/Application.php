@@ -13,12 +13,14 @@ class Application extends Model
         'user_id',
         'company_id',
         'desired_location',
-        'deadline_date',
+        'preferred_date',
         'status',
+        'is_cancelled',
+        'cancelled_at',
     ];
 
     protected $casts = [
-        'deadline_date' => 'date',
+        'preferred_date' => 'date',
         'is_cancelled' => 'boolean',
         'cancelled_at' => 'datetime',
     ];

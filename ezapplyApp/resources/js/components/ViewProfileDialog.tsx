@@ -81,14 +81,14 @@ export default function ViewProfileDialog({ open, onOpenChange, application }: P
             </p>
 
             <p>
-              <strong>Desired Location:</strong>{" "}
+              <strong>Desire Location:</strong>{" "}
               {visibleFields.desired_location
                 ? application.desired_location ?? "Anywhere"
                 : maskValue("desired_location")}
             </p>
 
             <p>
-              <strong>Deadline Date:</strong>{" "}
+              <strong>Desire Date:</strong>{" "}
               {visibleFields.deadline_date
                 ? application.deadline_date
                   ? new Date(application.deadline_date).toLocaleDateString()

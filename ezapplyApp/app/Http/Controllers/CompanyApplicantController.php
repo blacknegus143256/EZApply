@@ -17,8 +17,13 @@ class CompanyApplicantController extends Controller
             'user.financial',
             'user.attachments',
             'user.address'
-        ])->findOrFail($id);
-
+        ])
+    ->where('is_cancelled', false)
+    ->findOrFail($id);
+        $applications = Application::with('user.basicinfo')
+        ->where('is_cancelled', false)
+        ->latest()
+        ->get();
         return Inertia::render('Company/Applicants/ApplicantDetails', [
             'application' => $application,
         ]);

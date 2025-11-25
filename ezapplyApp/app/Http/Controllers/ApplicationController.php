@@ -17,7 +17,7 @@ class ApplicationController extends Controller
             'companyIds' => 'sometimes|array|min:1',
             'companyIds.*' => 'integer|exists:companies,id',
             'desired_location' => 'nullable|string|max:255',
-            'deadline_date' => 'nullable|date',
+            'preferred_date' => 'nullable|date',
         ]);
 
         $userId = auth()->id();
@@ -30,22 +30,36 @@ class ApplicationController extends Controller
         }
 
         foreach ($companyIds as $companyId) {
-            Application::firstOrCreate(
+            $existing = Application::where('user_id', $userId)
+            ->where('company_id', $companyId)
+            ->first();
+                    if ($existing) {
+            $existing->update([
+                'is_cancelled' => false,
+                'cancelled_at' => null,
+                'desired_location' => $data['desired_location'] ?? $existing->desired_location,
+                'preferred_date' => $data['preferred_date'] ?? $existing->preferred_date,
+                'status' => 'pending',
+            ]);
+        } else {
+
+            Application::Create(
                 [
                     'user_id' => $userId,
                     'company_id' => $companyId,
                 ],
                 [
                     'desired_location' => $data['desired_location'] ?? null,
-                    'deadline_date' => $data['deadline_date'] ?? null,
+                    'preferred_date' => $data['preferred_date'] ?? null,
                     'status' => 'pending',
+                    'is_cancelled' => false,
                 ]
             );
         }
 
         return back();
     }
-
+    }
     // list logged-in user's applications
     public function index()
     {
@@ -84,7 +98,7 @@ class ApplicationController extends Controller
 
     $application = Application::where('user_id', $userId)
         ->where('company_id', $companyId)
-        ->first();
+        ->firstOrfail();
 
     if (!$application) {
         return response()->json(['error' => 'Application not found'], 404);
@@ -95,7 +109,7 @@ class ApplicationController extends Controller
         ->where('user_id', $userId)
         ->where('company_id', $companyId)
         ->update([
-            'is_cancelled' => 1,
+            'is_cancelled' => true,
             'cancelled_at' => now(),
         ]);
 
