@@ -222,22 +222,23 @@ public function details($id)
         'documents',
     ])->findOrFail($id);
 
-    $allAgents = User::role('company') 
-        ->with('basicInfo')
-        ->get()
-        ->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->basicInfo
-                    ? $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name
-                    : $user->email,
-                'email' => $user->email,
-            ];
-        });
-
-    // Explicitly transform company to ensure agents are included
-    $companyData = $company->toArray();
-    \Log::info('Company agents in response:', ['agents' => $companyData['agents'] ?? 'MISSING']);
+    // Only fetch agents if user is authenticated and is admin
+    $allAgents = [];
+    $user = auth()->user();
+    if ($user && ($user->hasRole('admin') || $user->hasRole('super_admin'))) {
+        $allAgents = User::role('company') 
+            ->with('basicInfo')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->basicInfo
+                        ? $user->basicInfo->first_name . ' ' . $user->basicInfo->last_name
+                        : $user->email,
+                    'email' => $user->email,
+                ];
+            });
+    }
 
     return Inertia::render('Company/CompanyFullDetails', [
         'company' => $company,
@@ -366,7 +367,7 @@ public function myCompanies()
 return Inertia::render('Company/Applicants/CompanyApplicants', [
     'applicants' => $applicants,
     'pricing' => [
-        'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
+        'package_cost' => config('pricing.package_cost', 1),
     ],
 ]);
 }

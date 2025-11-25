@@ -47,6 +47,9 @@ Route::middleware('auth')->group(function () {
  Route::get('/list-companies', function (){
     return Inertia::render('Landing/all-companies');
 })->name('easy-apply-companies');
+Route::get('/terms-and-conditions', function () {
+    return Inertia::render('Landing/TermsAndConditions');
+})->name('terms-and-conditions');
 
     Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::get('/companies/{id}', [CompanyController::class, 'show'])->name('companies.show');
@@ -173,7 +176,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/credits/add', [CreditController::class, 'addCredits'])->name('credits.add');
     Route::put('/company/deduct-balance', [CreditController::class, 'deductBalance'])->name('company.deduct-balance');
     Route::get('/check-applicant-view/{applicationId}', [CreditController::class, 'checkApplicantView']);
-    Route::post('/view-applicant', [CreditController::class, 'viewApplicant']);
+    Route::post('/buy-info/{applicationId}', [CreditController::class, 'buyInfo'])->name('buy.info');
     Route::get('/credits/transactions', [CreditController::class, 'transactionHistory'])
         ->name('credits.transactionHistory');
     Route::get('/credits/pricing', [CreditController::class, 'getPricing'])->name('credits.pricing');

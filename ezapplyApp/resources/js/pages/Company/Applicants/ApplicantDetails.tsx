@@ -1,9 +1,11 @@
 import React from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, Link } from "@inertiajs/react";
 import AppLayout from "@/layouts/app-layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { BreadcrumbItem } from "@/types";
+import { ArrowLeft, User, DollarSign, Building2, MapPin, Paperclip } from "lucide-react";
 
 interface ApplicantDetailsProps {
   application: {
@@ -42,7 +44,7 @@ interface ApplicantDetailsProps {
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: "Dashboard", href: "/dashboard" },
-  { title: "Company Applicants", href: "/company-applicants" },
+  { title: "Company Applicants", href: "/company/applicants" },
   { title: "Applicant Details", href: "#" },
 ];
 
@@ -98,11 +100,40 @@ export default function ApplicantDetails() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applicant Details" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Basic Info */}
-        <Card>
-          <CardHeader />
-          <CardContent>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <User size={32} className="sm:w-10 sm:h-10" />
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold">Applicant Details</h1>
+                <p className="text-blue-100 text-sm sm:text-base mt-1">
+                  {applicant.user?.basicinfo?.first_name && applicant.user?.basicinfo?.last_name
+                    ? `${applicant.user.basicinfo.first_name} ${applicant.user.basicinfo.last_name}`
+                    : applicant.user?.email || 'Applicant Information'}
+                </p>
+              </div>
+            </div>
+            <Link href="/company-applicants">
+              <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <ArrowLeft size={18} className="mr-2" />
+                Back to Applicants
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Info */}
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
             {renderTable([
               {
                 key: "full_name",
@@ -144,11 +175,14 @@ export default function ApplicantDetails() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Financial Information</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Financial Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
             {applicant.user?.financial ? (
               renderTable([
                 {
@@ -186,11 +220,14 @@ export default function ApplicantDetails() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Affiliations</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-purple-600" />
+                Affiliations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
             {applicant.user?.affiliations?.length
               ? renderTable(
                   applicant.user.affiliations.map((a, i) => ({
@@ -203,11 +240,14 @@ export default function ApplicantDetails() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Address</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-orange-600" />
+                Address
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
             {applicant.user?.address ? (
               renderTable([
                 {
@@ -237,11 +277,14 @@ export default function ApplicantDetails() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Attachments</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <Card className="md:col-span-2 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/20 dark:to-slate-900/20">
+              <CardTitle className="flex items-center gap-2">
+                <Paperclip className="w-5 h-5 text-gray-600" />
+                Attachments
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
             {applicant.user?.attachments?.length
               ? renderTable(
                   applicant.user.attachments.map((att, i) => ({
@@ -250,9 +293,10 @@ export default function ApplicantDetails() {
                     value: att.attachment_type,
                   }))
                 )
-              : <p>No attachments</p>}
-          </CardContent>
-        </Card>
+              : <p className="text-gray-500 dark:text-gray-400">No attachments</p>}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AppLayout>
   );

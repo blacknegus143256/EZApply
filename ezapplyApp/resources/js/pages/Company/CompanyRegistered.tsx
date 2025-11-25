@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Zap, Calendar, MapPin } from "lucide-react";
+import { Loader2, Zap, Calendar, MapPin, Building2, CheckCircle, XCircle, Clock, Search, Filter, Plus } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
 import { Link } from '@inertiajs/react';
 import { route } from 'ziggy-js';
@@ -178,6 +178,15 @@ const CompanyRegistered = () => {
         });
     }, [companies, searchTerm, franchiseTypeFilter, statusFilter, createdAtFilter]);
 
+    // Calculate stats
+    const stats = useMemo(() => {
+        const total = companies.length;
+        const pending = companies.filter((c) => c.status === 'pending').length;
+        const approved = companies.filter((c) => c.status === 'approved').length;
+        const rejected = companies.filter((c) => c.status === 'rejected').length;
+        return { total, pending, approved, rejected };
+    }, [companies]);
+
     const breadcrumbs = [
         { title: "Dashboard", href: "/dashboard" },
         { title: "Company Request", href: "/my-companies" },
@@ -207,8 +216,14 @@ const CompanyRegistered = () => {
         if (filteredCompanies.length === 0) {
             return (
                 <TableRow key="no-companies">
-                    <TableCell colSpan={8} className="text-center text-gray-500">
-                        No companies found matching your filters.
+                    <TableCell colSpan={8} className="text-center py-12">
+                        <Building2 className="mx-auto text-gray-400 mb-4" size={48} />
+                        <p className="text-gray-600 dark:text-gray-400 font-medium">No companies found</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                            {searchTerm || franchiseTypeFilter !== "all" || statusFilter !== "all" || createdAtFilter !== "all"
+                                ? 'Try adjusting your search or filter criteria'
+                                : 'Register your first company to get started.'}
+                        </p>
                     </TableCell>
                 </TableRow>
             );
@@ -251,74 +266,163 @@ const CompanyRegistered = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Company Request" />
-            <div className="bg-across-pages min-h-screen p-5">
-                <Card className="rounded-xl shadow-lg dark:bg-neutral-900">
-                    <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 p-4 md:p-6">
-                        <CardTitle className="text-2xl font-bold">My Registered Companies</CardTitle>
-                        
+            
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 sm:p-8 text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                            <Building2 size={32} className="sm:w-10 sm:h-10" />
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-bold">My Registered Companies</h1>
+                                <p className="text-blue-100 text-sm sm:text-base mt-1">
+                                    Manage and track your company registrations
+                                </p>
+                            </div>
+                        </div>
+                        <Button asChild variant="secondary" className="hidden sm:flex">
+                            <Link href={'/company/register'}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Company
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
 
-                        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto items-start md:items-center">
-                            
-                            <div className="flex flex-wrap gap-2 w-full"> 
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="shadow-md">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Companies</p>
+                                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                                </div>
+                                <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                                    <Building2 className="text-blue-600 dark:text-blue-400" size={24} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
+                    <Card className="shadow-md">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+                                    <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                                </div>
+                                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                                    <Clock className="text-yellow-600 dark:text-yellow-400" size={24} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-md">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
+                                    <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
+                                </div>
+                                <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                                    <CheckCircle className="text-green-600 dark:text-green-400" size={24} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-md">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
+                                    <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+                                </div>
+                                <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-lg">
+                                    <XCircle className="text-red-600 dark:text-red-400" size={24} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Filters */}
+                <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Filter className="w-5 h-5" />
+                            Filters
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                                 <Input
                                     type="text"
                                     placeholder="Search Company..."
-                                    className="w-full sm:w-auto min-w-[160px] md:max-w-sm"
+                                    className="pl-10"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                
-                                <Select value={franchiseTypeFilter} onValueChange={setFranchiseTypeFilter}>
-                                    <SelectTrigger className="w-full sm:w-[180px] min-w-[120px]">
-                                        <SelectValue placeholder="Franchise Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Types</SelectItem>
-                                        {franchiseTypes.map((type) => (
-                                            <SelectItem key={type} value={type}>
-                                                {type}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                
-                                <Select value={statusFilter} onValueChange={(v: string) => setStatusFilter(v as Company['status'] | 'all')}>
-                                    <SelectTrigger className="w-full sm:w-[140px] min-w-[120px]">
-                                        <SelectValue placeholder="Status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Statuses</SelectItem>
-                                        <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="approved">Approved</SelectItem>
-                                        <SelectItem value="rejected">Rejected</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                
-                                <Select value={createdAtFilter} onValueChange={setCreatedAtFilter}>
-                                    <SelectTrigger className="w-full sm:w-[140px] min-w-[120px]">
-                                        <SelectValue placeholder="Date Added" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Time</SelectItem>
-                                        <SelectItem value="today">Today</SelectItem>
-                                        <SelectItem value="this-week">This Week</SelectItem>
-                                        <SelectItem value="this-month">This Month</SelectItem>
-                                        <SelectItem value="this-year">This Year</SelectItem>
-                                    </SelectContent>
-                                </Select>
                             </div>
+                            
+                            <Select value={franchiseTypeFilter} onValueChange={setFranchiseTypeFilter}>
+                                <SelectTrigger className="w-full sm:w-[180px]">
+                                    <SelectValue placeholder="Franchise Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Types</SelectItem>
+                                    {franchiseTypes.map((type) => (
+                                        <SelectItem key={type} value={type}>
+                                            {type}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            
+                            <Select value={statusFilter} onValueChange={(v: string) => setStatusFilter(v as Company['status'] | 'all')}>
+                                <SelectTrigger className="w-full sm:w-[140px]">
+                                    <SelectValue placeholder="Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Statuses</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="approved">Approved</SelectItem>
+                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            
+                            <Select value={createdAtFilter} onValueChange={setCreatedAtFilter}>
+                                <SelectTrigger className="w-full sm:w-[140px]">
+                                    <SelectValue placeholder="Date Added" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Time</SelectItem>
+                                    <SelectItem value="today">Today</SelectItem>
+                                    <SelectItem value="this-week">This Week</SelectItem>
+                                    <SelectItem value="this-month">This Month</SelectItem>
+                                    <SelectItem value="this-year">This Year</SelectItem>
+                                </SelectContent>
+                            </Select>
 
-                            <div className="w-full md:w-auto mt-2 md:mt-0"> 
-                                <Button variant="default" size="sm" className="w-full md:w-auto">
-                                    <Link href={'/company/register'}>Add Company</Link>
-                                </Button>
-                            </div>
+                            <Button asChild variant="default" className="sm:hidden">
+                                <Link href={'/company/register'}>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Company
+                                </Link>
+                            </Button>
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Companies Table */}
+                <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Companies List</CardTitle>
                     </CardHeader>
-
-                    <hr className="border-gray-200 dark:border-neutral-800" />
-
                     <CardContent className="p-0">
 
                         <div className="hidden md:block overflow-x-auto">
@@ -342,20 +446,24 @@ const CompanyRegistered = () => {
                         </div>
 
                         <div className="md:hidden p-4 space-y-3">
-                            {filteredCompanies.length === 0 && !loading && !error ? (
-                                <p className="text-center text-gray-500 p-4">
-                                    No companies found matching your filters.
-                                </p>
+                            {loading && filteredCompanies.length === 0 ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                                </div>
+                            ) : filteredCompanies.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Building2 className="mx-auto text-gray-400 mb-4" size={48} />
+                                    <p className="text-gray-600 dark:text-gray-400 font-medium">No companies found</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                                        {searchTerm || franchiseTypeFilter !== "all" || statusFilter !== "all" || createdAtFilter !== "all"
+                                            ? 'Try adjusting your search or filter criteria'
+                                            : 'Register your first company to get started.'}
+                                    </p>
+                                </div>
                             ) : (
                                 filteredCompanies.map((company) => (
                                     <CompanyCard key={company.id} company={company} />
                                 ))
-                            )}
-                            {loading && (
-                                <div className="text-center text-gray-500 p-4">
-                                    <Loader2 className="h-6 w-6 animate-spin inline-block mr-2" />
-                                    Loading companies...
-                                </div>
                             )}
                             {error && (
                                 <div className="text-center text-red-500 p-4">{error}</div>

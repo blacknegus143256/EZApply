@@ -28,7 +28,11 @@ import {
   Activity,
   Target,
   Award,
-  Clock
+  Clock,
+  UserPlus,
+  CheckCircle2,
+  XCircle,
+  Mail
 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import CompanyWelcomeModal from '@/components/CompanyWelcomeModal';
@@ -50,8 +54,19 @@ interface DashboardStats {
   userRole?: string;
 }
 
+interface ActivityItem {
+  type: string;
+  icon: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  color: string;
+  bgColor: string;
+}
+
 interface DashboardProps {
   stats?: DashboardStats;
+  activities?: ActivityItem[];
 }
 interface Company {
   id: number;
@@ -66,7 +81,7 @@ interface Company {
   status: "pending" | "approved" | "rejected";
 }
 
-export default function Dashboard({ stats }: DashboardProps) {
+export default function Dashboard({ stats, activities = [] }: DashboardProps) {
       const { auth } = usePage().props as any;
       const user = auth?.user;
       const userRole = stats?.userRole || 'customer';
@@ -420,20 +435,77 @@ export default function Dashboard({ stats }: DashboardProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="text-center py-12">
-                    <div className="relative">
-                      <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
-                        <BarChart3 className="h-10 w-10 text-blue-600" />
-                      </div>
-                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <Award className="w-3 h-3 text-white" />
-                      </div>
+                  {activities && activities.length > 0 ? (
+                    <div className="space-y-4">
+                      {activities.map((activity, index) => {
+                        const iconMap: Record<string, React.ComponentType<any>> = {
+                          'Building2': Building2,
+                          'FileText': FileText,
+                          'MessageCircle': MessageCircle,
+                          'CreditCard': CreditCard,
+                          'UserPlus': UserPlus,
+                          'CheckCircle2': CheckCircle2,
+                          'XCircle': XCircle,
+                          'Mail': Mail,
+                          'Activity': Activity,
+                        };
+                        const IconComponent = iconMap[activity.icon] || Activity;
+
+                        const timeAgo = (timestamp: string) => {
+                          const now = new Date();
+                          const time = new Date(timestamp);
+                          const diffInSeconds = Math.floor((now.getTime() - time.getTime()) / 1000);
+                          
+                          if (diffInSeconds < 60) return 'Just now';
+                          if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+                          if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+                          if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+                          return time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        };
+
+                        return (
+                          <div 
+                            key={index} 
+                            className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                          >
+                            <div className={`p-2 rounded-lg ${activity.bgColor} flex-shrink-0`}>
+                              <IconComponent className={`w-5 h-5 ${activity.color}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                                    {activity.title}
+                                  </h4>
+                                  <p className="text-sm text-gray-600 line-clamp-2">
+                                    {activity.description}
+                                  </p>
+                                </div>
+                                <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                  {timeAgo(activity.timestamp)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No recent activity</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      Your recent activities, applications, and system updates will appear here
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="relative">
+                        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                          <BarChart3 className="h-10 w-10 text-blue-600" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <Award className="w-3 h-3 text-white" />
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No recent activity</h3>
+                      <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                        Your recent activities, applications, and system updates will appear here
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

@@ -6,7 +6,9 @@
     use App\Models\UserCredit;
     use App\Models\ApplicantView;
     use App\Models\CreditTransaction;
+    use App\Models\User;
     use App\Notifications\CreditBalanceLow;
+    use App\Notifications\PricingChanged;
     use Illuminate\Support\Facades\DB;
     use Illuminate\Support\Facades\Log;
     use Illuminate\Support\Facades\Artisan;
@@ -49,12 +51,19 @@
                     });
             }
 
-            $pricing = null;
-            if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
-                $pricing = [
-                    'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
-                    'package_cost' => config('pricing.package_cost', 1),
-                ];
+            // Pricing is available to all users (agents need to see costs)
+            $pricing = [
+                'package_cost' => config('pricing.package_cost', 1),
+            ];
+
+            // Get recent pricing change notifications for the user (only for company users)
+            $recentPricingNotification = null;
+            if ($user->hasRole('company')) {
+                $recentPricingNotification = $user->notifications()
+                    ->where('type', 'App\Notifications\PricingChanged')
+                    ->whereNull('read_at')
+                    ->latest()
+                    ->first();
             }
 
             return inertia('Credits/balancePage', [
@@ -62,6 +71,11 @@
                 'credit_transactions' => $credit_transactions,
                 'companies' => $companies,
                 'pricing' => $pricing,
+                'recent_pricing_notification' => $recentPricingNotification ? [
+                    'id' => $recentPricingNotification->id,
+                    'data' => $recentPricingNotification->data,
+                    'created_at' => $recentPricingNotification->created_at->toISOString(),
+                ] : null,
             ]);
         }
 
@@ -93,25 +107,24 @@
             try {
                 DB::transaction(function () use ($targetUser, $amount, $user) {
 
-                    // Lock the user's credit row if it exists; otherwise create it and then lock
                     $userCredit = UserCredit::where('user_id', $targetUser->id)->lockForUpdate()->first();
                     if (!$userCredit) {
                         $userCredit = UserCredit::create([
                             'user_id' => $targetUser->id,
                             'balance' => 0,
                         ]);
-                        // Lock the newly created record to be safe
+                        
                         $userCredit = UserCredit::where('user_id', $targetUser->id)->lockForUpdate()->first();
                     }
 
-                    // Increment balance
+                    
                     $userCredit->increment('balance', $amount);
 
-                    // Create the Transaction Record for the target user
+                    // Create the Transaction Record
                     CreditTransaction::create([
                         'user_id'     => $targetUser->id,
-                        'amount'      => $amount,       // Positive number for adding
-                        'type'        => 'top_up',      // Different type than 'usage'
+                        'amount'      => $amount,       
+                        'type'        => 'top_up',      
                         'description' => "Admin added {$amount} credits to wallet",
                         'metadata'    => json_encode([
                             'method' => 'manual_add',
@@ -139,10 +152,8 @@
                 ], 401);
             }
 
-            // price
             $cost = config('pricing.package_cost', 1);
 
-            // Basic permission check
             $application = DB::table('applications')->where('id', $applicationId)->first();
 
             if (!$application) {
@@ -155,14 +166,14 @@
             $isCompany = $user->hasRole('company');
             $isOwner = isset($application->user_id) && $application->user_id === $user->id;
 
-            if (!($isCompany || $isOwner)) {
+            if (!$isCompany || $isOwner) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'You are not authorized to purchase this applicant.',
                 ], 403);
             }
 
-            $alreadyPurchased = ApplicantView::where('user_id', $user->id)
+            $alreadyPurchased = ApplicantView::where('company_id', $user->id)
                 ->where('application_id', $applicationId)
                 ->where('field_key', 'package')
                 ->exists();
@@ -179,7 +190,8 @@
 
             try {
                 $newBalance = null;
-                DB::transaction(function () use ($user, $applicationId, $cost, &$newBalance) {
+                DB::transaction(function () use ($user, $applicationId, $cost, &$newBalance, $isCompany, $application) {
+                    
                     $userCredit = UserCredit::where('user_id', $user->id)->lockForUpdate()->first();
                     if (!$userCredit) {
                         $userCredit = UserCredit::create([
@@ -195,28 +207,31 @@
                     $userCredit->balance -= $cost;
                     $userCredit->save();
 
-                    ApplicantView::create([
-                        'user_id' => $user->id,
+                    $applicantViewData = [
                         'application_id' => $applicationId,
                         'field_key' => 'package',
                         'paid' => true,
-                    ]);
+                    ];
+                    
+                    $applicantViewData['company_id'] = $user->id;
+                    $applicantViewData['user_id'] = $application->user_id; 
+                    
+                    ApplicantView::create($applicantViewData);
 
                     CreditTransaction::create([
                         'user_id' => $user->id,
                         'amount' => -$cost,
-                        'type' => 'usage',
+                        'type' => 'purchase_info',
                         'description' => "Purchased package (full applicant profile) for application ID: {$applicationId}",
                         'metadata' => json_encode([
                             'application_id' => $applicationId,
                             'package' => true,
                         ]),
                     ]);
-                
+                    
                     $newBalance = $userCredit->balance;
                 });
 
-                // Check if balance is low and notify user
                 if ($newBalance <= 5 && $newBalance > 0) {
                     $user->notify(new CreditBalanceLow($newBalance, 5));
                 }
@@ -235,59 +250,6 @@
             }
         }
 
-        public function viewApplicant(Request $request)
-        {
-            $user = auth()->user(); 
-            $applicationId = $request->application_id;
-            $cost = config('pricing.applicant_info_cost', 1); 
-
-            $existingView = ApplicantView::where('company_id', $user->id)
-                ->where('application_id', $applicationId)
-                ->first();
-
-            if ($existingView) {
-                return response()->json(['message' => 'You already bought this info.'], 200);
-            }
-
-            $application = \App\Models\Application::find($applicationId);
-            if (!$application) {
-                return response()->json(['message' => 'Application not found.'], 404);
-            }
-
-            $credit = UserCredit::where('user_id', $user->id)->first();
-
-            if (!$credit || $credit->balance < $cost) {
-                return response()->json(['message' => 'Insufficient balance.'], 400);
-            }
-
-            $credit->balance -= $cost;
-            $credit->save();
-
-            ApplicantView::create([
-                'company_id' => $user->id,
-                'user_id' => $application->user_id, 
-                'application_id' => $applicationId,
-                'field_key' => 'basic_profile',
-            ]);
-
-            CreditTransaction::create([
-                'user_id' => $user->id,
-                'amount' => -$cost,
-                'type' => 'purchase_info',
-                'description' => "Purchased applicant info (Application ID: {$applicationId})",
-            ]);
-
-            // Check if balance is low and notify user
-            if ($credit->balance <= 5 && $credit->balance > 0) {
-                $user->notify(new \App\Notifications\CreditBalanceLow($credit->balance, 5));
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Applicant info purchased successfully.',
-                'new_balance' => $credit->balance,
-            ]);
-        }
 
 
         public function checkApplicantView($applicationId)
@@ -300,7 +262,7 @@
 
             $view = ApplicantView::where('company_id', $user->id)
                 ->where('application_id', $applicationId)
-                ->whereIn('field_key', ['basic_profile', 'package'])
+                ->where('field_key', 'package')
                 ->get();
 
             $paidFields = $view->pluck('field_key')->toArray();
@@ -320,7 +282,6 @@
             }
 
             return response()->json([
-                'applicant_info_cost' => config('pricing.applicant_info_cost', 1),
                 'package_cost' => config('pricing.package_cost', 1),
             ]);
         }
@@ -334,14 +295,16 @@
             }
 
             $validated = $request->validate([
-                'applicant_info_cost' => 'required|numeric|min:0',
                 'package_cost' => 'required|numeric|min:0',
             ]);
 
             try {
+                // Get old pricing before updating
+                $oldPackageCost = config('pricing.package_cost', 1);
+
                 $configPath = config_path('pricing.php');
                 
-                // Check if config directory is writable
+                // Check if config
                 if (!is_writable(config_path())) {
                     Log::error("Config directory is not writable: " . config_path());
                     return redirect()->back()->withErrors(['error' => 'Configuration directory is not writable. Please check file permissions.']);
@@ -351,7 +314,6 @@
                     '<?php',
                     '',
                     'return [',
-                    '    \'applicant_info_cost\' => ' . $validated['applicant_info_cost'] . ',',
                     '    \'package_cost\' => ' . $validated['package_cost'] . ',',
                     '];',
                 ];
@@ -367,11 +329,21 @@
                 try {
                     Artisan::call('config:clear');
                 } catch (\Exception $e) {
-                    // If clearing cache fails, log but don't fail the request
                     Log::warning("Failed to clear config cache: " . $e->getMessage());
                 }
 
-                return redirect()->back()->with('message', 'Pricing updated successfully.');
+                // to notify all company users if pricing changed
+                if ($oldPackageCost != $validated['package_cost']) {
+                    $companyUsers = User::role('company')->get();
+                    foreach ($companyUsers as $companyUser) {
+                        $companyUser->notify(new PricingChanged(
+                            $oldPackageCost,
+                            $validated['package_cost']
+                        ));
+                    }
+                }
+
+                return redirect()->back()->with('message', 'Pricing updated successfully. All agents have been notified.');
             } catch (\Exception $e) {
                 Log::error("Update pricing failed: " . $e->getMessage());
                 return redirect()->back()->withErrors(['error' => 'Failed to update pricing: ' . $e->getMessage()]);

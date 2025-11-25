@@ -10,6 +10,7 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import AuthLayout from '@/layouts/auth-layout';
 import AppLogoIcon from '../../components/app-logo-icon';
 
@@ -28,6 +29,7 @@ const { data, setData, post, processing, errors } = useForm({
     email: '',
     password: '',
     password_confirmation: '',
+    terms_accepted: false,
 });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -140,8 +142,41 @@ const { data, setData, post, processing, errors } = useForm({
                             />
                         <InputError message={errors.password_confirmation} />
                     </div>
+
+                    {/* Terms and Conditions */}
+                    <div className="flex items-start gap-2 pt-2">
+                        <Checkbox
+                            id="terms_accepted"
+                            checked={(data as any).terms_accepted}
+                            onCheckedChange={(checked) => setData('terms_accepted' as any, checked === true)}
+                            className="mt-1 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                            tabIndex={9}
+                        />
+                        <Label 
+                            htmlFor="terms_accepted" 
+                            className="text-sm text-gray-700 cursor-pointer leading-relaxed"
+                        >
+                            I agree to the{' '}
+                            <a 
+                                href="/terms-and-conditions" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline font-medium"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                Terms and Conditions
+                            </a>
+                        </Label>
+                    </div>
+                    <InputError message={(errors as any).terms_accepted} className="mt-1" />
+
                     {/* Submit Button */}
-                    <Button type="submit" className="w-full bg-gradient-to-tr from-blue-900 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all" tabIndex={9}>
+                    <Button 
+                        type="submit" 
+                        disabled={!((data as any).terms_accepted) || processing}
+                        className="w-full bg-gradient-to-tr from-blue-900 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                        tabIndex={10}
+                    >
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
